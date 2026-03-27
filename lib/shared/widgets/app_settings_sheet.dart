@@ -56,6 +56,14 @@ class _AppSettingsSheet extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    tooltip: 'Закрыть',
+                    icon: const Icon(Icons.close, color: AppColors.black),
+                  ),
+                ),
                 Text('НАСТРОЙКИ', style: AppTypography.eyebrow),
                 const SizedBox(height: 8),
                 Text(
@@ -107,6 +115,17 @@ class _AppSettingsSheet extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 14),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text(
+                      'ЗАКРЫТЬ',
+                      style: AppTypography.button.copyWith(letterSpacing: 3),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton(

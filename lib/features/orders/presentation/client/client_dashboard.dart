@@ -16,6 +16,7 @@ import '../../../orders/domain/enums/delivery_method.dart';
 import '../../../orders/domain/enums/order_status.dart';
 import '../../../orders/domain/models/order_model.dart';
 import '../../../products/data/product_repository.dart';
+import '../shared/order_digital_twin_card.dart';
 import '../shared/order_formatters.dart';
 import '../shared/order_panels.dart';
 import 'client_data.dart';
@@ -80,6 +81,8 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
   String? _selectedSize;
   int _selectedImageIndex = 0;
   int _quantity = 1;
+  bool _catalogSectionsExpanded = false;
+  bool _catalogFiltersExpanded = false;
   bool _descriptionExpanded = true;
   bool _specificationsExpanded = false;
   bool _careExpanded = false;
@@ -173,6 +176,27 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         filtered.sort((a, b) => b.price.compareTo(a.price));
         return filtered;
     }
+  }
+
+  int get _activeCatalogFiltersCount {
+    var count = 0;
+    if (_categoryFilter != null) {
+      count++;
+    }
+    if (_sizeFilter != null) {
+      count++;
+    }
+    if (_colorFilter != null) {
+      count++;
+    }
+    if (_sortOption != CatalogSortOption.defaultOrder) {
+      count++;
+    }
+    if (_priceRange.start != _catalogMinPrice ||
+        _priceRange.end != _catalogMaxPrice) {
+      count++;
+    }
+    return count;
   }
 
   @override
@@ -296,12 +320,15 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       return _buildPaymentScreen(clientId);
     }
     if (_view == ClientView.tracking) {
-      return _buildTrackingScreen(trackedOrder);
+      return _buildTrackingScreen(
+        trackedOrder,
+        clientDisplayName: ref.watch(currentUserProvider).value?.name,
+      );
     }
 
     return switch (_tab) {
       ClientTab.dashboard => _buildDashboardScreen(orders),
-      ClientTab.collections => _buildCollectionsScreen(),
+      ClientTab.collections => _buildCompactCollectionsScreen(),
       ClientTab.archive => _buildArchiveScreen(orders),
       ClientTab.profile => _buildProfileScreen(
         orders,
@@ -420,6 +447,153 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     );
   }
 
+  Widget _buildCompactCollectionsScreen() {
+    final products = _visibleProducts;
+    final filtersSummary = _activeCatalogFiltersCount == 0
+        ? '${products.length} моделей'
+        : '$_activeCatalogFiltersCount фильтров • ${products.length} моделей';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'ГЛАВНАЯ / ${_activeSection.toUpperCase()}',
+          style: AppTypography.code,
+        ),
+        const SizedBox(height: 12),
+        _catalogAccordion(
+          eyebrow: 'РАЗДЕЛЫ КАТАЛОГА',
+          title: _activeSection.toUpperCase(),
+          summary: 'Текущий раздел каталога',
+          expanded: _catalogSectionsExpanded,
+          onToggle: () {
+            setState(
+              () => _catalogSectionsExpanded = !_catalogSectionsExpanded,
+            );
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ...catalogSections.map(
+                (section) => _catalogSectionTile(
+                  label: section,
+                  active: section == _activeSection,
+                  onTap: () {
+                    setState(() {
+                      _selectSection(section);
+                      _catalogSectionsExpanded = false;
+                    });
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        _catalogAccordion(
+          eyebrow: 'ФИЛЬТРЫ И СОРТИРОВКА',
+          title: _activeSection.toUpperCase(),
+          summary: filtersSummary,
+          expanded: _catalogFiltersExpanded,
+          onToggle: () {
+            setState(() => _catalogFiltersExpanded = !_catalogFiltersExpanded);
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _sortSelector(),
+              const SizedBox(height: 14),
+              InkWell(
+                onTap: () {
+                  setState(_resetCatalogFilters);
+                },
+                child: Text(
+                  'Очистить выбор',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              _filterGroup(
+                title: 'Категория',
+                options: _categoryOptions,
+                selectedValue: _categoryFilter,
+                onChanged: (value) => setState(() => _categoryFilter = value),
+              ),
+              _filterGroup(
+                title: 'Размер',
+                options: _sizeOptions,
+                selectedValue: _sizeFilter,
+                onChanged: (value) => setState(() => _sizeFilter = value),
+              ),
+              _filterGroup(
+                title: 'Цвет',
+                options: _colorOptions,
+                selectedValue: _colorFilter,
+                onChanged: (value) => setState(() => _colorFilter = value),
+              ),
+              Text('ЦЕНА', style: AppTypography.eyebrow),
+              const SizedBox(height: 10),
+              SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                  activeTrackColor: AppColors.black,
+                  inactiveTrackColor: AppColors.surfaceDim,
+                  thumbColor: AppColors.black,
+                  overlayColor: AppColors.black.withValues(alpha: 0.08),
+                  rangeThumbShape: const RoundRangeSliderThumbShape(
+                    enabledThumbRadius: 8,
+                  ),
+                ),
+                child: RangeSlider(
+                  min: _catalogMinPrice,
+                  max: _catalogMaxPrice,
+                  divisions: 10,
+                  values: _priceRange,
+                  onChanged: (values) {
+                    setState(() => _priceRange = values);
+                  },
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(formatCurrency(_priceRange.start)),
+                  Text(formatCurrency(_priceRange.end)),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        if (products.isEmpty)
+          _surfaceCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('НЕТ СОВПАДЕНИЙ', style: AppTypography.eyebrow),
+                const SizedBox(height: 10),
+                Text(
+                  'Попробуйте снять один из фильтров или выбрать другой раздел каталога.',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ],
+            ),
+          ),
+        ...products.map(
+          (product) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _productCard(
+              product: product,
+              onTap: () => _openProduct(product),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ignore: unused_element
   Widget _buildCollectionsScreen() {
     final products = _visibleProducts;
 
@@ -1123,7 +1297,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     );
   }
 
-  Widget _buildTrackingScreen(OrderModel? order) {
+  Widget _buildTrackingScreen(OrderModel? order, {String? clientDisplayName}) {
     if (order == null) {
       return _surfaceCard(
         child: Text(
@@ -1136,31 +1310,37 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _surfaceCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('ЗАКАЗ #${order.shortId}', style: AppTypography.eyebrow),
-              const SizedBox(height: 12),
-              Text(
-                order.productName,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                order.status.roleDescription,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 12),
-              LinearProgressIndicator(value: order.status.progressValue),
-              const SizedBox(height: 10),
-              Text(
-                'СТАТУС / ${order.status.clientLabel}',
-                style: AppTypography.code,
-              ),
-            ],
-          ),
+        OrderDigitalTwinCard(
+          order: order,
+          clientDisplayName: clientDisplayName,
         ),
+        const SizedBox(height: 12),
+        if (order.id.isEmpty)
+          _surfaceCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('ЗАКАЗ #${order.shortId}', style: AppTypography.eyebrow),
+                const SizedBox(height: 12),
+                Text(
+                  order.productName,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  order.status.roleDescription,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 12),
+                LinearProgressIndicator(value: order.status.progressValue),
+                const SizedBox(height: 10),
+                Text(
+                  'СТАТУС / ${order.status.clientLabel}',
+                  style: AppTypography.code,
+                ),
+              ],
+            ),
+          ),
         const SizedBox(height: 12),
         OrderInfoCard(
           title: 'ДЕТАЛИ ЗАКАЗА',
@@ -1196,8 +1376,6 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             ],
           ),
         ],
-        const SizedBox(height: 12),
-        OrderTimelineCard(timeline: order.timeline),
         const SizedBox(height: 12),
         Row(
           children: [
@@ -1456,6 +1634,57 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
           Text(label, style: AppTypography.eyebrow),
           const SizedBox(height: 12),
           Text(value, style: Theme.of(context).textTheme.titleLarge),
+        ],
+      ),
+    );
+  }
+
+  Widget _catalogAccordion({
+    required String eyebrow,
+    required String title,
+    required String summary,
+    required bool expanded,
+    required VoidCallback onToggle,
+    required Widget child,
+  }) {
+    return _surfaceCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InkWell(
+            onTap: onToggle,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(eyebrow, style: AppTypography.eyebrow),
+                      const SizedBox(height: 10),
+                      Text(
+                        title,
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        summary,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.secondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Icon(
+                  expanded ? Icons.remove : Icons.add,
+                  color: AppColors.black,
+                ),
+              ],
+            ),
+          ),
+          if (expanded) ...[const SizedBox(height: 18), child],
         ],
       ),
     );

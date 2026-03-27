@@ -13,6 +13,7 @@ import '../../../auth/data/auth_repository.dart';
 import '../../../orders/data/order_repository.dart';
 import '../../../orders/domain/enums/order_status.dart';
 import '../../../orders/domain/models/order_model.dart';
+import '../shared/order_digital_twin_card.dart';
 import '../shared/order_panels.dart';
 
 final franchiseeOrdersProvider = StreamProvider<List<OrderModel>>((ref) {
@@ -80,12 +81,15 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
         });
       },
       body: ordersAsync.when(
-        data: (orders) => SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(18, 18, 18, 22),
-          child: _selectedOrder != null
-              ? _detailView(_selectedOrder!)
-              : _rootView(orders),
-        ),
+        data: (orders) {
+          final selectedOrder = _resolveSelectedOrder(orders);
+          return SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(18, 18, 18, 22),
+            child: _selectedOrder != null
+                ? _detailView(selectedOrder ?? _selectedOrder!)
+                : _rootView(orders),
+          );
+        },
         loading: () =>
             const Center(child: CircularProgressIndicator(color: Colors.black)),
         error: (err, _) => Center(child: Text('Ошибка загрузки: $err')),
@@ -258,28 +262,31 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _surfaceCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('ЗАКАЗ #${order.shortId}', style: AppTypography.eyebrow),
-              const SizedBox(height: 12),
-              Text(
-                order.productName,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                order.status.roleDescription,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 12),
-              LinearProgressIndicator(value: order.status.progressValue),
-              const SizedBox(height: 10),
-              Text(order.status.panelLabel, style: AppTypography.code),
-            ],
+        OrderDigitalTwinCard(order: order),
+        const SizedBox(height: 12),
+        if (order.id.isEmpty)
+          _surfaceCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('ЗАКАЗ #${order.shortId}', style: AppTypography.eyebrow),
+                const SizedBox(height: 12),
+                Text(
+                  order.productName,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  order.status.roleDescription,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 12),
+                LinearProgressIndicator(value: order.status.progressValue),
+                const SizedBox(height: 10),
+                Text(order.status.panelLabel, style: AppTypography.code),
+              ],
+            ),
           ),
-        ),
         const SizedBox(height: 12),
         OrderInfoCard(
           title: 'ДЕТАЛИ ЗАКАЗА',
@@ -304,8 +311,6 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
             ),
           ),
         ),
-        const SizedBox(height: 12),
-        OrderTimelineCard(timeline: order.timeline),
         const SizedBox(height: 12),
         if (isNew)
           AvishuButton(
@@ -446,6 +451,20 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
 
   Widget _sectionLabel(String label) {
     return Text(label, style: AppTypography.eyebrow.copyWith(letterSpacing: 3));
+  }
+
+  OrderModel? _resolveSelectedOrder(List<OrderModel> orders) {
+    final selectedOrder = _selectedOrder;
+    if (selectedOrder == null) {
+      return null;
+    }
+
+    for (final order in orders) {
+      if (order.id == selectedOrder.id) {
+        return order;
+      }
+    }
+    return selectedOrder;
   }
 
   void _openOrder(OrderModel order) {
