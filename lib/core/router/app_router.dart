@@ -7,7 +7,65 @@ import '../../features/orders/presentation/client/client_dashboard.dart';
 import '../../features/orders/presentation/franchisee/franchisee_dashboard.dart';
 import '../../features/orders/presentation/production/production_dashboard.dart';
 
-class LoginScreen extends StatelessWidget { const LoginScreen({super.key}); @override Widget build(BuildContext context) => const Scaffold(body: Center(child: Text('LOGIN - B&W BRUTALISM'))); }
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../shared/widgets/avishu_button.dart';
+
+class LoginScreen extends StatelessWidget { 
+  const LoginScreen({super.key}); 
+  
+  @override 
+  Widget build(BuildContext context) => Scaffold(
+    body: Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text('AVISHU B&W BRUTALISM', style: TextStyle(letterSpacing: 4.0, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 40),
+          AvishuButton(
+            text: 'TEST FIREBASE', 
+            onPressed: () async {
+              print('AVISHU DEBUG: Test button pressed');
+              try {
+                print('AVISHU DEBUG: Attempting to write to Firestore...');
+                final ref = FirebaseFirestore.instance.collection('health_check').doc();
+                await ref.set({
+                  'status': 'connected',
+                  'timestamp': FieldValue.serverTimestamp(),
+                  'platform': 'flutter',
+                }).timeout(const Duration(seconds: 10));
+                
+                print('AVISHU DEBUG: Write successful!');
+                if (context.mounted) {
+                  showDialog(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: const Text('SUCCESS'),
+                      content: const Text('Firebase is working! Document created in "health_check" collection.'),
+                      actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
+                    ),
+                  );
+                }
+              } catch (e, stack) {
+                print('AVISHU DEBUG: ERROR: $e');
+                print('AVISHU DEBUG: STACK: $stack');
+                if (context.mounted) {
+                  showDialog(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: const Text('FIREBASE ERROR'),
+                      content: Text(e.toString()),
+                      actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
+                    ),
+                  );
+                }
+              }
+            }
+          ),
+        ],
+      ),
+    ),
+  ); 
+}
 class LoadingScreen extends StatelessWidget { const LoadingScreen({super.key}); @override Widget build(BuildContext context) => const Scaffold(body: Center(child: CircularProgressIndicator(color: Colors.black))); }
 
 final routerProvider = Provider<GoRouter>((ref) {

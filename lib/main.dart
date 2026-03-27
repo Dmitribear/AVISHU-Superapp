@@ -11,8 +11,9 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+    print("AVISHU DEBUG: Firebase initialized successfully for ${DefaultFirebaseOptions.currentPlatform.projectId}");
   } catch (e) {
-    debugPrint("Firebase init error: $e");
+    print("AVISHU DEBUG: Firebase init error: $e");
   }
   runApp(const ProviderScope(child: AvishuApp()));
 }
