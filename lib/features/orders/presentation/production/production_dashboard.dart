@@ -4,12 +4,13 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/typography.dart';
-import '../../../../features/auth/domain/user_role.dart';
+
 import '../../../../shared/providers/app_settings.dart';
 import '../../../../shared/widgets/app_settings_sheet.dart';
 import '../../../../shared/widgets/avishu_button.dart';
 import '../../../../shared/widgets/avishu_mobile_frame.dart';
-import '../../../../shared/widgets/role_switch_sheet.dart';
+
+import '../../../auth/data/auth_repository.dart';
 import '../../../orders/data/order_repository.dart';
 import '../../../orders/domain/enums/order_status.dart';
 import '../../../orders/domain/models/order_model.dart';
@@ -175,8 +176,6 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
       ProductionTab.station => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const RoleControlCard(currentRole: UserRole.production),
-          const SizedBox(height: 12),
           _surfaceCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -188,12 +187,50 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 10),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.black,
+                    border: Border.all(color: AppColors.black),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'РОЛЬ: ПРОИЗВОДСТВО',
+                          style: AppTypography.button.copyWith(
+                            color: AppColors.white,
+                            letterSpacing: 3,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        'ТЕКУЩАЯ',
+                        style: AppTypography.eyebrow.copyWith(
+                          color: AppColors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
                 Text(
                   'Экран показывает текущую задачу, статус заказа и следующее доступное действие.',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ],
             ),
+          ),
+          const SizedBox(height: 16),
+          AvishuButton(
+            text: 'ВЫЙТИ ИЗ АККАУНТА',
+            expanded: true,
+            variant: AvishuButtonVariant.outline,
+            icon: Icons.logout,
+            onPressed: () async {
+              await ref.read(authRepositoryProvider).signOut();
+            },
           ),
         ],
       ),

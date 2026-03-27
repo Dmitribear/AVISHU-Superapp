@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
+import '../../features/auth/data/auth_repository.dart';
 import '../../features/auth/domain/user_role.dart';
 import '../providers/global_state.dart';
 
@@ -83,6 +84,10 @@ Future<void> showRoleSwitchSheet(BuildContext context, WidgetRef ref) {
                   ),
                 );
               }),
+              const SizedBox(height: 10),
+              const Divider(color: AppColors.outlineVariant),
+              const SizedBox(height: 10),
+              _SignOutButton(),
             ],
           ),
         ),
@@ -91,7 +96,7 @@ Future<void> showRoleSwitchSheet(BuildContext context, WidgetRef ref) {
   );
 }
 
-class RoleControlCard extends StatelessWidget {
+class RoleControlCard extends ConsumerWidget {
   final UserRole currentRole;
   final String title;
 
@@ -102,7 +107,7 @@ class RoleControlCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -139,13 +144,17 @@ class RoleControlCard extends StatelessWidget {
               ),
             );
           }),
+          const SizedBox(height: 10),
+          const Divider(color: AppColors.outlineVariant),
+          const SizedBox(height: 10),
+          _SignOutButton(),
         ],
       ),
     );
   }
 }
 
-class _RoleSwitchTile extends ConsumerWidget {
+class _RoleSwitchTile extends StatelessWidget {
   final String label;
   final String caption;
   final UserRole role;
@@ -161,12 +170,11 @@ class _RoleSwitchTile extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
       child: OutlinedButton(
         onPressed: () {
-          ref.read(demoRoleProvider.notifier).state = role;
           Navigator.of(context).pop();
           context.go(route);
         },
@@ -193,8 +201,10 @@ class _RoleSwitchTile extends ConsumerWidget {
                     Text(
                       caption,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: isActive ? AppColors.surfaceHighest : AppColors.secondary,
-                      ),
+                            color: isActive
+                                ? AppColors.surfaceHighest
+                                : AppColors.secondary,
+                          ),
                     ),
                   ],
                 ),
@@ -214,7 +224,7 @@ class _RoleSwitchTile extends ConsumerWidget {
   }
 }
 
-class _InlineRoleButton extends ConsumerWidget {
+class _InlineRoleButton extends StatelessWidget {
   final UserRole role;
   final bool isActive;
 
@@ -224,7 +234,7 @@ class _InlineRoleButton extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final label = roleLabel(role);
 
     return SizedBox(
@@ -233,7 +243,6 @@ class _InlineRoleButton extends ConsumerWidget {
         onPressed: isActive
             ? null
             : () {
-                ref.read(demoRoleProvider.notifier).state = role;
                 context.go(roleRoute(role));
               },
         style: OutlinedButton.styleFrom(
@@ -261,6 +270,34 @@ class _InlineRoleButton extends ConsumerWidget {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SignOutButton extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton(
+        onPressed: () async {
+          Navigator.of(context).pop(); // close sheet/dialog
+          await ref.read(authRepositoryProvider).signOut();
+          if (context.mounted) {
+            context.go('/login');
+          }
+        },
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: AppColors.error),
+        ),
+        child: Text(
+          'ВЫЙТИ ИЗ АККАУНТА',
+          style: AppTypography.button.copyWith(
+            color: AppColors.error,
+            letterSpacing: 3,
           ),
         ),
       ),

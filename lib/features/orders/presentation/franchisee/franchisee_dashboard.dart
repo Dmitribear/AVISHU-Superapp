@@ -4,12 +4,13 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/typography.dart';
-import '../../../../features/auth/domain/user_role.dart';
+
 import '../../../../shared/providers/app_settings.dart';
 import '../../../../shared/widgets/app_settings_sheet.dart';
 import '../../../../shared/widgets/avishu_button.dart';
 import '../../../../shared/widgets/avishu_mobile_frame.dart';
-import '../../../../shared/widgets/role_switch_sheet.dart';
+
+import '../../../auth/data/auth_repository.dart';
 import '../../../orders/data/order_repository.dart';
 import '../../../orders/domain/enums/order_status.dart';
 import '../../../orders/domain/models/order_model.dart';
@@ -172,32 +173,72 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
           ),
         ],
       ),
-      FranchiseeTab.profile => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const RoleControlCard(currentRole: UserRole.franchisee),
-          const SizedBox(height: 12),
-          _surfaceCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('КАБИНЕТ ФРАНЧАЙЗИ', style: AppTypography.eyebrow),
-                const SizedBox(height: 12),
-                Text(
-                  'Управление заказами',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'В разделе доступны новые заказы, текущий поток производства и готовые позиции.',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+      FranchiseeTab.profile => _buildProfileTab(),
     };
+  }
+
+  Widget _buildProfileTab() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _surfaceCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('КАБИНЕТ ФРАНЧАЙЗИ', style: AppTypography.eyebrow),
+              const SizedBox(height: 12),
+              Text(
+                'Управление заказами',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 10),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppColors.black,
+                  border: Border.all(color: AppColors.black),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'РОЛЬ: ФРАНЧАЙЗИ',
+                        style: AppTypography.button.copyWith(
+                          color: AppColors.white,
+                          letterSpacing: 3,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      'ТЕКУЩАЯ',
+                      style: AppTypography.eyebrow.copyWith(
+                        color: AppColors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'В разделе доступны новые заказы, текущий поток производства и готовые позиции.',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        AvishuButton(
+          text: 'ВЫЙТИ ИЗ АККАУНТА',
+          expanded: true,
+          variant: AvishuButtonVariant.outline,
+          icon: Icons.logout,
+          onPressed: () async {
+            await ref.read(authRepositoryProvider).signOut();
+          },
+        ),
+      ],
+    );
   }
 
   Widget _detailView(OrderModel order) {

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
+import '../../features/auth/data/auth_repository.dart';
 import '../providers/app_settings.dart';
 
 Future<void> showAppSettingsSheet(BuildContext context) {
@@ -70,10 +72,33 @@ class _AppSettingsSheet extends ConsumerWidget {
                   Text('Сервисная информация', style: AppTypography.eyebrow),
                   const SizedBox(height: 8),
                   Text(
-                    'AVISHU v2.04\nДемо: клиент, франчайзи, производство',
+                    'AVISHU v2.04\nКлиент, франчайзи, производство',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  await ref.read(authRepositoryProvider).signOut();
+                  if (context.mounted) {
+                    GoRouter.of(context).go('/login');
+                  }
+                },
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppColors.error),
+                ),
+                child: Text(
+                  'ВЫЙТИ ИЗ АККАУНТА',
+                  style: AppTypography.button.copyWith(
+                    color: AppColors.error,
+                    letterSpacing: 3,
+                  ),
+                ),
               ),
             ),
           ],

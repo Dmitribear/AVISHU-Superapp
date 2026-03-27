@@ -9,6 +9,7 @@ import '../../../../shared/widgets/app_settings_sheet.dart';
 import '../../../../shared/widgets/avishu_button.dart';
 import '../../../../shared/widgets/avishu_mobile_frame.dart';
 import '../../../../shared/widgets/role_switch_sheet.dart';
+import '../../../auth/data/auth_repository.dart';
 import '../../../auth/domain/user_role.dart';
 import '../../../orders/data/order_repository.dart';
 import '../../../orders/domain/enums/delivery_method.dart';
@@ -347,11 +348,11 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     UserRole currentRole,
     OrderModel? trackedOrder,
   ) {
+    final user = ref.watch(currentUserProvider).value;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        RoleControlCard(currentRole: currentRole),
-        const SizedBox(height: 12),
         _surfaceCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -359,10 +360,54 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               Text('КЛИЕНТСКИЙ ПРОФИЛЬ', style: AppTypography.eyebrow),
               const SizedBox(height: 12),
               Text(
-                'Персональный кабинет',
-                style: Theme.of(context).textTheme.titleLarge,
+                user?.displayName.toUpperCase() ?? '',
+                style: Theme.of(context).textTheme.headlineMedium,
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 6),
+              Text(
+                user?.email ?? '',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.outline,
+                ),
+              ),
+              const SizedBox(height: 14),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppColors.black,
+                  border: Border.all(color: AppColors.black),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'РОЛЬ: ${roleLabel(currentRole)}',
+                        style: AppTypography.button.copyWith(
+                          color: AppColors.white,
+                          letterSpacing: 3,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      'ТЕКУЩАЯ',
+                      style: AppTypography.eyebrow.copyWith(
+                        color: AppColors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        _surfaceCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('ПРОГРАММА ЛОЯЛЬНОСТИ', style: AppTypography.eyebrow),
+              const SizedBox(height: 12),
               LinearProgressIndicator(value: ((orders.length % 4) + 1) / 4),
               const SizedBox(height: 10),
               Text(
@@ -380,6 +425,16 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             onTap: () => setState(() => _view = ClientView.tracking),
           ),
         ],
+        const SizedBox(height: 16),
+        AvishuButton(
+          text: 'ВЫЙТИ ИЗ АККАУНТА',
+          expanded: true,
+          variant: AvishuButtonVariant.outline,
+          icon: Icons.logout,
+          onPressed: () async {
+            await ref.read(authRepositoryProvider).signOut();
+          },
+        ),
       ],
     );
   }
@@ -680,8 +735,13 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
           children: [
             Expanded(
               child: AvishuButton(
-                text: 'СМЕНИТЬ РОЛЬ',
-                onPressed: () => showRoleSwitchSheet(context, ref),
+                text: 'НАЗАД',
+                onPressed: () {
+                  setState(() {
+                    _tab = ClientTab.dashboard;
+                    _view = ClientView.root;
+                  });
+                },
                 variant: AvishuButtonVariant.ghost,
               ),
             ),
