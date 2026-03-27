@@ -241,6 +241,14 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
         ),
         const SizedBox(height: 16),
         AvishuButton(
+          text: 'WHY AVISHU',
+          expanded: true,
+          variant: AvishuButtonVariant.filled,
+          icon: Icons.arrow_outward,
+          onPressed: () => context.push('/why-avishu'),
+        ),
+        const SizedBox(height: 12),
+        AvishuButton(
           text: 'ВЫЙТИ ИЗ АККАУНТА',
           expanded: true,
           variant: AvishuButtonVariant.outline,

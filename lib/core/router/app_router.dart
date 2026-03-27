@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/auth/domain/user_role.dart';
 import '../../features/auth/presentation/login_screen.dart';
+import '../../features/franchise_value/presentation/why_avishu_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
 import '../../features/orders/presentation/client/client_dashboard.dart';
 import '../../features/orders/presentation/franchisee/franchisee_dashboard.dart';
@@ -76,6 +77,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/production',
         builder: (context, state) => const ProductionDashboard(),
+      ),
+      GoRoute(
+        path: '/why-avishu',
+        builder: (context, state) => const WhyAvishuScreen(),
       ),
     ],
   );
