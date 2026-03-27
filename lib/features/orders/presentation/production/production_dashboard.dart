@@ -5,12 +5,15 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/typography.dart';
 import '../../../../features/auth/domain/user_role.dart';
+import '../../../../shared/providers/app_settings.dart';
+import '../../../../shared/widgets/app_settings_sheet.dart';
 import '../../../../shared/widgets/avishu_button.dart';
 import '../../../../shared/widgets/avishu_mobile_frame.dart';
 import '../../../../shared/widgets/role_switch_sheet.dart';
 import '../../../orders/data/order_repository.dart';
 import '../../../orders/domain/enums/order_status.dart';
 import '../../../orders/domain/models/order_model.dart';
+import '../shared/order_panels.dart';
 
 final productionAllOrdersProvider = StreamProvider<List<OrderModel>>((ref) {
   return ref.watch(orderRepositoryProvider).allOrders();
@@ -22,19 +25,30 @@ class ProductionDashboard extends ConsumerStatefulWidget {
   const ProductionDashboard({super.key});
 
   @override
-  ConsumerState<ProductionDashboard> createState() => _ProductionDashboardState();
+  ConsumerState<ProductionDashboard> createState() =>
+      _ProductionDashboardState();
 }
 
 class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
   ProductionTab _tab = ProductionTab.dashboard;
   OrderModel? _selectedOrder;
+  final _noteController = TextEditingController();
 
   static const _navItems = [
     AvishuNavItem(label: 'ОБЗОР', icon: Icons.dashboard_outlined),
     AvishuNavItem(label: 'ОЧЕРЕДЬ', icon: Icons.format_list_bulleted_rounded),
     AvishuNavItem(label: 'ГОТОВО', icon: Icons.checkroom_outlined),
-    AvishuNavItem(label: 'СТАНЦИЯ', icon: Icons.precision_manufacturing_outlined),
+    AvishuNavItem(
+      label: 'СТАНЦИЯ',
+      icon: Icons.precision_manufacturing_outlined,
+    ),
   ];
+
+  @override
+  void dispose() {
+    _noteController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,14 +56,16 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
 
     return AvishuMobileFrame(
       title: 'AVISHU',
-      metaLabel: _selectedOrder == null ? 'ПРОИЗВОДСТВО / ОЧЕРЕДЬ' : 'ПРОИЗВОДСТВО / ЗАДАЧА',
+      metaLabel: _selectedOrder == null
+          ? 'ПРОИЗВОДСТВО / ОЧЕРЕДЬ'
+          : 'ПРОИЗВОДСТВО / ЗАДАЧА',
       leadingIcon: _selectedOrder == null ? Icons.menu : Icons.arrow_back,
-      actionIcon: Icons.swap_horiz_rounded,
+      actionIcon: Icons.person_outline,
       currentIndex: _tab.index,
       navItems: _navItems,
       onLeadingTap: () {
         if (_selectedOrder == null) {
-          showRoleSwitchSheet(context, ref);
+          showAppSettingsSheet(context);
         } else {
           setState(() => _selectedOrder = null);
         }
@@ -64,7 +80,9 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
       body: ordersAsync.when(
         data: (orders) => SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(18, 18, 18, 22),
-          child: _selectedOrder != null ? _detailView(_selectedOrder!) : _rootView(orders),
+          child: _selectedOrder != null
+              ? _detailView(_selectedOrder!)
+              : _rootView(orders),
         ),
         loading: () =>
             const Center(child: CircularProgressIndicator(color: Colors.black)),
@@ -74,64 +92,84 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
   }
 
   Widget _rootView(List<OrderModel> orders) {
-    final accepted = orders.where((order) => order.status == OrderStatus.accepted).toList();
-    final inProduction = orders.where((order) => order.status == OrderStatus.inProduction).toList();
-    final ready = orders.where((order) => order.status == OrderStatus.ready).toList();
-    final current = inProduction.isNotEmpty ? inProduction.first : (accepted.isNotEmpty ? accepted.first : null);
+    final accepted = orders
+        .where((order) => order.status == OrderStatus.accepted)
+        .toList();
+    final inProduction = orders
+        .where((order) => order.status == OrderStatus.inProduction)
+        .toList();
+    final ready = orders
+        .where((order) => order.status == OrderStatus.ready)
+        .toList();
+    final current = inProduction.isNotEmpty
+        ? inProduction.first
+        : (accepted.isNotEmpty ? accepted.first : null);
 
     return switch (_tab) {
       ProductionTab.dashboard => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _hero(
-            'ОЧЕРЕДЬ ЗАДАЧ',
-            'После подтверждения заказ попадает в очередь цеха и проходит этапы пошива до готовности.',
-            'АКТИВНЫХ ЗАДАЧ: ${accepted.length + inProduction.length}',
+            title: 'ОЧЕРЕДЬ ЗАДАЧ',
+            subtitle:
+                'После подтверждения заказ попадает в очередь цеха и проходит этапы пошива до готовности.',
+            accent: 'АКТИВНЫХ ЗАДАЧ: ${accepted.length + inProduction.length}',
           ),
           const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(child: _metric('К ПОШИВУ', '${accepted.length}')),
+              Expanded(child: _metricCard('К пошиву', '${accepted.length}')),
               const SizedBox(width: 8),
-              Expanded(child: _metric('В РАБОТЕ', '${inProduction.length}')),
+              Expanded(
+                child: _metricCard('В работе', '${inProduction.length}'),
+              ),
               const SizedBox(width: 8),
-              Expanded(child: _metric('ГОТОВО', '${ready.length}')),
+              Expanded(child: _metricCard('Готово', '${ready.length}')),
             ],
           ),
-          const SizedBox(height: 12),
-          if (current != null) _taskCard(current),
+          if (current != null) ...[
+            const SizedBox(height: 12),
+            _taskCard(current),
+          ],
         ],
       ),
       ProductionTab.queue => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _section('К ПОШИВУ'),
+          _sectionLabel('К ПОШИВУ'),
           const SizedBox(height: 12),
-          if (accepted.isEmpty) _empty('Франчайзи еще не передал новые задачи в цех.'),
-          ...accepted.map((order) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: _taskCard(order),
-          )),
-          const SizedBox(height: 8),
-          _section('В РАБОТЕ'),
+          if (accepted.isEmpty) _emptyCard('Новых задач в очереди пока нет.'),
+          ...accepted.map(
+            (order) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _taskCard(order),
+            ),
+          ),
+          const SizedBox(height: 4),
+          _sectionLabel('В РАБОТЕ'),
           const SizedBox(height: 12),
-          if (inProduction.isEmpty) _empty('Активная работа появится после запуска пошива.'),
-          ...inProduction.map((order) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: _taskCard(order),
-          )),
+          if (inProduction.isEmpty)
+            _emptyCard('После запуска пошива заказ перейдет в этот раздел.'),
+          ...inProduction.map(
+            (order) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _taskCard(order),
+            ),
+          ),
         ],
       ),
       ProductionTab.ready => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _section('ЗАВЕРШЕННЫЕ'),
+          _sectionLabel('ЗАВЕРШЕННЫЕ'),
           const SizedBox(height: 12),
-          if (ready.isEmpty) _empty('Как только мастер завершит заказ, он появится здесь.'),
-          ...ready.map((order) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: _taskCard(order),
-          )),
+          if (ready.isEmpty) _emptyCard('Завершенные заказы пока отсутствуют.'),
+          ...ready.map(
+            (order) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _taskCard(order),
+            ),
+          ),
         ],
       ),
       ProductionTab.station => Column(
@@ -139,23 +177,23 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
         children: [
           const RoleControlCard(currentRole: UserRole.production),
           const SizedBox(height: 12),
-          _flatCard(
+          _surfaceCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('СТАНЦИЯ ЦЕХА', style: AppTypography.eyebrow),
+                Text('РАБОЧЕЕ МЕСТО', style: AppTypography.eyebrow),
                 const SizedBox(height: 12),
-                Text('Рабочее место мастера', style: Theme.of(context).textTheme.titleLarge),
+                Text(
+                  'Интерфейс мастера',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
                 const SizedBox(height: 10),
-                Text('Экран показывает текущую задачу, состояние заказа и доступное действие по следующему этапу.', style: Theme.of(context).textTheme.bodyMedium),
+                Text(
+                  'Экран показывает текущую задачу, статус заказа и следующее доступное действие.',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
               ],
             ),
-          ),
-          const SizedBox(height: 12),
-          AvishuButton(
-            text: 'СМЕНИТЬ РОЛЬ',
-            expanded: true,
-            onPressed: () => showRoleSwitchSheet(context, ref),
           ),
         ],
       ),
@@ -165,69 +203,186 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
   Widget _detailView(OrderModel order) {
     final isAccepted = order.status == OrderStatus.accepted;
     final isInProduction = order.status == OrderStatus.inProduction;
-    final nextStatus = isAccepted ? OrderStatus.inProduction : OrderStatus.ready;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _flatCard(
+        _surfaceCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('ЗАКАЗ #${order.id.substring(0, 6).toUpperCase()}', style: AppTypography.eyebrow),
+              Text('ЗАКАЗ #${order.shortId}', style: AppTypography.eyebrow),
               const SizedBox(height: 12),
-              Text(order.productName, style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                order.productName,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const SizedBox(height: 8),
-              Text('${order.sizeLabel} / \$${order.amount.toStringAsFixed(0)}', style: Theme.of(context).textTheme.bodyMedium),
+              Text(
+                order.status.roleDescription,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
               const SizedBox(height: 12),
               LinearProgressIndicator(value: order.status.progressValue),
               const SizedBox(height: 10),
-              Text(order.status.roleDescription, style: Theme.of(context).textTheme.bodyMedium),
+              Text(order.status.panelLabel, style: AppTypography.code),
             ],
           ),
         ),
         const SizedBox(height: 12),
-        if (isAccepted || isInProduction)
+        OrderInfoCard(
+          title: 'ТЕХНИЧЕСКАЯ КАРТОЧКА',
+          rows: OrderSummaryRows.forOrder(order),
+        ),
+        if (order.clientNote.trim().isNotEmpty) ...[
+          const SizedBox(height: 12),
+          OrderInfoCard(
+            title: 'КОММЕНТАРИЙ КЛИЕНТА',
+            rows: [
+              OrderInfoRowData(label: 'Комментарий', value: order.clientNote),
+            ],
+          ),
+        ],
+        if (order.franchiseeNote.trim().isNotEmpty) ...[
+          const SizedBox(height: 12),
+          OrderInfoCard(
+            title: 'ПОМЕТКА ФРАНЧАЙЗИ',
+            rows: [
+              OrderInfoRowData(
+                label: 'Комментарий',
+                value: order.franchiseeNote,
+              ),
+            ],
+          ),
+        ],
+        const SizedBox(height: 12),
+        _surfaceCard(
+          child: TextField(
+            controller: _noteController,
+            maxLines: 3,
+            decoration: const InputDecoration(
+              labelText: 'Комментарий производства',
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        OrderTimelineCard(timeline: order.timeline),
+        const SizedBox(height: 12),
+        if (isAccepted)
           AvishuButton(
-            text: order.status.productionActionLabel,
+            text: 'ВЗЯТЬ В ПОШИВ',
             expanded: true,
             variant: AvishuButtonVariant.filled,
             onPressed: () async {
-              await ref.read(orderRepositoryProvider).updateOrderStatus(order.id, nextStatus);
+              await ref.read(orderRepositoryProvider).startProduction(
+                    order.id,
+                    note: _noteController.text.trim(),
+                  );
               if (mounted) {
                 setState(() => _selectedOrder = null);
               }
             },
           ),
-        if (order.status == OrderStatus.ready) ...[
-          _empty('Клиент уже увидит этот заказ как "Готово" в мобильном трекинге.'),
-          const SizedBox(height: 12),
+        if (isInProduction)
+          AvishuButton(
+            text: 'ЗАВЕРШИТЬ ЗАКАЗ',
+            expanded: true,
+            variant: AvishuButtonVariant.filled,
+            onPressed: () async {
+              await ref.read(orderRepositoryProvider).completeOrder(
+                    order.id,
+                    note: _noteController.text.trim(),
+                  );
+              if (mounted) {
+                setState(() => _selectedOrder = null);
+              }
+            },
+          ),
+        if (order.status == OrderStatus.ready)
           AvishuButton(
             text: 'ОТКРЫТЬ КЛИЕНТА',
             expanded: true,
             onPressed: () => context.go('/client'),
           ),
-        ],
       ],
     );
   }
 
+  Widget _hero({
+    required String title,
+    required String subtitle,
+    required String accent,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      color: AppColors.black,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            accent,
+            style: AppTypography.eyebrow.copyWith(color: AppColors.surfaceDim),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            title,
+            style: Theme.of(
+              context,
+            ).textTheme.headlineMedium?.copyWith(color: AppColors.white),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            subtitle,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: AppColors.surfaceHighest),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _metricCard(String label, String value) {
+    return _surfaceCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: AppTypography.eyebrow),
+          const SizedBox(height: 10),
+          Text(value, style: Theme.of(context).textTheme.titleLarge),
+        ],
+      ),
+    );
+  }
+
   Widget _taskCard(OrderModel order) {
-    return _flatCard(
-      onTap: () => setState(() => _selectedOrder = order),
+    return _surfaceCard(
+      onTap: () => _openOrder(order),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Expanded(child: Text('ЗАКАЗ #${order.id.substring(0, 6).toUpperCase()}', style: AppTypography.eyebrow)),
+              Expanded(
+                child: Text(
+                  'ЗАКАЗ #${order.shortId}',
+                  style: AppTypography.eyebrow,
+                ),
+              ),
               Text(order.status.panelLabel, style: AppTypography.code),
             ],
           ),
           const SizedBox(height: 12),
-          Text(order.productName, style: Theme.of(context).textTheme.titleLarge),
+          Text(
+            order.productName,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
           const SizedBox(height: 8),
-          Text(order.status == OrderStatus.inProduction ? 'Активная задача мастера.' : 'Новая задача в очереди цеха.', style: Theme.of(context).textTheme.bodyMedium),
+          Text(
+            order.sizeLabel,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
           const SizedBox(height: 12),
           LinearProgressIndicator(value: order.status.progressValue),
           const SizedBox(height: 10),
@@ -237,45 +392,11 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
     );
   }
 
-  Widget _hero(String title, String subtitle, String accent) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      color: AppColors.black,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(accent, style: AppTypography.eyebrow.copyWith(color: AppColors.surfaceDim)),
-          const SizedBox(height: 12),
-          Text(title, style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: AppColors.white)),
-          const SizedBox(height: 12),
-          Text(subtitle, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.surfaceHighest)),
-        ],
-      ),
-    );
-  }
-
-  Widget _metric(String label, String value) {
-    return _flatCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: AppTypography.eyebrow),
-          const SizedBox(height: 12),
-          Text(value, style: Theme.of(context).textTheme.titleLarge),
-        ],
-      ),
-    );
-  }
-
-  Widget _section(String label) => Text(label, style: AppTypography.eyebrow.copyWith(letterSpacing: 3));
-
-  Widget _empty(String text) => _flatCard(child: Text(text, style: Theme.of(context).textTheme.bodyMedium));
-
-  Widget _flatCard({required Widget child, VoidCallback? onTap}) {
+  Widget _surfaceCard({required Widget child, VoidCallback? onTap}) {
+    final compact = ref.watch(appSettingsProvider).compactCards;
     final card = Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(compact ? 12 : 16),
       decoration: BoxDecoration(
         color: AppColors.surfaceLowest,
         border: Border.all(color: AppColors.outlineVariant),
@@ -283,5 +404,23 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
       child: child,
     );
     return onTap == null ? card : InkWell(onTap: onTap, child: card);
+  }
+
+  Widget _emptyCard(String text) {
+    return _surfaceCard(
+      child: Text(text, style: Theme.of(context).textTheme.bodyMedium),
+    );
+  }
+
+  Widget _sectionLabel(String label) {
+    return Text(
+      label,
+      style: AppTypography.eyebrow.copyWith(letterSpacing: 3),
+    );
+  }
+
+  void _openOrder(OrderModel order) {
+    _noteController.text = order.productionNote;
+    setState(() => _selectedOrder = order);
   }
 }

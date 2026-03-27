@@ -3,14 +3,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/typography.dart';
+import '../../../../shared/providers/app_settings.dart';
 import '../../../../shared/providers/global_state.dart';
+import '../../../../shared/widgets/app_settings_sheet.dart';
 import '../../../../shared/widgets/avishu_button.dart';
 import '../../../../shared/widgets/avishu_mobile_frame.dart';
 import '../../../../shared/widgets/role_switch_sheet.dart';
 import '../../../auth/domain/user_role.dart';
 import '../../../orders/data/order_repository.dart';
+import '../../../orders/domain/enums/delivery_method.dart';
 import '../../../orders/domain/enums/order_status.dart';
 import '../../../orders/domain/models/order_model.dart';
+import '../shared/order_formatters.dart';
+import '../shared/order_panels.dart';
 import 'client_data.dart';
 
 final clientOrdersProvider = StreamProvider.family<List<OrderModel>, String>((
@@ -33,19 +38,20 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
   CatalogProduct? _selectedProduct;
   DateTime? _selectedDate;
   String? _latestOrderId;
-  bool _courierDelivery = true;
+  DeliveryMethod _deliveryMethod = DeliveryMethod.courier;
 
-  final _cityController = TextEditingController(text: 'АЛМАТЫ');
+  final _cityController = TextEditingController(text: 'Алматы');
   final _addressController = TextEditingController();
   final _apartmentController = TextEditingController();
   final _cardController = TextEditingController();
   final _expiryController = TextEditingController(text: '01 / 28');
   final _cvvController = TextEditingController();
+  final _noteController = TextEditingController();
 
   static const _navItems = [
     AvishuNavItem(label: 'ПАНЕЛЬ', icon: Icons.grid_view_rounded),
     AvishuNavItem(label: 'КОЛЛЕКЦИИ', icon: Icons.layers_outlined),
-    AvishuNavItem(label: 'АРХИВ', icon: Icons.inventory_2_outlined),
+    AvishuNavItem(label: 'ИСТОРИЯ', icon: Icons.inventory_2_outlined),
     AvishuNavItem(label: 'ПРОФИЛЬ', icon: Icons.person_outline),
   ];
 
@@ -57,6 +63,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     _cardController.dispose();
     _expiryController.dispose();
     _cvvController.dispose();
+    _noteController.dispose();
     super.dispose();
   }
 
@@ -85,7 +92,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       navItems: _navItems,
       onLeadingTap: () {
         if (_view == ClientView.root) {
-          showRoleSwitchSheet(context, ref);
+          showAppSettingsSheet(context);
         } else {
           setState(() => _view = ClientView.root);
         }
@@ -110,7 +117,13 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       body: ordersAsync.when(
         data: (orders) => SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(18, 18, 18, 22),
-          child: _buildScreen(context, orders, user.uid, user.role, trackedOrder),
+          child: _buildScreen(
+            context,
+            orders,
+            user.uid,
+            user.role,
+            trackedOrder,
+          ),
         ),
         loading: () =>
             const Center(child: CircularProgressIndicator(color: Colors.black)),
@@ -169,42 +182,78 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
 
   Widget _buildDashboardScreen(List<OrderModel> orders) {
     final activeOrder = resolveTrackedOrder(orders, _latestOrderId);
+    final preorderCount = orders.where((order) => order.isPreorder).length;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _heroCard(
           title: 'АКТУАЛЬНАЯ КОЛЛЕКЦИЯ',
-          subtitle: 'Выберите изделие, оформите заказ и отслеживайте его статус в приложении.',
+          subtitle:
+              'Выберите изделие, оформите заказ и отслеживайте его статус в приложении.',
           accent: 'АКТИВНЫХ ЗАКАЗОВ: ${orders.length.toString().padLeft(2, '0')}',
         ),
-        const SizedBox(height: 18),
-        if (activeOrder != null) _orderCard(activeOrder, cta: 'ОТСЛЕДИТЬ', onTap: () {
-          setState(() {
-            _latestOrderId = activeOrder.id;
-            _view = ClientView.tracking;
-          });
-        }),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _metricCard(
+                label: 'Предзаказы',
+                value: preorderCount.toString(),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _metricCard(
+                label: 'В пути',
+                value: activeOrder == null ? '0' : '1',
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
         if (activeOrder == null)
-          _flatCard(
+          _surfaceCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('АКТИВНЫЙ ЗАКАЗ', style: AppTypography.eyebrow),
                 const SizedBox(height: 12),
-                Text('Пока нет заказов', style: Theme.of(context).textTheme.titleLarge),
+                Text(
+                  'Пока нет оформленных заказов',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
                 const SizedBox(height: 10),
-                Text('Откройте коллекции, выберите изделие и пройдите сценарий оплаты.', style: Theme.of(context).textTheme.bodyMedium),
+                Text(
+                  'Откройте каталог, выберите изделие и пройдите шаги оформления.',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
               ],
             ),
+          )
+        else
+          _orderCard(
+            order: activeOrder,
+            cta: 'ОТСЛЕДИТЬ',
+            onTap: () {
+              setState(() {
+                _latestOrderId = activeOrder.id;
+                _view = ClientView.tracking;
+              });
+            },
           ),
-        const SizedBox(height: 18),
-        _sectionLabel('КЛИКАБЕЛЬНЫЕ ИЗДЕЛИЯ'),
         const SizedBox(height: 12),
-        ...catalog.take(2).map((product) => Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: _productCard(product, onTap: () => _openProduct(product)),
-        )),
+        _sectionLabel('БЫСТРЫЙ ВЫБОР'),
+        const SizedBox(height: 12),
+        ...catalog.take(2).map(
+          (product) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _productCard(
+              product: product,
+              onTap: () => _openProduct(product),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -215,32 +264,48 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       children: [
         _sectionLabel('КОЛЛЕКЦИИ'),
         const SizedBox(height: 12),
-        ...archiveCollections.take(3).map((collection) => Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: _flatCard(
-            onTap: () => _openProduct(catalog.first),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('${collection.year} / ${collection.season}', style: AppTypography.eyebrow),
-                      const SizedBox(height: 10),
-                      Text(collection.title, style: Theme.of(context).textTheme.titleLarge),
-                    ],
+        ...archiveCollections.map(
+          (collection) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _surfaceCard(
+              onTap: () => _openProduct(catalog.first),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${collection.year} / ${collection.season}',
+                          style: AppTypography.eyebrow,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          collection.title,
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                Text(collection.released ? 'АКТИВНАЯ' : 'АРХИВ', style: AppTypography.code),
-              ],
+                  Text(
+                    collection.released ? 'АКТИВНАЯ' : 'АРХИВ',
+                    style: AppTypography.code,
+                  ),
+                ],
+              ),
             ),
           ),
-        )),
-        const SizedBox(height: 10),
-        ...catalog.map((product) => Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: _productCard(product, onTap: () => _openProduct(product)),
-        )),
+        ),
+        const SizedBox(height: 6),
+        ...catalog.map(
+          (product) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _productCard(
+              product: product,
+              onTap: () => _openProduct(product),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -252,18 +317,27 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         _sectionLabel('ИСТОРИЯ ЗАКАЗОВ'),
         const SizedBox(height: 12),
         if (orders.isEmpty)
-          _flatCard(
-            child: Text('История появится после первой оплаты.', style: Theme.of(context).textTheme.bodyMedium),
+          _surfaceCard(
+            child: Text(
+              'История появится после первого оформленного заказа.',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
           ),
-        ...orders.map((order) => Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: _orderCard(order, cta: 'ДЕТАЛИ', onTap: () {
-            setState(() {
-              _latestOrderId = order.id;
-              _view = ClientView.tracking;
-            });
-          }),
-        )),
+        ...orders.map(
+          (order) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _orderCard(
+              order: order,
+              cta: 'ДЕТАЛИ',
+              onTap: () {
+                setState(() {
+                  _latestOrderId = order.id;
+                  _view = ClientView.tracking;
+                });
+              },
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -278,59 +352,79 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       children: [
         RoleControlCard(currentRole: currentRole),
         const SizedBox(height: 12),
-        _flatCard(
+        _surfaceCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('ПРОФИЛЬ', style: AppTypography.eyebrow),
+              Text('КЛИЕНТСКИЙ ПРОФИЛЬ', style: AppTypography.eyebrow),
               const SizedBox(height: 12),
-              Text('ПЕРСОНАЛЬНЫЙ КЛИЕНТ', style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                'Персональный кабинет',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const SizedBox(height: 10),
               LinearProgressIndicator(value: ((orders.length % 4) + 1) / 4),
               const SizedBox(height: 10),
-              Text('ЗАКАЗОВ: ${orders.length} / СЛЕДУЮЩИЙ УРОВЕНЬ: ПРИОРИТЕТ', style: AppTypography.code),
+              Text(
+                'ЗАКАЗОВ: ${orders.length} / СЛЕДУЮЩИЙ УРОВЕНЬ: ПРИОРИТЕТ',
+                style: AppTypography.code,
+              ),
             ],
           ),
         ),
-        const SizedBox(height: 12),
-        if (trackedOrder != null)
-          _orderCard(trackedOrder, cta: 'ТРЕКИНГ', onTap: () {
-            setState(() => _view = ClientView.tracking);
-          }),
+        if (trackedOrder != null) ...[
+          const SizedBox(height: 12),
+          _orderCard(
+            order: trackedOrder,
+            cta: 'ОТСЛЕДИТЬ',
+            onTap: () => setState(() => _view = ClientView.tracking),
+          ),
+        ],
       ],
     );
   }
 
   Widget _buildProductScreen() {
     final product = _selectedProduct!;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          height: 320,
+          height: 300,
           width: double.infinity,
           color: AppColors.surfaceHigh,
           padding: const EdgeInsets.all(18),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(product.preorder ? 'СТАТУС: ПРЕДЗАКАЗ' : 'СТАТУС: В НАЛИЧИИ', style: AppTypography.eyebrow.copyWith(color: AppColors.white)),
+              Text(
+                product.preorder ? 'ПРЕДЗАКАЗ' : 'В НАЛИЧИИ',
+                style: AppTypography.eyebrow,
+              ),
               const Spacer(),
-              Text(product.title, style: Theme.of(context).textTheme.headlineMedium),
+              Text(
+                product.title,
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
             ],
           ),
         ),
-        const SizedBox(height: 18),
-        _flatCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(product.sku, style: AppTypography.eyebrow),
-              const SizedBox(height: 12),
-              Text('${product.material} / ${product.sizeLabel}', style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 10),
-              Text(product.description, style: Theme.of(context).textTheme.bodyMedium),
-            ],
+        const SizedBox(height: 12),
+        OrderInfoCard(
+          title: 'ИНФОРМАЦИЯ ОБ ИЗДЕЛИИ',
+          rows: [
+            OrderInfoRowData(label: 'Артикул', value: product.sku),
+            OrderInfoRowData(label: 'Материал', value: product.material),
+            OrderInfoRowData(label: 'Размер', value: product.sizeLabel),
+            OrderInfoRowData(label: 'Стоимость', value: formatCurrency(product.price)),
+          ],
+        ),
+        const SizedBox(height: 12),
+        _surfaceCard(
+          child: Text(
+            product.description,
+            style: Theme.of(context).textTheme.bodyMedium,
           ),
         ),
         if (product.preorder) ...[
@@ -340,22 +434,28 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: dateOptions.map((date) => ChoiceChip(
-              label: Text('${monthShort(date.month)} ${date.day.toString().padLeft(2, '0')}'),
-              selected: _selectedDate == date,
-              onSelected: (_) => setState(() => _selectedDate = date),
-            )).toList(),
+            children: dateOptions
+                .map(
+                  (date) => ChoiceChip(
+                    label: Text(
+                      '${monthShort(date.month)} ${date.day.toString().padLeft(2, '0')}',
+                    ),
+                    selected: _selectedDate == date,
+                    onSelected: (_) => setState(() => _selectedDate = date),
+                  ),
+                )
+                .toList(),
           ),
         ],
         const SizedBox(height: 18),
         AvishuButton(
-          text: product.preorder ? 'ОФОРМИТЬ ПРЕДЗАКАЗ' : 'ОФОРМИТЬ ЗАКАЗ',
+          text: product.preorder ? 'ПРОДОЛЖИТЬ ПРЕДЗАКАЗ' : 'ОФОРМИТЬ ЗАКАЗ',
           expanded: true,
           variant: AvishuButtonVariant.filled,
           onPressed: () {
             setState(() {
               _view = ClientView.checkout;
-              _courierDelivery = true;
+              _deliveryMethod = DeliveryMethod.courier;
             });
           },
         ),
@@ -365,19 +465,44 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
 
   Widget _buildCheckoutScreen() {
     final product = _selectedProduct!;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionLabel('АДРЕС ДОСТАВКИ'),
+        OrderInfoCard(
+          title: 'СОСТАВ ЗАКАЗА',
+          rows: [
+            OrderInfoRowData(label: 'Изделие', value: product.title),
+            OrderInfoRowData(label: 'Размер', value: product.sizeLabel),
+            OrderInfoRowData(label: 'Стоимость', value: formatCurrency(product.price)),
+          ],
+        ),
         const SizedBox(height: 12),
-        _flatCard(
+        _surfaceCard(
           child: Column(
             children: [
-              TextField(controller: _cityController, decoration: const InputDecoration(labelText: 'ГОРОД')),
+              TextField(
+                controller: _cityController,
+                decoration: const InputDecoration(labelText: 'Город'),
+              ),
               const SizedBox(height: 12),
-              TextField(controller: _addressController, decoration: const InputDecoration(labelText: 'АДРЕС')),
+              TextField(
+                controller: _addressController,
+                decoration: const InputDecoration(labelText: 'Адрес'),
+              ),
               const SizedBox(height: 12),
-              TextField(controller: _apartmentController, decoration: const InputDecoration(labelText: 'КВАРТИРА / ОФИС')),
+              TextField(
+                controller: _apartmentController,
+                decoration: const InputDecoration(labelText: 'Квартира / офис'),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _noteController,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: 'Комментарий к заказу',
+                ),
+              ),
             ],
           ),
         ),
@@ -386,19 +511,42 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         const SizedBox(height: 12),
         Row(
           children: [
-            Expanded(child: _deliveryCard('КУРЬЕР', _courierDelivery, () => setState(() => _courierDelivery = true))),
+            Expanded(
+              child: _deliveryCard(
+                label: DeliveryMethod.courier.label,
+                active: _deliveryMethod == DeliveryMethod.courier,
+                onTap: () => setState(
+                  () => _deliveryMethod = DeliveryMethod.courier,
+                ),
+              ),
+            ),
             const SizedBox(width: 10),
-            Expanded(child: _deliveryCard('САМОВЫВОЗ', !_courierDelivery, () => setState(() => _courierDelivery = false))),
+            Expanded(
+              child: _deliveryCard(
+                label: DeliveryMethod.pickup.label,
+                active: _deliveryMethod == DeliveryMethod.pickup,
+                onTap: () => setState(
+                  () => _deliveryMethod = DeliveryMethod.pickup,
+                ),
+              ),
+            ),
           ],
         ),
-        const SizedBox(height: 18),
-        _summaryCard(product),
+        const SizedBox(height: 12),
+        OrderInfoCard(
+          title: 'ИТОГО',
+          rows: _checkoutRows(product),
+        ),
         const SizedBox(height: 18),
         AvishuButton(
-          text: 'К ОПЛАТЕ',
+          text: 'ПЕРЕЙТИ К ОПЛАТЕ',
           expanded: true,
           variant: AvishuButtonVariant.filled,
-          onPressed: () => setState(() => _view = ClientView.payment),
+          onPressed: () {
+            if (_validateCheckoutFields()) {
+              setState(() => _view = ClientView.payment);
+            }
+          },
         ),
       ],
     );
@@ -406,52 +554,52 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
 
   Widget _buildPaymentScreen(String clientId) {
     final product = _selectedProduct!;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _flatCard(
+        _surfaceCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('ДАННЫЕ КАРТЫ', style: AppTypography.eyebrow),
+              Text('ОПЛАТА КАРТОЙ', style: AppTypography.eyebrow),
               const SizedBox(height: 12),
-              TextField(controller: _cardController, decoration: const InputDecoration(labelText: 'НОМЕР КАРТЫ')),
+              TextField(
+                controller: _cardController,
+                decoration: const InputDecoration(labelText: 'Номер карты'),
+              ),
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Expanded(child: TextField(controller: _expiryController, decoration: const InputDecoration(labelText: 'MM / YY'))),
+                  Expanded(
+                    child: TextField(
+                      controller: _expiryController,
+                      decoration: const InputDecoration(labelText: 'MM / YY'),
+                    ),
+                  ),
                   const SizedBox(width: 12),
-                  Expanded(child: TextField(controller: _cvvController, decoration: const InputDecoration(labelText: 'CVV'))),
+                  Expanded(
+                    child: TextField(
+                      controller: _cvvController,
+                      decoration: const InputDecoration(labelText: 'CVV'),
+                    ),
+                  ),
                 ],
               ),
             ],
           ),
         ),
         const SizedBox(height: 12),
-        _summaryCard(product),
+        OrderInfoCard(
+          title: 'ДЕТАЛИ ОПЛАТЫ',
+          rows: _checkoutRows(product),
+        ),
         const SizedBox(height: 18),
         AvishuButton(
           text: 'ОПЛАТИТЬ',
           expanded: true,
           variant: AvishuButtonVariant.filled,
-          onPressed: () async {
-            final orderId = await ref.read(orderRepositoryProvider).createOrder(
-              clientId: clientId,
-              productName: product.title,
-              sizeLabel: product.sizeLabel,
-              amount: _totalPrice(product),
-              isPreorder: product.preorder,
-              readyBy: product.preorder ? _selectedDate : null,
-            );
-            if (!mounted) {
-              return;
-            }
-            setState(() {
-              _latestOrderId = orderId;
-              _view = ClientView.tracking;
-              _tab = ClientTab.dashboard;
-            });
-          },
+          onPressed: () => _submitOrder(clientId),
         ),
       ],
     );
@@ -459,63 +607,157 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
 
   Widget _buildTrackingScreen(OrderModel? order) {
     if (order == null) {
-      return _flatCard(
-        child: Text('Ожидаем синхронизацию заказа с витриной.', style: Theme.of(context).textTheme.bodyMedium),
+      return _surfaceCard(
+        child: Text(
+          'Ожидаем синхронизацию заказа.',
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
       );
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _flatCard(
+        _surfaceCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('ТРЕКИНГ ЗАКАЗА', style: AppTypography.eyebrow),
+              Text('ЗАКАЗ #${order.shortId}', style: AppTypography.eyebrow),
               const SizedBox(height: 12),
-              Text('ЗАКАЗ #${order.id.substring(0, 6).toUpperCase()}', style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 10),
-              Text(order.productName, style: Theme.of(context).textTheme.titleMedium),
+              Text(
+                order.productName,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const SizedBox(height: 8),
-              Text(order.status.roleDescription, style: Theme.of(context).textTheme.bodyMedium),
-              const SizedBox(height: 18),
+              Text(
+                order.status.roleDescription,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 12),
               LinearProgressIndicator(value: order.status.progressValue),
               const SizedBox(height: 10),
-              Text('СТАТУС / ${order.status.clientLabel}', style: AppTypography.code),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        _flatCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('СВЯЗАННЫЕ РОЛИ', style: AppTypography.eyebrow),
-              const SizedBox(height: 12),
-              Text('Франчайзи видит заказ сразу после оплаты, а цех получает его после подтверждения.', style: Theme.of(context).textTheme.bodyMedium),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: AvishuButton(
-                      text: 'СМЕНИТЬ РОЛЬ',
-                      onPressed: () => showRoleSwitchSheet(context, ref),
-                      variant: AvishuButtonVariant.ghost,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(child: AvishuButton(text: 'КОЛЛЕКЦИИ', onPressed: () {
-                    setState(() {
-                      _tab = ClientTab.collections;
-                      _view = ClientView.root;
-                    });
-                  })),
-                ],
+              Text(
+                'СТАТУС / ${order.status.clientLabel}',
+                style: AppTypography.code,
               ),
             ],
           ),
         ),
+        const SizedBox(height: 12),
+        OrderInfoCard(
+          title: 'ДЕТАЛИ ЗАКАЗА',
+          rows: OrderSummaryRows.forOrder(order),
+        ),
+        if (order.clientNote.trim().isNotEmpty) ...[
+          const SizedBox(height: 12),
+          OrderInfoCard(
+            title: 'КОММЕНТАРИЙ КЛИЕНТА',
+            rows: [OrderInfoRowData(label: 'Комментарий', value: order.clientNote)],
+          ),
+        ],
+        if (order.franchiseeNote.trim().isNotEmpty) ...[
+          const SizedBox(height: 12),
+          OrderInfoCard(
+            title: 'ПОМЕТКА ФРАНЧАЙЗИ',
+            rows: [
+              OrderInfoRowData(label: 'Статус', value: order.franchiseeNote),
+            ],
+          ),
+        ],
+        if (order.productionNote.trim().isNotEmpty) ...[
+          const SizedBox(height: 12),
+          OrderInfoCard(
+            title: 'ПОМЕТКА ПРОИЗВОДСТВА',
+            rows: [
+              OrderInfoRowData(label: 'Производство', value: order.productionNote),
+            ],
+          ),
+        ],
+        const SizedBox(height: 12),
+        OrderTimelineCard(timeline: order.timeline),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: AvishuButton(
+                text: 'СМЕНИТЬ РОЛЬ',
+                onPressed: () => showRoleSwitchSheet(context, ref),
+                variant: AvishuButtonVariant.ghost,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: AvishuButton(
+                text: 'КОЛЛЕКЦИИ',
+                onPressed: () {
+                  setState(() {
+                    _tab = ClientTab.collections;
+                    _view = ClientView.root;
+                  });
+                },
+              ),
+            ),
+          ],
+        ),
       ],
+    );
+  }
+
+  Future<void> _submitOrder(String clientId) async {
+    final product = _selectedProduct!;
+    if (!_validateCheckoutFields() || !_validatePaymentFields()) {
+      return;
+    }
+
+    final orderId = await ref.read(orderRepositoryProvider).createOrder(
+      clientId: clientId,
+      productName: product.title,
+      sizeLabel: product.sizeLabel,
+      amount: _totalPrice(product),
+      isPreorder: product.preorder,
+      readyBy: product.preorder ? _selectedDate : null,
+      deliveryMethod: _deliveryMethod,
+      deliveryCity: _cityController.text.trim(),
+      deliveryAddress: _addressController.text.trim(),
+      apartment: _apartmentController.text.trim(),
+      paymentLast4: _cardLast4,
+      clientNote: _noteController.text.trim(),
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _latestOrderId = orderId;
+      _tab = ClientTab.dashboard;
+      _view = ClientView.tracking;
+    });
+  }
+
+  bool _validateCheckoutFields() {
+    if (_cityController.text.trim().isEmpty ||
+        _addressController.text.trim().isEmpty) {
+      _showMessage('Заполните город и адрес доставки.');
+      return false;
+    }
+    return true;
+  }
+
+  bool _validatePaymentFields() {
+    final digits = _cardController.text.replaceAll(RegExp(r'\D'), '');
+    if (digits.length < 4 ||
+        _expiryController.text.trim().isEmpty ||
+        _cvvController.text.trim().length < 3) {
+      _showMessage('Проверьте данные банковской карты.');
+      return false;
+    }
+    return true;
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
     );
   }
 
@@ -527,9 +769,44 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     });
   }
 
-  double _totalPrice(CatalogProduct product) => product.price + (_courierDelivery ? 25 : 0);
+  String get _cardLast4 {
+    final digits = _cardController.text.replaceAll(RegExp(r'\D'), '');
+    if (digits.isEmpty) {
+      return '';
+    }
+    return digits.length <= 4 ? digits : digits.substring(digits.length - 4);
+  }
 
-  Widget _heroCard({required String title, required String subtitle, required String accent}) {
+  double _totalPrice(CatalogProduct product) {
+    return product.price + _deliveryMethod.fee;
+  }
+
+  List<OrderInfoRowData> _checkoutRows(CatalogProduct product) {
+    return [
+      OrderInfoRowData(label: 'Изделие', value: product.title),
+      OrderInfoRowData(label: 'Размер', value: product.sizeLabel),
+      OrderInfoRowData(label: 'Стоимость', value: formatCurrency(product.price)),
+      OrderInfoRowData(
+        label: 'Доставка',
+        value: '${_deliveryMethod.label} / ${formatCurrency(_deliveryMethod.fee)}',
+      ),
+      if (product.preorder && _selectedDate != null)
+        OrderInfoRowData(
+          label: 'Дата готовности',
+          value: formatDate(_selectedDate!),
+        ),
+      OrderInfoRowData(
+        label: 'Итого',
+        value: formatCurrency(_totalPrice(product)),
+      ),
+    ];
+  }
+
+  Widget _heroCard({
+    required String title,
+    required String subtitle,
+    required String accent,
+  }) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -537,75 +814,120 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(accent, style: AppTypography.eyebrow.copyWith(color: AppColors.surfaceDim)),
+          Text(
+            accent,
+            style: AppTypography.eyebrow.copyWith(color: AppColors.surfaceDim),
+          ),
           const SizedBox(height: 12),
-          Text(title, style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: AppColors.white)),
+          Text(
+            title,
+            style: Theme.of(
+              context,
+            ).textTheme.headlineMedium?.copyWith(color: AppColors.white),
+          ),
           const SizedBox(height: 12),
-          Text(subtitle, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.surfaceHighest)),
+          Text(
+            subtitle,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: AppColors.surfaceHighest),
+          ),
         ],
       ),
     );
   }
 
-  Widget _summaryCard(CatalogProduct product) {
-    return _flatCard(
+  Widget _metricCard({required String label, required String value}) {
+    return _surfaceCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('СОСТАВ ЗАКАЗА', style: AppTypography.eyebrow),
+          Text(label, style: AppTypography.eyebrow),
           const SizedBox(height: 12),
-          _summaryRow(product.title, '\$${product.price.toStringAsFixed(0)}'),
-          _summaryRow(_courierDelivery ? 'Курьер' : 'Самовывоз', _courierDelivery ? '\$25' : '\$0'),
-          if (product.preorder && _selectedDate != null) _summaryRow('Готовность', formatDate(_selectedDate!)),
-          const Divider(height: 24),
-          _summaryRow('ИТОГО', '\$${_totalPrice(product).toStringAsFixed(0)}', strong: true),
+          Text(value, style: Theme.of(context).textTheme.titleLarge),
         ],
       ),
     );
   }
 
-  Widget _productCard(CatalogProduct product, {required VoidCallback onTap}) {
-    return _flatCard(
+  Widget _productCard({
+    required CatalogProduct product,
+    required VoidCallback onTap,
+  }) {
+    return _surfaceCard(
       onTap: onTap,
       child: Row(
         children: [
-          Container(width: 76, height: 104, color: product.preorder ? AppColors.surfaceHigh : AppColors.surfaceLow),
+          Container(
+            width: 76,
+            height: 104,
+            color: product.preorder ? AppColors.surfaceHigh : AppColors.surfaceLow,
+          ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(product.title, style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  product.title,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const SizedBox(height: 8),
-                Text(product.material, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.secondary)),
+                Text(
+                  product.material,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: AppColors.secondary),
+                ),
                 const SizedBox(height: 8),
-                Text('${product.preorder ? 'ПРЕДЗАКАЗ' : 'В НАЛИЧИИ'} / ${product.sizeLabel}', style: AppTypography.code),
+                Text(
+                  '${product.preorder ? 'ПРЕДЗАКАЗ' : 'В НАЛИЧИИ'} / ${product.sizeLabel}',
+                  style: AppTypography.code,
+                ),
               ],
             ),
           ),
           const SizedBox(width: 10),
-          Text('\$${product.price.toStringAsFixed(0)}', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            formatCurrency(product.price),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
         ],
       ),
     );
   }
 
-  Widget _orderCard(OrderModel order, {required String cta, required VoidCallback onTap}) {
-    return _flatCard(
+  Widget _orderCard({
+    required OrderModel order,
+    required String cta,
+    required VoidCallback onTap,
+  }) {
+    return _surfaceCard(
       onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Expanded(child: Text('ЗАКАЗ #${order.id.substring(0, 6).toUpperCase()}', style: AppTypography.eyebrow)),
+              Expanded(
+                child: Text(
+                  'ЗАКАЗ #${order.shortId}',
+                  style: AppTypography.eyebrow,
+                ),
+              ),
               Text(order.status.panelLabel, style: AppTypography.code),
             ],
           ),
           const SizedBox(height: 10),
-          Text(order.productName, style: Theme.of(context).textTheme.titleLarge),
+          Text(
+            order.productName,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
           const SizedBox(height: 8),
-          Text('${order.sizeLabel} / \$${order.amount.toStringAsFixed(0)}', style: Theme.of(context).textTheme.bodyMedium),
+          Text(
+            '${order.sizeLabel} / ${formatCurrency(order.amount)}',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
           const SizedBox(height: 12),
           LinearProgressIndicator(value: order.status.progressValue),
           const SizedBox(height: 10),
@@ -615,7 +937,11 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     );
   }
 
-  Widget _deliveryCard(String label, bool active, VoidCallback onTap) {
+  Widget _deliveryCard({
+    required String label,
+    required bool active,
+    required VoidCallback onTap,
+  }) {
     return InkWell(
       onTap: onTap,
       child: Container(
@@ -627,42 +953,46 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('СПОСОБ', style: AppTypography.eyebrow.copyWith(color: active ? AppColors.surfaceDim : AppColors.outline)),
+            Text(
+              'СПОСОБ',
+              style: AppTypography.eyebrow.copyWith(
+                color: active ? AppColors.surfaceDim : AppColors.outline,
+              ),
+            ),
             const SizedBox(height: 8),
-            Text(label, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: active ? AppColors.white : AppColors.black)),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: active ? AppColors.white : AppColors.black,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _flatCard({required Widget child, VoidCallback? onTap}) {
+  Widget _surfaceCard({
+    required Widget child,
+    VoidCallback? onTap,
+  }) {
+    final compact = ref.watch(appSettingsProvider).compactCards;
     final card = Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(compact ? 12 : 16),
       decoration: BoxDecoration(
         color: AppColors.surfaceLowest,
         border: Border.all(color: AppColors.outlineVariant),
       ),
       child: child,
     );
-    if (onTap == null) {
-      return card;
-    }
-    return InkWell(onTap: onTap, child: card);
+    return onTap == null ? card : InkWell(onTap: onTap, child: card);
   }
 
-  Widget _sectionLabel(String label) => Text(label, style: AppTypography.eyebrow.copyWith(letterSpacing: 3));
-
-  Widget _summaryRow(String label, String value, {bool strong = false}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Expanded(child: Text(label, style: strong ? Theme.of(context).textTheme.titleMedium : Theme.of(context).textTheme.bodyMedium)),
-          Text(value, style: strong ? Theme.of(context).textTheme.titleLarge : Theme.of(context).textTheme.bodyMedium),
-        ],
-      ),
+  Widget _sectionLabel(String label) {
+    return Text(
+      label,
+      style: AppTypography.eyebrow.copyWith(letterSpacing: 3),
     );
   }
 }

@@ -5,12 +5,15 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/typography.dart';
 import '../../../../features/auth/domain/user_role.dart';
+import '../../../../shared/providers/app_settings.dart';
+import '../../../../shared/widgets/app_settings_sheet.dart';
 import '../../../../shared/widgets/avishu_button.dart';
 import '../../../../shared/widgets/avishu_mobile_frame.dart';
 import '../../../../shared/widgets/role_switch_sheet.dart';
 import '../../../orders/data/order_repository.dart';
 import '../../../orders/domain/enums/order_status.dart';
 import '../../../orders/domain/models/order_model.dart';
+import '../shared/order_panels.dart';
 
 final franchiseeOrdersProvider = StreamProvider<List<OrderModel>>((ref) {
   return ref.watch(orderRepositoryProvider).allOrders();
@@ -22,12 +25,14 @@ class FranchiseeDashboard extends ConsumerStatefulWidget {
   const FranchiseeDashboard({super.key});
 
   @override
-  ConsumerState<FranchiseeDashboard> createState() => _FranchiseeDashboardState();
+  ConsumerState<FranchiseeDashboard> createState() =>
+      _FranchiseeDashboardState();
 }
 
 class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
   FranchiseeTab _tab = FranchiseeTab.dashboard;
   OrderModel? _selectedOrder;
+  final _noteController = TextEditingController();
 
   static const _navItems = [
     AvishuNavItem(label: 'ПАНЕЛЬ', icon: Icons.grid_view_rounded),
@@ -37,19 +42,27 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
   ];
 
   @override
+  void dispose() {
+    _noteController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final ordersAsync = ref.watch(franchiseeOrdersProvider);
 
     return AvishuMobileFrame(
       title: 'AVISHU',
-      metaLabel: _selectedOrder == null ? 'ФРАНЧАЙЗИ / ЗАКАЗЫ' : 'ФРАНЧАЙЗИ / КАРТОЧКА',
+      metaLabel: _selectedOrder == null
+          ? 'ФРАНЧАЙЗИ / ЗАКАЗЫ'
+          : 'ФРАНЧАЙЗИ / КАРТОЧКА',
       leadingIcon: _selectedOrder == null ? Icons.menu : Icons.arrow_back,
-      actionIcon: Icons.swap_horiz_rounded,
+      actionIcon: Icons.precision_manufacturing_outlined,
       currentIndex: _tab.index,
       navItems: _navItems,
       onLeadingTap: () {
         if (_selectedOrder == null) {
-          showRoleSwitchSheet(context, ref);
+          showAppSettingsSheet(context);
         } else {
           setState(() => _selectedOrder = null);
         }
@@ -64,7 +77,9 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
       body: ordersAsync.when(
         data: (orders) => SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(18, 18, 18, 22),
-          child: _selectedOrder != null ? _detailView(_selectedOrder!) : _rootView(orders),
+          child: _selectedOrder != null
+              ? _detailView(_selectedOrder!)
+              : _rootView(orders),
         ),
         loading: () =>
             const Center(child: CircularProgressIndicator(color: Colors.black)),
@@ -74,9 +89,15 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
   }
 
   Widget _rootView(List<OrderModel> orders) {
-    final newOrders = orders.where((order) => order.status == OrderStatus.newOrder).toList();
-    final queuedOrders = orders.where((order) => order.status == OrderStatus.accepted).toList();
-    final readyOrders = orders.where((order) => order.status == OrderStatus.ready).toList();
+    final newOrders = orders
+        .where((order) => order.status == OrderStatus.newOrder)
+        .toList();
+    final queuedOrders = orders
+        .where((order) => order.status == OrderStatus.accepted)
+        .toList();
+    final readyOrders = orders
+        .where((order) => order.status == OrderStatus.ready)
+        .toList();
     final revenue = orders.fold<double>(0, (sum, order) => sum + order.amount);
 
     return switch (_tab) {
@@ -84,54 +105,71 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _hero(
-            'ПАНЕЛЬ ЗАКАЗОВ',
-            'Новые заказы появляются сразу после оплаты и могут быть переданы в производство без перезагрузки.',
-            'НОВЫХ ЗАКАЗОВ: ${newOrders.length}',
+            title: 'ПАНЕЛЬ ЗАКАЗОВ',
+            subtitle:
+                'Новые заказы появляются сразу после оплаты и могут быть переданы в производство без перезагрузки.',
+            accent: 'НОВЫХ ЗАКАЗОВ: ${newOrders.length}',
           ),
           const SizedBox(height: 12),
-          _metricRow([
-            _metric('ОБОРОТ', '\$${revenue.toStringAsFixed(0)}'),
-            _metric('НОВЫЕ', '${newOrders.length}'),
-            _metric('ГОТОВЫЕ', '${readyOrders.length}'),
-          ]),
+          Row(
+            children: [
+              Expanded(child: _metricCard('Оборот', revenue.toStringAsFixed(0))),
+              const SizedBox(width: 8),
+              Expanded(child: _metricCard('Новые', '${newOrders.length}')),
+              const SizedBox(width: 8),
+              Expanded(child: _metricCard('Готовы', '${readyOrders.length}')),
+            ],
+          ),
           const SizedBox(height: 12),
-          if (newOrders.isNotEmpty) _orderCard(newOrders.first),
-          if (queuedOrders.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            _orderCard(queuedOrders.first),
-          ],
+          ...[
+            ...newOrders.take(2),
+            ...queuedOrders.take(1),
+          ].map(
+            (order) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _orderCard(order),
+            ),
+          ),
         ],
       ),
       FranchiseeTab.queue => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _section('НОВЫЕ ЗАКАЗЫ'),
+          _sectionLabel('НОВЫЕ ЗАКАЗЫ'),
           const SizedBox(height: 12),
-          if (newOrders.isEmpty) _empty('Новые заказы появятся здесь сразу после оплаты клиента.'),
-          ...newOrders.map((order) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: _orderCard(order),
-          )),
-          const SizedBox(height: 8),
-          _section('В ПОТОКЕ ЦЕХА'),
+          if (newOrders.isEmpty) _emptyCard('Новые заказы пока не поступили.'),
+          ...newOrders.map(
+            (order) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _orderCard(order),
+            ),
+          ),
+          const SizedBox(height: 4),
+          _sectionLabel('ПЕРЕДАНО В ЦЕХ'),
           const SizedBox(height: 12),
-          if (queuedOrders.isEmpty) _empty('После принятия заказ уходит в очередь производства.'),
-          ...queuedOrders.map((order) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: _orderCard(order),
-          )),
+          if (queuedOrders.isEmpty)
+            _emptyCard('После подтверждения заказ появится в очереди цеха.'),
+          ...queuedOrders.map(
+            (order) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _orderCard(order),
+            ),
+          ),
         ],
       ),
       FranchiseeTab.ready => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _section('ГОТОВЫЕ К ВЫДАЧЕ'),
+          _sectionLabel('ГОТОВО К ВЫДАЧЕ'),
           const SizedBox(height: 12),
-          if (readyOrders.isEmpty) _empty('Когда цех завершит заказ, он появится в этом списке.'),
-          ...readyOrders.map((order) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: _orderCard(order),
-          )),
+          if (readyOrders.isEmpty)
+            _emptyCard('Готовые заказы появятся после завершения производства.'),
+          ...readyOrders.map(
+            (order) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _orderCard(order),
+            ),
+          ),
         ],
       ),
       FranchiseeTab.profile => Column(
@@ -139,23 +177,23 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
         children: [
           const RoleControlCard(currentRole: UserRole.franchisee),
           const SizedBox(height: 12),
-          _flatCard(
+          _surfaceCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('ФРАНШИЗА', style: AppTypography.eyebrow),
+                Text('КАБИНЕТ ФРАНЧАЙЗИ', style: AppTypography.eyebrow),
                 const SizedBox(height: 12),
-                Text('Кабинет франчайзи', style: Theme.of(context).textTheme.titleLarge),
+                Text(
+                  'Управление заказами',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
                 const SizedBox(height: 10),
-                Text('Здесь собраны заказы клиентов, текущий поток производства и готовые позиции.', style: Theme.of(context).textTheme.bodyMedium),
+                Text(
+                  'В разделе доступны новые заказы, текущий поток производства и готовые позиции.',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
               ],
             ),
-          ),
-          const SizedBox(height: 12),
-          AvishuButton(
-            text: 'СМЕНИТЬ РОЛЬ',
-            expanded: true,
-            onPressed: () => showRoleSwitchSheet(context, ref),
           ),
         ],
       ),
@@ -164,90 +202,92 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
 
   Widget _detailView(OrderModel order) {
     final isNew = order.status == OrderStatus.newOrder;
-    final canJumpToProduction = order.status == OrderStatus.accepted || order.status == OrderStatus.inProduction;
+    final canOpenProduction =
+        order.status == OrderStatus.accepted ||
+        order.status == OrderStatus.inProduction;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _flatCard(
+        _surfaceCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('ЗАКАЗ #${order.id.substring(0, 6).toUpperCase()}', style: AppTypography.eyebrow),
+              Text('ЗАКАЗ #${order.shortId}', style: AppTypography.eyebrow),
               const SizedBox(height: 12),
-              Text(order.productName, style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                order.productName,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const SizedBox(height: 8),
-              Text('${order.sizeLabel} / \$${order.amount.toStringAsFixed(0)}', style: Theme.of(context).textTheme.bodyMedium),
+              Text(
+                order.status.roleDescription,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
               const SizedBox(height: 12),
               LinearProgressIndicator(value: order.status.progressValue),
               const SizedBox(height: 10),
-              Text(order.status.roleDescription, style: Theme.of(context).textTheme.bodyMedium),
+              Text(order.status.panelLabel, style: AppTypography.code),
             ],
           ),
         ),
         const SizedBox(height: 12),
+        OrderInfoCard(
+          title: 'ДЕТАЛИ ЗАКАЗА',
+          rows: OrderSummaryRows.forOrder(order),
+        ),
+        if (order.clientNote.trim().isNotEmpty) ...[
+          const SizedBox(height: 12),
+          OrderInfoCard(
+            title: 'КОММЕНТАРИЙ КЛИЕНТА',
+            rows: [
+              OrderInfoRowData(label: 'Комментарий', value: order.clientNote),
+            ],
+          ),
+        ],
+        const SizedBox(height: 12),
+        _surfaceCard(
+          child: TextField(
+            controller: _noteController,
+            maxLines: 3,
+            decoration: const InputDecoration(
+              labelText: 'Комментарий франчайзи',
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        OrderTimelineCard(timeline: order.timeline),
+        const SizedBox(height: 12),
         if (isNew)
           AvishuButton(
-            text: 'ПРИНЯТЬ И ОТПРАВИТЬ В ЦЕХ',
+            text: 'ПРИНЯТЬ И ПЕРЕДАТЬ В ЦЕХ',
             expanded: true,
             variant: AvishuButtonVariant.filled,
             onPressed: () async {
-              await ref.read(orderRepositoryProvider).updateOrderStatus(order.id, OrderStatus.accepted);
+              await ref.read(orderRepositoryProvider).acceptOrder(
+                    order.id,
+                    note: _noteController.text.trim(),
+                  );
               if (mounted) {
                 setState(() => _selectedOrder = null);
               }
             },
           ),
-        if (!isNew) ...[
-          _flatCard(
-            child: Text(
-              canJumpToProduction
-                  ? 'Этот заказ уже находится в очереди или в пошиве. Можно открыть роль производства и продолжить сценарий.'
-                  : 'Заказ завершен. Клиент видит статус "Готово" в своем мобильном трекинге.',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ),
-          const SizedBox(height: 12),
+        if (!isNew)
           AvishuButton(
-            text: canJumpToProduction ? 'ОТКРЫТЬ ПРОИЗВОДСТВО' : 'ВЕРНУТЬСЯ К СПИСКУ',
+            text: canOpenProduction ? 'ОТКРЫТЬ ПРОИЗВОДСТВО' : 'ЗАКАЗ ЗАВЕРШЕН',
             expanded: true,
-            onPressed: () {
-              if (canJumpToProduction) {
-                context.go('/production');
-              } else {
-                setState(() => _selectedOrder = null);
-              }
-            },
+            onPressed: canOpenProduction ? () => context.go('/production') : null,
           ),
-        ],
       ],
     );
   }
 
-  Widget _orderCard(OrderModel order) {
-    return _flatCard(
-      onTap: () => setState(() => _selectedOrder = order),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(child: Text('ЗАКАЗ #${order.id.substring(0, 6).toUpperCase()}', style: AppTypography.eyebrow)),
-              Text(order.status.panelLabel, style: AppTypography.code),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(order.productName, style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 8),
-          Text(order.status.roleDescription, style: Theme.of(context).textTheme.bodyMedium),
-          const SizedBox(height: 12),
-          Text('ОТКРЫТЬ КАРТОЧКУ', style: AppTypography.button),
-        ],
-      ),
-    );
-  }
-
-  Widget _hero(String title, String subtitle, String accent) {
+  Widget _hero({
+    required String title,
+    required String subtitle,
+    required String accent,
+  }) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -255,45 +295,83 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(accent, style: AppTypography.eyebrow.copyWith(color: AppColors.surfaceDim)),
+          Text(
+            accent,
+            style: AppTypography.eyebrow.copyWith(color: AppColors.surfaceDim),
+          ),
           const SizedBox(height: 12),
-          Text(title, style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: AppColors.white)),
+          Text(
+            title,
+            style: Theme.of(
+              context,
+            ).textTheme.headlineMedium?.copyWith(color: AppColors.white),
+          ),
           const SizedBox(height: 12),
-          Text(subtitle, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.surfaceHighest)),
+          Text(
+            subtitle,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: AppColors.surfaceHighest),
+          ),
         ],
       ),
     );
   }
 
-  Widget _metricRow(List<Widget> children) {
-    return Row(
-      children: children
-          .map((child) => Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 4), child: child)))
-          .toList(),
-    );
-  }
-
-  Widget _metric(String label, String value) {
-    return _flatCard(
+  Widget _metricCard(String label, String value) {
+    return _surfaceCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label, style: AppTypography.eyebrow),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Text(value, style: Theme.of(context).textTheme.titleLarge),
         ],
       ),
     );
   }
 
-  Widget _section(String label) => Text(label, style: AppTypography.eyebrow.copyWith(letterSpacing: 3));
+  Widget _orderCard(OrderModel order) {
+    return _surfaceCard(
+      onTap: () => _openOrder(order),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'ЗАКАЗ #${order.shortId}',
+                  style: AppTypography.eyebrow,
+                ),
+              ),
+              Text(order.status.panelLabel, style: AppTypography.code),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            order.productName,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            order.formattedAddress,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 12),
+          LinearProgressIndicator(value: order.status.progressValue),
+          const SizedBox(height: 10),
+          Text('ОТКРЫТЬ КАРТОЧКУ', style: AppTypography.button),
+        ],
+      ),
+    );
+  }
 
-  Widget _empty(String text) => _flatCard(child: Text(text, style: Theme.of(context).textTheme.bodyMedium));
-
-  Widget _flatCard({required Widget child, VoidCallback? onTap}) {
+  Widget _surfaceCard({required Widget child, VoidCallback? onTap}) {
+    final compact = ref.watch(appSettingsProvider).compactCards;
     final card = Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(compact ? 12 : 16),
       decoration: BoxDecoration(
         color: AppColors.surfaceLowest,
         border: Border.all(color: AppColors.outlineVariant),
@@ -301,5 +379,23 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
       child: child,
     );
     return onTap == null ? card : InkWell(onTap: onTap, child: card);
+  }
+
+  Widget _emptyCard(String text) {
+    return _surfaceCard(
+      child: Text(text, style: Theme.of(context).textTheme.bodyMedium),
+    );
+  }
+
+  Widget _sectionLabel(String label) {
+    return Text(
+      label,
+      style: AppTypography.eyebrow.copyWith(letterSpacing: 3),
+    );
+  }
+
+  void _openOrder(OrderModel order) {
+    _noteController.text = order.franchiseeNote;
+    setState(() => _selectedOrder = order);
   }
 }

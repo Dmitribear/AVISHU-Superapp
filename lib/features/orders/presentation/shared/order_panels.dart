@@ -1,0 +1,168 @@
+import 'package:flutter/material.dart';
+
+import '../../../../core/theme/colors.dart';
+import '../../../../core/theme/typography.dart';
+import '../../domain/enums/delivery_method.dart';
+import '../../domain/models/order_model.dart';
+import '../../domain/models/order_timeline_entry.dart';
+import 'order_formatters.dart';
+
+class OrderInfoCard extends StatelessWidget {
+  final String title;
+  final List<OrderInfoRowData> rows;
+
+  const OrderInfoCard({
+    super.key,
+    required this.title,
+    required this.rows,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceLowest,
+        border: Border.all(color: AppColors.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: AppTypography.eyebrow),
+          const SizedBox(height: 12),
+          ...rows.indexed.map((entry) {
+            final index = entry.$1;
+            final row = entry.$2;
+            return Padding(
+              padding: EdgeInsets.only(bottom: index == rows.length - 1 ? 0 : 10),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      row.label,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.secondary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Flexible(
+                    child: Text(
+                      row.value,
+                      textAlign: TextAlign.right,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+}
+
+class OrderInfoRowData {
+  final String label;
+  final String value;
+
+  const OrderInfoRowData({
+    required this.label,
+    required this.value,
+  });
+}
+
+class OrderTimelineCard extends StatelessWidget {
+  final List<OrderTimelineEntry> timeline;
+
+  const OrderTimelineCard({
+    super.key,
+    required this.timeline,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceLowest,
+        border: Border.all(color: AppColors.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('ИСТОРИЯ СТАТУСОВ', style: AppTypography.eyebrow),
+          const SizedBox(height: 12),
+          ...timeline.reversed.map(
+            (entry) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _TimelineRow(entry: entry),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TimelineRow extends StatelessWidget {
+  final OrderTimelineEntry entry;
+
+  const _TimelineRow({required this.entry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 10,
+          height: 10,
+          margin: const EdgeInsets.only(top: 4),
+          decoration: const BoxDecoration(
+            color: AppColors.black,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(entry.title, style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 4),
+              Text(entry.description, style: Theme.of(context).textTheme.bodySmall),
+              const SizedBox(height: 4),
+              Text(
+                '${entry.actor} / ${formatTimelineDate(entry.createdAt)}',
+                style: AppTypography.code,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class OrderSummaryRows {
+  static List<OrderInfoRowData> forOrder(OrderModel order) {
+    return [
+      OrderInfoRowData(label: 'Изделие', value: order.productName),
+      OrderInfoRowData(label: 'Размер', value: order.sizeLabel),
+      OrderInfoRowData(label: 'Сумма', value: formatCurrency(order.amount)),
+      OrderInfoRowData(label: 'Доставка', value: order.deliveryMethod.label),
+      OrderInfoRowData(label: 'Адрес', value: order.formattedAddress),
+      OrderInfoRowData(
+        label: 'Оплата',
+        value: order.paymentLast4.isEmpty
+            ? 'Карта'
+            : 'Карта *${order.paymentLast4}',
+      ),
+    ];
+  }
+}
