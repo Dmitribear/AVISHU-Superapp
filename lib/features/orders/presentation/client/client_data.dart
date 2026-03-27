@@ -1,6 +1,7 @@
 import '../../../orders/domain/models/order_model.dart';
 import '../../../orders/domain/enums/order_status.dart';
 import '../../../products/domain/models/product_model.dart';
+import '../../../../shared/i18n/app_localization.dart';
 
 enum ClientTab { dashboard, collections, archive, profile }
 
@@ -90,14 +91,14 @@ class CatalogProduct {
 
   bool get isNew => sections.contains('Новинки');
 
-  String get availabilityLabel {
-    if (inStock) {
-      return 'В наличии';
-    }
-    if (preorder) {
-      return 'Индивидуальный пошив 2-4 дня';
-    }
-    return 'Ожидаем поступление';
+  String get availabilityLabel => availabilityLabelFor(AppLanguage.russian);
+
+  String availabilityLabelFor(AppLanguage language) {
+    return localizedAvailabilityLabel(
+      language,
+      inStock: inStock,
+      preorder: preorder,
+    );
   }
 }
 
@@ -487,22 +488,8 @@ final dateOptions = <DateTime>[
   DateTime(2026, 11, 8),
 ];
 
-String monthShort(int month) {
-  const months = [
-    'ЯНВ',
-    'ФЕВ',
-    'МАР',
-    'АПР',
-    'МАЙ',
-    'ИЮН',
-    'ИЮЛ',
-    'АВГ',
-    'СЕН',
-    'ОКТ',
-    'НОЯ',
-    'ДЕК',
-  ];
-  return months[month - 1];
+String monthShort(int month, AppLanguage language) {
+  return localizedMonthShort(language, month);
 }
 
 String formatDate(DateTime date) {

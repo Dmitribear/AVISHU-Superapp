@@ -18,7 +18,7 @@ class AvishuMobileFrame extends StatelessWidget {
   final ValueChanged<int> onNavSelected;
   final IconData leadingIcon;
   final VoidCallback? onLeadingTap;
-  final IconData actionIcon;
+  final IconData? actionIcon;
   final VoidCallback? onActionTap;
   final String? metaLabel;
   final bool showBottomNav;
@@ -88,7 +88,12 @@ class AvishuMobileFrame extends StatelessWidget {
                             ],
                           ),
                         ),
-                        _FrameIconButton(icon: actionIcon, onTap: onActionTap),
+                        actionIcon == null
+                            ? const SizedBox(width: 44, height: 44)
+                            : _FrameIconButton(
+                                icon: actionIcon!,
+                                onTap: onActionTap,
+                              ),
                       ],
                     ),
                   ),

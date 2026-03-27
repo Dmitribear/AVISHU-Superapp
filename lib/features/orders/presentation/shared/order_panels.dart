@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/typography.dart';
+import '../../../../shared/i18n/app_localization.dart';
+import '../../../../shared/providers/app_settings.dart';
 import '../../domain/enums/delivery_method.dart';
 import '../../domain/models/order_model.dart';
 import '../../domain/models/order_timeline_entry.dart';
@@ -70,13 +73,15 @@ class OrderInfoRowData {
   const OrderInfoRowData({required this.label, required this.value});
 }
 
-class OrderTimelineCard extends StatelessWidget {
+class OrderTimelineCard extends ConsumerWidget {
   final List<OrderTimelineEntry> timeline;
 
   const OrderTimelineCard({super.key, required this.timeline});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final language = ref.watch(appSettingsProvider).language;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -87,7 +92,10 @@ class OrderTimelineCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('ИСТОРИЯ СТАТУСОВ', style: AppTypography.eyebrow),
+          Text(
+            tr(language, ru: 'ИСТОРИЯ СТАТУСОВ', en: 'STATUS HISTORY'),
+            style: AppTypography.eyebrow,
+          ),
           const SizedBox(height: 12),
           ...timeline.reversed.map(
             (entry) => Padding(
@@ -145,18 +153,40 @@ class _TimelineRow extends StatelessWidget {
 }
 
 class OrderSummaryRows {
-  static List<OrderInfoRowData> forOrder(OrderModel order) {
+  static List<OrderInfoRowData> forOrder(
+    OrderModel order, {
+    AppLanguage language = AppLanguage.russian,
+  }) {
     return [
-      OrderInfoRowData(label: 'Изделие', value: order.productName),
-      OrderInfoRowData(label: 'Размер', value: order.sizeLabel),
-      OrderInfoRowData(label: 'Сумма', value: formatCurrency(order.amount)),
-      OrderInfoRowData(label: 'Доставка', value: order.deliveryMethod.label),
-      OrderInfoRowData(label: 'Адрес', value: order.formattedAddress),
       OrderInfoRowData(
-        label: 'Оплата',
+        label: tr(language, ru: 'Изделие', en: 'Product'),
+        value: order.productName,
+      ),
+      OrderInfoRowData(
+        label: tr(language, ru: 'Размер', en: 'Size'),
+        value: order.sizeLabel,
+      ),
+      OrderInfoRowData(
+        label: tr(language, ru: 'Сумма', en: 'Amount'),
+        value: formatCurrency(order.amount),
+      ),
+      OrderInfoRowData(
+        label: tr(language, ru: 'Доставка', en: 'Delivery'),
+        value: order.deliveryMethod.labelFor(language),
+      ),
+      OrderInfoRowData(
+        label: tr(language, ru: 'Адрес', en: 'Address'),
+        value: order.formattedAddress,
+      ),
+      OrderInfoRowData(
+        label: tr(language, ru: 'Оплата', en: 'Payment'),
         value: order.paymentLast4.isEmpty
-            ? 'Карта'
-            : 'Карта *${order.paymentLast4}',
+            ? tr(language, ru: 'Карта', en: 'Card')
+            : tr(
+                language,
+                ru: 'Карта *${order.paymentLast4}',
+                en: 'Card *${order.paymentLast4}',
+              ),
       ),
     ];
   }

@@ -1,3 +1,5 @@
+import '../../../../shared/i18n/app_localization.dart';
+
 enum DeliveryMethod {
   courier('courier'),
   pickup('pickup');
@@ -14,12 +16,14 @@ enum DeliveryMethod {
 }
 
 extension DeliveryMethodX on DeliveryMethod {
-  String get label {
+  String get label => labelFor(AppLanguage.russian);
+
+  String labelFor(AppLanguage language) {
     switch (this) {
       case DeliveryMethod.courier:
-        return 'Курьер';
+        return tr(language, ru: 'Курьер', en: 'Courier');
       case DeliveryMethod.pickup:
-        return 'Самовывоз';
+        return tr(language, ru: 'Самовывоз', en: 'Pickup');
     }
   }
 

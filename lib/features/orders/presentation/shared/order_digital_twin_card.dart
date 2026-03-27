@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/typography.dart';
+import '../../../../shared/i18n/app_localization.dart';
+import '../../../../shared/providers/app_settings.dart';
 import '../../domain/models/order_model.dart';
 import 'order_digital_twin_helpers.dart';
 import 'order_formatters.dart';
 
-class OrderDigitalTwinCard extends StatelessWidget {
+class OrderDigitalTwinCard extends ConsumerWidget {
   final OrderModel order;
   final String? clientDisplayName;
   final String? responsibleDisplayName;
@@ -19,22 +22,29 @@ class OrderDigitalTwinCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final timeline = mapOrderHistoryToTimeline(order);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final language = ref.watch(appSettingsProvider).language;
+    final timeline = mapOrderHistoryToTimeline(order, language: language);
     final clientLabel = getClientDisplayLabel(
       order,
       clientName: clientDisplayName,
+      language: language,
     );
 
     return StreamBuilder<int>(
       stream: Stream<int>.periodic(const Duration(seconds: 30), (tick) => tick),
       initialData: 0,
       builder: (context, _) {
-        final currentStageDuration = getOrderCurrentStageDuration(order);
+        final currentStageDuration = getOrderCurrentStageDuration(
+          order,
+          language: language,
+        );
         final responsibleLabel = getResponsibleLabel(
           order,
           responsibleName: responsibleDisplayName,
+          language: language,
         );
+        final statusLabel = formatOrderStatus(order.status, language: language);
 
         return Container(
           width: double.infinity,
@@ -56,10 +66,7 @@ class OrderDigitalTwinCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Text(
-                    formatOrderStatus(order.status),
-                    style: AppTypography.button,
-                  ),
+                  Text(statusLabel, style: AppTypography.button),
                 ],
               ),
               const SizedBox(height: 14),
@@ -75,7 +82,11 @@ class OrderDigitalTwinCard extends StatelessWidget {
                   Expanded(
                     child: _labelValue(
                       context,
-                      label: 'ORDER NUMBER',
+                      label: tr(
+                        language,
+                        ru: 'НОМЕР ЗАКАЗА',
+                        en: 'ORDER NUMBER',
+                      ),
                       value: order.orderNumber.isEmpty
                           ? 'AV-${order.shortId}'
                           : order.orderNumber,
@@ -86,8 +97,11 @@ class OrderDigitalTwinCard extends StatelessWidget {
                     width: 104,
                     child: _labelValue(
                       context,
-                      label: 'PRIORITY',
-                      value: formatOrderPriority(order.priority),
+                      label: tr(language, ru: 'ПРИОРИТЕТ', en: 'PRIORITY'),
+                      value: formatOrderPriority(
+                        order.priority,
+                        language: language,
+                      ),
                     ),
                   ),
                 ],
@@ -98,7 +112,11 @@ class OrderDigitalTwinCard extends StatelessWidget {
                 style: Theme.of(context).textTheme.headlineMedium,
               ),
               const SizedBox(height: 12),
-              _labelValue(context, label: 'CLIENT', value: clientLabel),
+              _labelValue(
+                context,
+                label: tr(language, ru: 'КЛИЕНТ', en: 'CLIENT'),
+                value: clientLabel,
+              ),
               const SizedBox(height: 14),
               const Divider(
                 height: 1,
@@ -106,7 +124,10 @@ class OrderDigitalTwinCard extends StatelessWidget {
                 color: AppColors.outlineVariant,
               ),
               const SizedBox(height: 14),
-              Text('LIVE STATUS', style: AppTypography.eyebrow),
+              Text(
+                tr(language, ru: 'ЖИВОЙ СТАТУС', en: 'LIVE STATUS'),
+                style: AppTypography.eyebrow,
+              ),
               const SizedBox(height: 12),
               LayoutBuilder(
                 builder: (context, constraints) {
@@ -119,24 +140,31 @@ class OrderDigitalTwinCard extends StatelessWidget {
                         width: itemWidth,
                         child: _metricCell(
                           context,
-                          label: 'STATUS',
-                          value: formatOrderStatus(order.status),
+                          label: tr(language, ru: 'СТАТУС', en: 'STATUS'),
+                          value: statusLabel,
                         ),
                       ),
                       SizedBox(
                         width: itemWidth,
                         child: _metricCell(
                           context,
-                          label: 'CURRENT STAGE',
-                          value:
-                              '$currentStageDuration ${formatOrderStatus(order.status)}',
+                          label: tr(
+                            language,
+                            ru: 'ВРЕМЯ В ЭТАПЕ',
+                            en: 'CURRENT STAGE',
+                          ),
+                          value: '$currentStageDuration $statusLabel',
                         ),
                       ),
                       SizedBox(
                         width: itemWidth,
                         child: _metricCell(
                           context,
-                          label: 'RESPONSIBLE',
+                          label: tr(
+                            language,
+                            ru: 'ОТВЕТСТВЕННЫЙ',
+                            en: 'RESPONSIBLE',
+                          ),
                           value: responsibleLabel,
                         ),
                       ),
@@ -145,7 +173,10 @@ class OrderDigitalTwinCard extends StatelessWidget {
                         child: _metricCell(
                           context,
                           label: 'ETA',
-                          value: formatOrderEta(order.estimatedReadyAt),
+                          value: formatOrderEta(
+                            order.estimatedReadyAt,
+                            language: language,
+                          ),
                         ),
                       ),
                     ],
@@ -159,7 +190,10 @@ class OrderDigitalTwinCard extends StatelessWidget {
                 color: AppColors.outlineVariant,
               ),
               const SizedBox(height: 14),
-              Text('TIMELINE', style: AppTypography.eyebrow),
+              Text(
+                tr(language, ru: 'ТАЙМЛАЙН', en: 'TIMELINE'),
+                style: AppTypography.eyebrow,
+              ),
               const SizedBox(height: 14),
               ...timeline.indexed.map(
                 (entry) => Padding(
@@ -170,6 +204,7 @@ class OrderDigitalTwinCard extends StatelessWidget {
                     context,
                     step: entry.$2,
                     isLast: entry.$1 == timeline.length - 1,
+                    language: language,
                   ),
                 ),
               ),
@@ -180,27 +215,40 @@ class OrderDigitalTwinCard extends StatelessWidget {
                 color: AppColors.outlineVariant,
               ),
               const SizedBox(height: 14),
-              Text('META', style: AppTypography.eyebrow),
+              Text(
+                tr(language, ru: 'МЕТАДАННЫЕ', en: 'META'),
+                style: AppTypography.eyebrow,
+              ),
               const SizedBox(height: 12),
               _metaRow(
                 context,
-                label: 'FULFILLMENT',
-                value: formatFulfillmentTypeLabel(order.fulfillmentType),
+                label: tr(language, ru: 'ТИП ИСПОЛНЕНИЯ', en: 'FULFILLMENT'),
+                value: formatFulfillmentTypeLabel(
+                  order.fulfillmentType,
+                  language: language,
+                ),
               ),
               _metaRow(
                 context,
-                label: 'TOTAL AMOUNT',
+                label: tr(language, ru: 'СУММА', en: 'TOTAL AMOUNT'),
                 value: formatCurrency(order.totalAmount),
               ),
               _metaRow(
                 context,
-                label: 'CREATED AT',
-                value: formatOrderMetaDate(order.createdAt),
+                label: tr(language, ru: 'СОЗДАН', en: 'CREATED AT'),
+                value: formatOrderMetaDate(order.createdAt, language: language),
               ),
               _metaRow(
                 context,
-                label: 'LAST STATUS CHANGE',
-                value: formatOrderMetaDate(order.lastStatusChangedAt),
+                label: tr(
+                  language,
+                  ru: 'ПОСЛЕДНЕЕ ИЗМЕНЕНИЕ',
+                  en: 'LAST STATUS CHANGE',
+                ),
+                value: formatOrderMetaDate(
+                  order.lastStatusChangedAt,
+                  language: language,
+                ),
                 isLast: true,
               ),
             ],
@@ -251,6 +299,7 @@ class OrderDigitalTwinCard extends StatelessWidget {
     BuildContext context, {
     required OrderTwinTimelineStep step,
     required bool isLast,
+    required AppLanguage language,
   }) {
     final lineColor = step.isReached || step.isCurrent
         ? AppColors.black
@@ -295,8 +344,8 @@ class OrderDigitalTwinCard extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 step.timestamp == null
-                    ? 'PENDING'
-                    : formatOrderMetaDate(step.timestamp!),
+                    ? tr(language, ru: 'ОЖИДАНИЕ', en: 'PENDING')
+                    : formatOrderMetaDate(step.timestamp!, language: language),
                 style: AppTypography.code.copyWith(color: textColor),
               ),
             ],

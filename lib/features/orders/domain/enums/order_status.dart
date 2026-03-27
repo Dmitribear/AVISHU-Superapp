@@ -1,3 +1,5 @@
+import '../../../../shared/i18n/app_localization.dart';
+
 enum OrderStatus {
   newOrder('new', legacyValues: ['New']),
   accepted('accepted', legacyValues: ['Accepted']),
@@ -25,37 +27,48 @@ enum OrderStatus {
 }
 
 extension OrderStatusX on OrderStatus {
-  String get clientLabel {
+  String get clientLabel => clientLabelFor(AppLanguage.russian);
+
+  String get panelLabel => panelLabelFor(AppLanguage.russian);
+
+  String get productionActionLabel =>
+      productionActionLabelFor(AppLanguage.russian);
+
+  String get roleDescription => roleDescriptionFor(AppLanguage.russian);
+
+  String get timelineTitle => timelineTitleFor(AppLanguage.russian);
+
+  String clientLabelFor(AppLanguage language) {
     switch (this) {
       case OrderStatus.newOrder:
-        return 'ОФОРМЛЕН';
+        return tr(language, ru: 'ОФОРМЛЕН', en: 'PLACED');
       case OrderStatus.accepted:
-        return 'ПРИНЯТ';
+        return tr(language, ru: 'ПРИНЯТ', en: 'ACCEPTED');
       case OrderStatus.inProduction:
-        return 'ПОШИВ';
+        return tr(language, ru: 'ПОШИВ', en: 'IN PRODUCTION');
       case OrderStatus.ready:
-        return 'ГОТОВ';
+        return tr(language, ru: 'ГОТОВ', en: 'READY');
       case OrderStatus.completed:
-        return 'ЗАВЕРШЕН';
+        return tr(language, ru: 'ЗАВЕРШЕН', en: 'COMPLETED');
       case OrderStatus.cancelled:
-        return 'ОТМЕНЕН';
+        return tr(language, ru: 'ОТМЕНЕН', en: 'CANCELLED');
     }
   }
 
-  String get panelLabel {
+  String panelLabelFor(AppLanguage language) {
     switch (this) {
       case OrderStatus.newOrder:
-        return 'НОВЫЙ';
+        return tr(language, ru: 'НОВЫЙ', en: 'NEW');
       case OrderStatus.accepted:
-        return 'ПРИНЯТ';
+        return tr(language, ru: 'ПРИНЯТ', en: 'ACCEPTED');
       case OrderStatus.inProduction:
-        return 'В ЦЕХЕ';
+        return tr(language, ru: 'В ЦЕХЕ', en: 'IN PRODUCTION');
       case OrderStatus.ready:
-        return 'ГОТОВ';
+        return tr(language, ru: 'ГОТОВ', en: 'READY');
       case OrderStatus.completed:
-        return 'ЗАВЕРШЕН';
+        return tr(language, ru: 'ЗАВЕРШЕН', en: 'COMPLETED');
       case OrderStatus.cancelled:
-        return 'ОТМЕНЕН';
+        return tr(language, ru: 'ОТМЕНЕН', en: 'CANCELLED');
     }
   }
 
@@ -74,54 +87,78 @@ extension OrderStatusX on OrderStatus {
     }
   }
 
-  String get productionActionLabel {
+  String productionActionLabelFor(AppLanguage language) {
     switch (this) {
       case OrderStatus.accepted:
-        return 'ВЗЯТЬ В ПОШИВ';
+        return tr(language, ru: 'ВЗЯТЬ В ПОШИВ', en: 'START PRODUCTION');
       case OrderStatus.inProduction:
-        return 'ЗАВЕРШИТЬ';
+        return tr(language, ru: 'ЗАВЕРШИТЬ', en: 'COMPLETE');
       case OrderStatus.newOrder:
-        return 'ПРИНЯТЬ';
+        return tr(language, ru: 'ПРИНЯТЬ', en: 'ACCEPT');
       case OrderStatus.ready:
-        return 'ГОТОВО';
+        return tr(language, ru: 'ГОТОВО', en: 'READY');
       case OrderStatus.completed:
-        return 'ЗАВЕРШЕН';
+        return tr(language, ru: 'ЗАВЕРШЕН', en: 'COMPLETED');
       case OrderStatus.cancelled:
-        return 'ОТМЕНЕН';
+        return tr(language, ru: 'ОТМЕНЕН', en: 'CANCELLED');
     }
   }
 
-  String get roleDescription {
+  String roleDescriptionFor(AppLanguage language) {
     switch (this) {
       case OrderStatus.newOrder:
-        return 'Новый заказ ожидает подтверждения франчайзи.';
+        return tr(
+          language,
+          ru: 'Новый заказ ожидает подтверждения франчайзи.',
+          en: 'A new order is waiting for franchisee confirmation.',
+        );
       case OrderStatus.accepted:
-        return 'Заказ подтвержден и передан в очередь цеха.';
+        return tr(
+          language,
+          ru: 'Заказ подтвержден и передан в очередь цеха.',
+          en: 'The order has been accepted and moved to the factory queue.',
+        );
       case OrderStatus.inProduction:
-        return 'Изделие находится в пошиве и сборке.';
+        return tr(
+          language,
+          ru: 'Изделие находится в пошиве и сборке.',
+          en: 'The garment is currently in tailoring and assembly.',
+        );
       case OrderStatus.ready:
-        return 'Изделие готово и доступно к выдаче клиенту.';
+        return tr(
+          language,
+          ru: 'Изделие готово и доступно к выдаче клиенту.',
+          en: 'The garment is ready for client handoff.',
+        );
       case OrderStatus.completed:
-        return 'Заказ успешно завершен.';
+        return tr(
+          language,
+          ru: 'Заказ успешно завершен.',
+          en: 'The order has been completed successfully.',
+        );
       case OrderStatus.cancelled:
-        return 'Заказ отменен.';
+        return tr(
+          language,
+          ru: 'Заказ отменен.',
+          en: 'The order was cancelled.',
+        );
     }
   }
 
-  String get timelineTitle {
+  String timelineTitleFor(AppLanguage language) {
     switch (this) {
       case OrderStatus.newOrder:
-        return 'Заказ оформлен';
+        return tr(language, ru: 'Заказ оформлен', en: 'Order placed');
       case OrderStatus.accepted:
-        return 'Заказ принят';
+        return tr(language, ru: 'Заказ принят', en: 'Order accepted');
       case OrderStatus.inProduction:
-        return 'Пошив начат';
+        return tr(language, ru: 'Пошив начат', en: 'Production started');
       case OrderStatus.ready:
-        return 'Заказ готов';
+        return tr(language, ru: 'Заказ готов', en: 'Order ready');
       case OrderStatus.completed:
-        return 'Заказ завершен';
+        return tr(language, ru: 'Заказ завершен', en: 'Order completed');
       case OrderStatus.cancelled:
-        return 'Заказ отменен';
+        return tr(language, ru: 'Заказ отменен', en: 'Order cancelled');
     }
   }
 

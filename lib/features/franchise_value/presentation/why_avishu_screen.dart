@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/colors.dart';
 import '../../../core/theme/typography.dart';
+import '../../../shared/i18n/app_localization.dart';
+import '../../../shared/providers/app_settings.dart';
 import '../../../shared/widgets/avishu_mobile_frame.dart';
 import '../../orders/data/order_repository.dart';
 import '../../orders/domain/enums/order_status.dart';
@@ -22,14 +24,18 @@ class WhyAvishuScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ordersAsync = ref.watch(whyAvishuOrdersProvider);
+    final language = ref.watch(appSettingsProvider).language;
 
     return AvishuMobileFrame(
       title: 'AVISHU',
-      metaLabel: 'FRANCHISE VALUE MODE',
+      metaLabel: tr(
+        language,
+        ru: 'РЕЖИМ ЦЕННОСТИ ФРАНШИЗЫ',
+        en: 'FRANCHISE VALUE MODE',
+      ),
       leadingIcon: Icons.arrow_back,
       onLeadingTap: () => context.pop(),
-      actionIcon: Icons.grid_view_rounded,
-      onActionTap: () => context.go('/franchisee'),
+      actionIcon: null,
       showBottomNav: false,
       navItems: const <AvishuNavItem>[],
       currentIndex: 0,
@@ -40,11 +46,20 @@ class WhyAvishuScreen extends ConsumerWidget {
           child: _WhyAvishuBody(
             orders: orders,
             metrics: deriveWhyAvishuMetrics(orders),
+            language: language,
           ),
         ),
         loading: () =>
             const Center(child: CircularProgressIndicator(color: Colors.black)),
-        error: (error, _) => Center(child: Text('Failed to load: $error')),
+        error: (error, _) => Center(
+          child: Text(
+            tr(
+              language,
+              ru: 'Не удалось загрузить данные: $error',
+              en: 'Failed to load: $error',
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -53,11 +68,17 @@ class WhyAvishuScreen extends ConsumerWidget {
 class _WhyAvishuBody extends StatelessWidget {
   final List<OrderModel> orders;
   final WhyAvishuMetrics metrics;
+  final AppLanguage language;
 
-  const _WhyAvishuBody({required this.orders, required this.metrics});
+  const _WhyAvishuBody({
+    required this.orders,
+    required this.metrics,
+    required this.language,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final copy = whyAvishuContentFor(language);
     final activeRevenue = orders
         .where(
           (order) =>
@@ -69,20 +90,20 @@ class _WhyAvishuBody extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _hero(context),
+        _hero(context, copy),
         const SizedBox(height: 16),
-        _valueGrid(context),
+        _valueGrid(context, copy),
         const SizedBox(height: 16),
         _liveSummary(context, activeRevenue),
         const SizedBox(height: 16),
-        _flowBlock(context),
+        _flowBlock(context, copy),
         const SizedBox(height: 16),
-        _closingBlock(context),
+        _closingBlock(context, copy),
       ],
     );
   }
 
-  Widget _hero(BuildContext context) {
+  Widget _hero(BuildContext context, WhyAvishuContent copy) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -94,19 +115,23 @@ class _WhyAvishuBody extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'EXECUTIVE PRODUCT VIEW',
+            tr(
+              language,
+              ru: 'ВНУТРЕННИЙ ПРОДУКТОВЫЙ РЕЖИМ',
+              en: 'EXECUTIVE PRODUCT VIEW',
+            ),
             style: AppTypography.eyebrow.copyWith(color: AppColors.surfaceDim),
           ),
           const SizedBox(height: 18),
           Text(
-            whyAvishuHeroTitle,
+            copy.heroTitle,
             style: Theme.of(
               context,
             ).textTheme.displayMedium?.copyWith(color: AppColors.white),
           ),
           const SizedBox(height: 14),
           Text(
-            whyAvishuHeroStatement,
+            copy.heroStatement,
             style: Theme.of(
               context,
             ).textTheme.titleLarge?.copyWith(color: AppColors.white),
@@ -115,7 +140,7 @@ class _WhyAvishuBody extends StatelessWidget {
           Container(height: 1, color: AppColors.outline),
           const SizedBox(height: 14),
           Text(
-            whyAvishuHeroSummary,
+            copy.heroSummary,
             style: Theme.of(
               context,
             ).textTheme.bodyMedium?.copyWith(color: AppColors.surfaceHighest),
@@ -125,13 +150,16 @@ class _WhyAvishuBody extends StatelessWidget {
     );
   }
 
-  Widget _valueGrid(BuildContext context) {
+  Widget _valueGrid(BuildContext context, WhyAvishuContent copy) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('VALUE BLOCKS', style: AppTypography.eyebrow),
+        Text(
+          tr(language, ru: 'БЛОКИ ЦЕННОСТИ', en: 'VALUE BLOCKS'),
+          style: AppTypography.eyebrow,
+        ),
         const SizedBox(height: 12),
-        ...whyAvishuValueBlocks.map(
+        ...copy.valueBlocks.map(
           (block) => Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: _valueCard(context, block),
@@ -174,7 +202,14 @@ class _WhyAvishuBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('LIVE BUSINESS SUMMARY', style: AppTypography.eyebrow),
+          Text(
+            tr(
+              language,
+              ru: 'ЖИВАЯ СВОДКА БИЗНЕСА',
+              en: 'LIVE BUSINESS SUMMARY',
+            ),
+            style: AppTypography.eyebrow,
+          ),
           const SizedBox(height: 14),
           LayoutBuilder(
             builder: (context, constraints) {
@@ -187,7 +222,11 @@ class _WhyAvishuBody extends StatelessWidget {
                     width: itemWidth,
                     child: _metricBox(
                       context,
-                      label: "TODAY'S ORDERS",
+                      label: tr(
+                        language,
+                        ru: 'ЗАКАЗЫ СЕГОДНЯ',
+                        en: "TODAY'S ORDERS",
+                      ),
                       value: metrics.todayOrders.toString(),
                     ),
                   ),
@@ -195,7 +234,11 @@ class _WhyAvishuBody extends StatelessWidget {
                     width: itemWidth,
                     child: _metricBox(
                       context,
-                      label: 'ACTIVE FLOW',
+                      label: tr(
+                        language,
+                        ru: 'АКТИВНЫЙ ПОТОК',
+                        en: 'ACTIVE FLOW',
+                      ),
                       value: metrics.activeOrders.toString(),
                     ),
                   ),
@@ -203,7 +246,11 @@ class _WhyAvishuBody extends StatelessWidget {
                     width: itemWidth,
                     child: _metricBox(
                       context,
-                      label: 'IN PRODUCTION',
+                      label: tr(
+                        language,
+                        ru: 'В ПРОИЗВОДСТВЕ',
+                        en: 'IN PRODUCTION',
+                      ),
                       value: metrics.inProductionOrders.toString(),
                     ),
                   ),
@@ -211,7 +258,7 @@ class _WhyAvishuBody extends StatelessWidget {
                     width: itemWidth,
                     child: _metricBox(
                       context,
-                      label: 'READY',
+                      label: tr(language, ru: 'ГОТОВО', en: 'READY'),
                       value: metrics.readyOrders.toString(),
                     ),
                   ),
@@ -219,7 +266,11 @@ class _WhyAvishuBody extends StatelessWidget {
                     width: itemWidth,
                     child: _metricBox(
                       context,
-                      label: 'AVG TIME TO READY',
+                      label: tr(
+                        language,
+                        ru: 'СРЕДНЕЕ ВРЕМЯ ДО ГОТОВНОСТИ',
+                        en: 'AVG TIME TO READY',
+                      ),
                       value: metrics.averageTimeToReady,
                     ),
                   ),
@@ -227,7 +278,11 @@ class _WhyAvishuBody extends StatelessWidget {
                     width: itemWidth,
                     child: _metricBox(
                       context,
-                      label: 'ACTIVE VALUE',
+                      label: tr(
+                        language,
+                        ru: 'АКТИВНАЯ ВЫРУЧКА',
+                        en: 'ACTIVE VALUE',
+                      ),
                       value: formatCurrency(activeRevenue),
                     ),
                   ),
@@ -262,7 +317,7 @@ class _WhyAvishuBody extends StatelessWidget {
     );
   }
 
-  Widget _flowBlock(BuildContext context) {
+  Widget _flowBlock(BuildContext context, WhyAvishuContent copy) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -273,15 +328,18 @@ class _WhyAvishuBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('SYSTEM FLOW', style: AppTypography.eyebrow),
+          Text(
+            tr(language, ru: 'СИСТЕМНЫЙ ПОТОК', en: 'SYSTEM FLOW'),
+            style: AppTypography.eyebrow,
+          ),
           const SizedBox(height: 14),
-          ...whyAvishuFlowLabels.indexed.map(
+          ...copy.flowLabels.indexed.map(
             (entry) => Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 14),
               decoration: BoxDecoration(
                 border: Border(
-                  bottom: entry.$1 == whyAvishuFlowLabels.length - 1
+                  bottom: entry.$1 == copy.flowLabels.length - 1
                       ? BorderSide.none
                       : const BorderSide(color: AppColors.outlineVariant),
                 ),
@@ -293,7 +351,7 @@ class _WhyAvishuBody extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const Spacer(),
-                  if (entry.$1 != whyAvishuFlowLabels.length - 1)
+                  if (entry.$1 != copy.flowLabels.length - 1)
                     Text('→', style: AppTypography.button),
                 ],
               ),
@@ -304,7 +362,7 @@ class _WhyAvishuBody extends StatelessWidget {
     );
   }
 
-  Widget _closingBlock(BuildContext context) {
+  Widget _closingBlock(BuildContext context, WhyAvishuContent copy) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -315,15 +373,18 @@ class _WhyAvishuBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('POSITIONING', style: AppTypography.eyebrow),
+          Text(
+            tr(language, ru: 'ПОЗИЦИОНИРОВАНИЕ', en: 'POSITIONING'),
+            style: AppTypography.eyebrow,
+          ),
           const SizedBox(height: 18),
           Text(
-            whyAvishuClosingTitle,
+            copy.closingTitle,
             style: Theme.of(context).textTheme.headlineLarge,
           ),
           const SizedBox(height: 12),
           Text(
-            whyAvishuClosingStatement,
+            copy.closingStatement,
             style: Theme.of(context).textTheme.titleMedium,
           ),
         ],

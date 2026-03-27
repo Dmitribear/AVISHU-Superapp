@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/colors.dart';
 import '../../core/theme/typography.dart';
 import '../../features/auth/data/auth_repository.dart';
+import '../i18n/app_localization.dart';
 import '../providers/app_settings.dart';
 
 Future<void> showAppSettingsSheet(BuildContext context) {
@@ -44,6 +45,7 @@ class _AppSettingsSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(appSettingsProvider);
     final controller = ref.read(appSettingsProvider.notifier);
+    final language = settings.language;
 
     return SafeArea(
       top: false,
@@ -60,36 +62,105 @@ class _AppSettingsSheet extends ConsumerWidget {
                   alignment: Alignment.centerRight,
                   child: IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    tooltip: 'Закрыть',
+                    tooltip: tr(language, ru: 'Закрыть', en: 'Close'),
                     icon: const Icon(Icons.close, color: AppColors.black),
                   ),
                 ),
-                Text('НАСТРОЙКИ', style: AppTypography.eyebrow),
+                Text(
+                  tr(language, ru: 'НАСТРОЙКИ', en: 'SETTINGS'),
+                  style: AppTypography.eyebrow,
+                ),
                 const SizedBox(height: 8),
                 Text(
-                  'Параметры интерфейса и уведомлений для демо-сценария.',
+                  tr(
+                    language,
+                    ru: 'Параметры интерфейса и уведомлений для демо-сценария.',
+                    en: 'Interface and notification controls for the demo scenario.',
+                  ),
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 18),
                 _SwitchTile(
-                  title: 'Уведомления',
-                  subtitle: 'Показывать обновления по заказам.',
+                  title: tr(language, ru: 'Уведомления', en: 'Notifications'),
+                  subtitle: tr(
+                    language,
+                    ru: 'Показывать обновления по заказам.',
+                    en: 'Show order update notifications.',
+                  ),
                   value: settings.notificationsEnabled,
                   onChanged: controller.setNotifications,
                 ),
                 const SizedBox(height: 10),
                 _SwitchTile(
-                  title: 'Звук в цехе',
-                  subtitle: 'Сигнал для новых задач производства.',
+                  title: tr(language, ru: 'Звук в цехе', en: 'Factory Sound'),
+                  subtitle: tr(
+                    language,
+                    ru: 'Сигнал для новых задач производства.',
+                    en: 'Sound cue for new production tasks.',
+                  ),
                   value: settings.productionSoundEnabled,
                   onChanged: controller.setProductionSound,
                 ),
                 const SizedBox(height: 10),
                 _SwitchTile(
-                  title: 'Компактные карточки',
-                  subtitle: 'Уменьшить вертикальные отступы в списках.',
+                  title: tr(
+                    language,
+                    ru: 'Компактные карточки',
+                    en: 'Compact Cards',
+                  ),
+                  subtitle: tr(
+                    language,
+                    ru: 'Уменьшить вертикальные отступы в списках.',
+                    en: 'Reduce vertical spacing in operational lists.',
+                  ),
                   value: settings.compactCards,
                   onChanged: controller.setCompactCards,
+                ),
+                const SizedBox(height: 10),
+                _SelectionTile<AppLanguage>(
+                  title: tr(
+                    language,
+                    ru: 'Язык интерфейса',
+                    en: 'Interface Language',
+                  ),
+                  subtitle: tr(
+                    language,
+                    ru: 'Переводит системные подписи интерфейса.',
+                    en: 'Translates system interface labels.',
+                  ),
+                  options: AppLanguage.values
+                      .map(
+                        (value) => _SelectionOption<AppLanguage>(
+                          value: value,
+                          label: appLanguageLabel(value),
+                        ),
+                      )
+                      .toList(),
+                  selectedValue: settings.language,
+                  onSelected: controller.setLanguage,
+                ),
+                const SizedBox(height: 10),
+                _SelectionTile<CatalogCardSize>(
+                  title: tr(
+                    language,
+                    ru: 'Размер карточек каталога',
+                    en: 'Catalog Card Size',
+                  ),
+                  subtitle: tr(
+                    language,
+                    ru: 'Масштаб карточек одежды в каталоге и избранном.',
+                    en: 'Controls clothing card size in catalog and favorites.',
+                  ),
+                  options: CatalogCardSize.values
+                      .map(
+                        (value) => _SelectionOption<CatalogCardSize>(
+                          value: value,
+                          label: catalogCardSizeLabel(value),
+                        ),
+                      )
+                      .toList(),
+                  selectedValue: settings.catalogCardSize,
+                  onSelected: controller.setCatalogCardSize,
                 ),
                 const SizedBox(height: 14),
                 Container(
@@ -103,12 +174,20 @@ class _AppSettingsSheet extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Сервисная информация',
+                        tr(
+                          language,
+                          ru: 'Сервисная информация',
+                          en: 'Service Info',
+                        ),
                         style: AppTypography.eyebrow,
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'AVISHU v2.04\nКлиент, франчайзи, производство',
+                        tr(
+                          language,
+                          ru: 'AVISHU v2.04\nКлиент, франчайзи, производство',
+                          en: 'AVISHU v2.04\nClient, franchisee, factory',
+                        ),
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
@@ -120,7 +199,7 @@ class _AppSettingsSheet extends ConsumerWidget {
                   child: OutlinedButton(
                     onPressed: () => Navigator.of(context).pop(),
                     child: Text(
-                      'ЗАКРЫТЬ',
+                      tr(language, ru: 'ЗАКРЫТЬ', en: 'CLOSE'),
                       style: AppTypography.button.copyWith(letterSpacing: 3),
                     ),
                   ),
@@ -140,7 +219,7 @@ class _AppSettingsSheet extends ConsumerWidget {
                       side: const BorderSide(color: AppColors.error),
                     ),
                     child: Text(
-                      'ВЫЙТИ ИЗ АККАУНТА',
+                      tr(language, ru: 'ВЫЙТИ ИЗ АККАУНТА', en: 'SIGN OUT'),
                       style: AppTypography.button.copyWith(
                         color: AppColors.error,
                         letterSpacing: 3,
@@ -152,6 +231,90 @@ class _AppSettingsSheet extends ConsumerWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _SelectionOption<T> {
+  final T value;
+  final String label;
+
+  const _SelectionOption({required this.value, required this.label});
+}
+
+class _SelectionTile<T> extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final List<_SelectionOption<T>> options;
+  final T selectedValue;
+  final ValueChanged<T> onSelected;
+
+  const _SelectionTile({
+    required this.title,
+    required this.subtitle,
+    required this.options,
+    required this.selectedValue,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceLowest,
+        border: Border.all(color: AppColors.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: AppColors.secondary),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: options
+                .map(
+                  (option) => Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        right: option == options.last ? 0 : 8,
+                      ),
+                      child: InkWell(
+                        onTap: () => onSelected(option.value),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: option.value == selectedValue
+                                ? AppColors.black
+                                : AppColors.surfaceLowest,
+                            border: Border.all(color: AppColors.black),
+                          ),
+                          child: Text(
+                            option.label,
+                            textAlign: TextAlign.center,
+                            style: AppTypography.button.copyWith(
+                              color: option.value == selectedValue
+                                  ? AppColors.white
+                                  : AppColors.black,
+                              letterSpacing: 2,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
+        ],
       ),
     );
   }

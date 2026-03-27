@@ -4,12 +4,14 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/typography.dart';
+import '../../../../shared/i18n/app_localization.dart';
 import '../../../../shared/providers/app_settings.dart';
 import '../../../../shared/providers/global_state.dart';
 import '../../../../shared/widgets/app_settings_sheet.dart';
 import '../../../../shared/widgets/avishu_button.dart';
 import '../../../../shared/widgets/avishu_mobile_frame.dart';
 import '../../../auth/data/auth_repository.dart';
+import '../../../auth/domain/user_role.dart';
 import '../../../orders/data/order_repository.dart';
 import '../../../orders/domain/enums/order_status.dart';
 import '../../../orders/domain/models/order_model.dart';
@@ -40,30 +42,49 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
   OrderModel? _selectedOrder;
   final _noteController = TextEditingController();
 
-  static const _navItems = [
-    AvishuNavItem(label: 'ПАНЕЛЬ', icon: Icons.grid_view_rounded),
-    AvishuNavItem(label: 'ПОТОК', icon: Icons.view_kanban_outlined),
-    AvishuNavItem(label: 'ГОТОВО', icon: Icons.inventory_2_outlined),
-    AvishuNavItem(label: 'ПРОФИЛЬ', icon: Icons.person_outline),
-  ];
-
   @override
   void dispose() {
     _noteController.dispose();
     super.dispose();
   }
 
+  AppLanguage get _language => ref.read(appSettingsProvider).language;
+
+  String _t({required String ru, required String en}) {
+    return tr(_language, ru: ru, en: en);
+  }
+
+  List<AvishuNavItem> get _navItems => [
+    AvishuNavItem(
+      label: _t(ru: 'ПАНЕЛЬ', en: 'HOME'),
+      icon: Icons.grid_view_rounded,
+    ),
+    AvishuNavItem(
+      label: _t(ru: 'ПОТОК', en: 'FLOW'),
+      icon: Icons.view_kanban_outlined,
+    ),
+    AvishuNavItem(
+      label: _t(ru: 'ГОТОВО', en: 'READY'),
+      icon: Icons.inventory_2_outlined,
+    ),
+    AvishuNavItem(
+      label: _t(ru: 'ПРОФИЛЬ', en: 'PROFILE'),
+      icon: Icons.person_outline,
+    ),
+  ];
+
   @override
   Widget build(BuildContext context) {
+    ref.watch(appSettingsProvider);
     final ordersAsync = ref.watch(franchiseeOrdersProvider);
 
     return AvishuMobileFrame(
       title: 'AVISHU',
       metaLabel: _selectedOrder == null
-          ? 'ФРАНЧАЙЗИ / ЗАКАЗЫ'
-          : 'ФРАНЧАЙЗИ / КАРТОЧКА',
+          ? _t(ru: 'ФРАНЧАЙЗИ / ЗАКАЗЫ', en: 'FRANCHISEE / ORDERS')
+          : _t(ru: 'ФРАНЧАЙЗИ / КАРТОЧКА', en: 'FRANCHISEE / DETAIL'),
       leadingIcon: _selectedOrder == null ? Icons.menu : Icons.arrow_back,
-      actionIcon: Icons.precision_manufacturing_outlined,
+      actionIcon: null,
       currentIndex: _tab.index,
       navItems: _navItems,
       onLeadingTap: () {
@@ -73,7 +94,7 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
           setState(() => _selectedOrder = null);
         }
       },
-      onActionTap: () => context.go('/production'),
+      onActionTap: null,
       onNavSelected: (index) {
         setState(() {
           _tab = FranchiseeTab.values[index];
@@ -92,7 +113,11 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
         },
         loading: () =>
             const Center(child: CircularProgressIndicator(color: Colors.black)),
-        error: (err, _) => Center(child: Text('Ошибка загрузки: $err')),
+        error: (err, _) => Center(
+          child: Text(
+            _t(ru: 'Ошибка загрузки: $err', en: 'Loading error: $err'),
+          ),
+        ),
       ),
     );
   }
@@ -114,21 +139,39 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _hero(
-            title: 'ПАНЕЛЬ ЗАКАЗОВ',
-            subtitle:
-                'Новые заказы появляются сразу после оплаты и могут быть переданы в производство без перезагрузки.',
-            accent: 'НОВЫХ ЗАКАЗОВ: ${newOrders.length}',
+            title: _t(ru: 'ПАНЕЛЬ ЗАКАЗОВ', en: 'ORDER DASHBOARD'),
+            subtitle: _t(
+              ru: 'Новые заказы появляются сразу после оплаты и могут быть переданы в производство без перезагрузки.',
+              en: 'New orders appear right after payment and can be moved to production without reload.',
+            ),
+            accent: _t(
+              ru: 'НОВЫХ ЗАКАЗОВ: ${newOrders.length}',
+              en: 'NEW ORDERS: ${newOrders.length}',
+            ),
           ),
           const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
-                child: _metricCard('Оборот', revenue.toStringAsFixed(0)),
+                child: _metricCard(
+                  _t(ru: 'Оборот', en: 'Revenue'),
+                  revenue.toStringAsFixed(0),
+                ),
               ),
               const SizedBox(width: 8),
-              Expanded(child: _metricCard('Новые', '${newOrders.length}')),
+              Expanded(
+                child: _metricCard(
+                  _t(ru: 'Новые', en: 'New'),
+                  '${newOrders.length}',
+                ),
+              ),
               const SizedBox(width: 8),
-              Expanded(child: _metricCard('Готовы', '${readyOrders.length}')),
+              Expanded(
+                child: _metricCard(
+                  _t(ru: 'Готовы', en: 'Ready'),
+                  '${readyOrders.length}',
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -143,9 +186,15 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
       FranchiseeTab.queue => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionLabel('НОВЫЕ ЗАКАЗЫ'),
+          _sectionLabel(_t(ru: 'НОВЫЕ ЗАКАЗЫ', en: 'NEW ORDERS')),
           const SizedBox(height: 12),
-          if (newOrders.isEmpty) _emptyCard('Новые заказы пока не поступили.'),
+          if (newOrders.isEmpty)
+            _emptyCard(
+              _t(
+                ru: 'Новые заказы пока не поступили.',
+                en: 'No new orders yet.',
+              ),
+            ),
           ...newOrders.map(
             (order) => Padding(
               padding: const EdgeInsets.only(bottom: 12),
@@ -153,10 +202,15 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
             ),
           ),
           const SizedBox(height: 4),
-          _sectionLabel('ПЕРЕДАНО В ЦЕХ'),
+          _sectionLabel(_t(ru: 'ПЕРЕДАНО В ЦЕХ', en: 'SENT TO FACTORY')),
           const SizedBox(height: 12),
           if (queuedOrders.isEmpty)
-            _emptyCard('После подтверждения заказ появится в очереди цеха.'),
+            _emptyCard(
+              _t(
+                ru: 'После подтверждения заказ появится в очереди цеха.',
+                en: 'Once accepted, the order will appear in the factory queue.',
+              ),
+            ),
           ...queuedOrders.map(
             (order) => Padding(
               padding: const EdgeInsets.only(bottom: 12),
@@ -168,11 +222,14 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
       FranchiseeTab.ready => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionLabel('ГОТОВО К ВЫДАЧЕ'),
+          _sectionLabel(_t(ru: 'ГОТОВО К ВЫДАЧЕ', en: 'READY FOR HANDOFF')),
           const SizedBox(height: 12),
           if (readyOrders.isEmpty)
             _emptyCard(
-              'Готовые заказы появятся после завершения производства.',
+              _t(
+                ru: 'Готовые заказы появятся после завершения производства.',
+                en: 'Ready orders will appear after production is completed.',
+              ),
             ),
           ...readyOrders.map(
             (order) => Padding(
@@ -194,10 +251,13 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('КАБИНЕТ ФРАНЧАЙЗИ', style: AppTypography.eyebrow),
+              Text(
+                _t(ru: 'КАБИНЕТ ФРАНЧАЙЗИ', en: 'FRANCHISEE DESK'),
+                style: AppTypography.eyebrow,
+              ),
               const SizedBox(height: 12),
               Text(
-                'Управление заказами',
+                _t(ru: 'Управление заказами', en: 'Order Operations'),
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 10),
@@ -215,7 +275,7 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
                   children: [
                     Expanded(
                       child: Text(
-                        'РОЛЬ: ФРАНЧАЙЗИ',
+                        '${_t(ru: 'РОЛЬ', en: 'ROLE')}: ${localizedRoleLabel(UserRole.franchisee, _language)}',
                         style: AppTypography.button.copyWith(
                           color: AppColors.white,
                           letterSpacing: 3,
@@ -223,7 +283,7 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
                       ),
                     ),
                     Text(
-                      'ТЕКУЩАЯ',
+                      _t(ru: 'ТЕКУЩАЯ', en: 'CURRENT'),
                       style: AppTypography.eyebrow.copyWith(
                         color: AppColors.white,
                       ),
@@ -233,7 +293,10 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
               ),
               const SizedBox(height: 10),
               Text(
-                'В разделе доступны новые заказы, текущий поток производства и готовые позиции.',
+                _t(
+                  ru: 'В разделе доступны новые заказы, текущий поток производства и готовые позиции.',
+                  en: 'This desk shows new orders, active production flow, and ready handoff items.',
+                ),
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
             ],
@@ -249,7 +312,7 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
         ),
         const SizedBox(height: 12),
         AvishuButton(
-          text: 'ВЫЙТИ ИЗ АККАУНТА',
+          text: _t(ru: 'ВЫЙТИ ИЗ АККАУНТА', en: 'SIGN OUT'),
           expanded: true,
           variant: AvishuButtonVariant.outline,
           icon: Icons.logout,
@@ -277,7 +340,10 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('ЗАКАЗ #${order.shortId}', style: AppTypography.eyebrow),
+                Text(
+                  '${_t(ru: 'ЗАКАЗ', en: 'ORDER')} #${order.shortId}',
+                  style: AppTypography.eyebrow,
+                ),
                 const SizedBox(height: 12),
                 Text(
                   order.productName,
@@ -285,27 +351,33 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  order.status.roleDescription,
+                  order.status.roleDescriptionFor(_language),
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 12),
                 LinearProgressIndicator(value: order.status.progressValue),
                 const SizedBox(height: 10),
-                Text(order.status.panelLabel, style: AppTypography.code),
+                Text(
+                  order.status.panelLabelFor(_language),
+                  style: AppTypography.code,
+                ),
               ],
             ),
           ),
         const SizedBox(height: 12),
         OrderInfoCard(
-          title: 'ДЕТАЛИ ЗАКАЗА',
-          rows: OrderSummaryRows.forOrder(order),
+          title: _t(ru: 'ДЕТАЛИ ЗАКАЗА', en: 'ORDER DETAILS'),
+          rows: OrderSummaryRows.forOrder(order, language: _language),
         ),
         if (order.clientNote.trim().isNotEmpty) ...[
           const SizedBox(height: 12),
           OrderInfoCard(
-            title: 'КОММЕНТАРИЙ КЛИЕНТА',
+            title: _t(ru: 'КОММЕНТАРИЙ КЛИЕНТА', en: 'CLIENT COMMENT'),
             rows: [
-              OrderInfoRowData(label: 'Комментарий', value: order.clientNote),
+              OrderInfoRowData(
+                label: _t(ru: 'Комментарий', en: 'Comment'),
+                value: order.clientNote,
+              ),
             ],
           ),
         ],
@@ -314,15 +386,21 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
           child: TextField(
             controller: _noteController,
             maxLines: 3,
-            decoration: const InputDecoration(
-              labelText: 'Комментарий франчайзи',
+            decoration: InputDecoration(
+              labelText: _t(
+                ru: 'Комментарий франчайзи',
+                en: 'Franchisee Comment',
+              ),
             ),
           ),
         ),
         const SizedBox(height: 12),
         if (isNew)
           AvishuButton(
-            text: 'ПРИНЯТЬ И ПЕРЕДАТЬ В ЦЕХ',
+            text: _t(
+              ru: 'ПРИНЯТЬ И ПЕРЕДАТЬ В ЦЕХ',
+              en: 'ACCEPT AND SEND TO FACTORY',
+            ),
             expanded: true,
             variant: AvishuButtonVariant.filled,
             onPressed: () async {
@@ -343,7 +421,9 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
           ),
         if (!isNew)
           AvishuButton(
-            text: canOpenProduction ? 'ОТКРЫТЬ ПРОИЗВОДСТВО' : 'ЗАКАЗ ЗАВЕРШЕН',
+            text: canOpenProduction
+                ? _t(ru: 'ОТКРЫТЬ ПРОИЗВОДСТВО', en: 'OPEN FACTORY')
+                : _t(ru: 'ЗАКАЗ ЗАВЕРШЕН', en: 'ORDER COMPLETED'),
             expanded: true,
             onPressed: canOpenProduction
                 ? () => context.go('/production')
@@ -411,11 +491,14 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
             children: [
               Expanded(
                 child: Text(
-                  'ЗАКАЗ #${order.shortId}',
+                  '${_t(ru: 'ЗАКАЗ', en: 'ORDER')} #${order.shortId}',
                   style: AppTypography.eyebrow,
                 ),
               ),
-              Text(order.status.panelLabel, style: AppTypography.code),
+              Text(
+                order.status.panelLabelFor(_language),
+                style: AppTypography.code,
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -431,7 +514,10 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
           const SizedBox(height: 12),
           LinearProgressIndicator(value: order.status.progressValue),
           const SizedBox(height: 10),
-          Text('ОТКРЫТЬ КАРТОЧКУ', style: AppTypography.button),
+          Text(
+            _t(ru: 'ОТКРЫТЬ КАРТОЧКУ', en: 'OPEN DETAIL'),
+            style: AppTypography.button,
+          ),
         ],
       ),
     );

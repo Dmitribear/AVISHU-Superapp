@@ -4,12 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/typography.dart';
 import '../../../../features/auth/data/auth_repository.dart';
+import '../../../../shared/i18n/app_localization.dart';
 import '../../../../shared/providers/app_settings.dart';
 import '../../../../shared/providers/global_state.dart';
 import '../../../../shared/widgets/app_settings_sheet.dart';
 import '../../../../shared/widgets/avishu_button.dart';
 import '../../../../shared/widgets/avishu_mobile_frame.dart';
-import '../../../../shared/widgets/role_switch_sheet.dart';
 import '../../../auth/domain/user_role.dart';
 import '../../../orders/data/order_repository.dart';
 import '../../../orders/domain/enums/delivery_method.dart';
@@ -29,16 +29,20 @@ enum CatalogSortOption {
 }
 
 extension CatalogSortOptionX on CatalogSortOption {
-  String get label {
+  String labelFor(AppLanguage language) {
     switch (this) {
       case CatalogSortOption.defaultOrder:
-        return 'По умолчанию';
+        return tr(language, ru: 'По умолчанию', en: 'Default');
       case CatalogSortOption.newFirst:
-        return 'Сначала новинки';
+        return tr(language, ru: 'Сначала новинки', en: 'New First');
       case CatalogSortOption.priceLowToHigh:
-        return 'Цена: по возрастанию';
+        return tr(
+          language,
+          ru: 'Цена: по возрастанию',
+          en: 'Price: Low to High',
+        );
       case CatalogSortOption.priceHighToLow:
-        return 'Цена: по убыванию';
+        return tr(language, ru: 'Цена: по убыванию', en: 'Price: High to Low');
     }
   }
 }
@@ -86,6 +90,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
   bool _descriptionExpanded = true;
   bool _specificationsExpanded = false;
   bool _careExpanded = false;
+  bool _showFavoritesOnly = false;
   List<CatalogProduct> _catalogProducts = catalog;
 
   final Set<String> _favoriteProductIds = <String>{};
@@ -96,13 +101,6 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
   final _expiryController = TextEditingController(text: '01 / 28');
   final _cvvController = TextEditingController();
   final _noteController = TextEditingController();
-
-  static const _navItems = [
-    AvishuNavItem(label: 'ПАНЕЛЬ', icon: Icons.grid_view_rounded),
-    AvishuNavItem(label: 'КАТАЛОГ', icon: Icons.layers_outlined),
-    AvishuNavItem(label: 'ИСТОРИЯ', icon: Icons.inventory_2_outlined),
-    AvishuNavItem(label: 'ПРОФИЛЬ', icon: Icons.person_outline),
-  ];
 
   @override
   void initState() {
@@ -130,8 +128,40 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       .map((product) => product.price)
       .reduce((a, b) => a > b ? a : b);
 
+  AppLanguage get _language => ref.read(appSettingsProvider).language;
+
+  CatalogCardSize get _catalogCardSize =>
+      ref.read(appSettingsProvider).catalogCardSize;
+
+  String _t({required String ru, required String en}) {
+    return tr(_language, ru: ru, en: en);
+  }
+
+  List<AvishuNavItem> get _navItems => [
+    AvishuNavItem(
+      label: _t(ru: 'ПАНЕЛЬ', en: 'HOME'),
+      icon: Icons.grid_view_rounded,
+    ),
+    AvishuNavItem(
+      label: _t(ru: 'КАТАЛОГ', en: 'CATALOG'),
+      icon: Icons.layers_outlined,
+    ),
+    AvishuNavItem(
+      label: _t(ru: 'ИСТОРИЯ', en: 'ORDERS'),
+      icon: Icons.inventory_2_outlined,
+    ),
+    AvishuNavItem(
+      label: _t(ru: 'ПРОФИЛЬ', en: 'PROFILE'),
+      icon: Icons.person_outline,
+    ),
+  ];
+
   List<CatalogProduct> get _sectionProducts => _catalogProducts
       .where((product) => product.sections.contains(_activeSection))
+      .toList();
+
+  List<CatalogProduct> get _favoriteProducts => _catalogProducts
+      .where((product) => _favoriteProductIds.contains(product.id))
       .toList();
 
   List<String> get _categoryOptions =>
@@ -144,7 +174,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       _sortedDistinct(_sectionProducts.expand((product) => product.colors));
 
   List<CatalogProduct> get _visibleProducts {
-    final filtered = _sectionProducts.where((product) {
+    final source = _showFavoritesOnly ? _favoriteProducts : _sectionProducts;
+
+    final filtered = source.where((product) {
       final categoryMatches =
           _categoryFilter == null || product.category == _categoryFilter;
       final sizeMatches =
@@ -192,6 +224,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     if (_sortOption != CatalogSortOption.defaultOrder) {
       count++;
     }
+    if (_showFavoritesOnly) {
+      count++;
+    }
     if (_priceRange.start != _catalogMinPrice ||
         _priceRange.end != _catalogMaxPrice) {
       count++;
@@ -201,6 +236,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(appSettingsProvider);
     final user = ref.watch(currentUserProvider).value;
     if (user == null) {
       return const Scaffold(
@@ -225,9 +261,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       title: 'AVISHU',
       metaLabel: _metaLabel,
       leadingIcon: _view == ClientView.root ? Icons.menu : Icons.arrow_back,
-      actionIcon: trackedOrder == null
-          ? Icons.shopping_bag_outlined
-          : Icons.local_shipping_outlined,
+      actionIcon: null,
       currentIndex: _tab.index,
       navItems: _navItems,
       onLeadingTap: () {
@@ -241,17 +275,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
           setState(() => _view = ClientView.root);
         }
       },
-      onActionTap: () {
-        setState(() {
-          if (trackedOrder != null) {
-            _tab = ClientTab.dashboard;
-            _view = ClientView.tracking;
-          } else {
-            _tab = ClientTab.collections;
-            _view = ClientView.root;
-          }
-        });
-      },
+      onActionTap: null,
       onNavSelected: (index) {
         setState(() {
           _tab = ClientTab.values[index];
@@ -271,7 +295,11 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         ),
         loading: () =>
             const Center(child: CircularProgressIndicator(color: Colors.black)),
-        error: (err, _) => Center(child: Text('Ошибка загрузки: $err')),
+        error: (err, _) => Center(
+          child: Text(
+            _t(ru: 'Ошибка загрузки: $err', en: 'Loading error: $err'),
+          ),
+        ),
       ),
     );
   }
@@ -280,25 +308,26 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     switch (_view) {
       case ClientView.product:
         if (_selectedProduct == null) {
-          return 'КЛИЕНТ / ТОВАР';
+          return _t(ru: 'КЛИЕНТ / ТОВАР', en: 'CLIENT / PRODUCT');
         }
-        return 'КЛИЕНТ / ${_selectedProduct!.category.toUpperCase()}';
+        return '${_t(ru: 'КЛИЕНТ', en: 'CLIENT')} / '
+            '${localizeCatalogSection(_language, _selectedProduct!.category).toUpperCase()}';
       case ClientView.checkout:
-        return 'КЛИЕНТ / ОФОРМЛЕНИЕ';
+        return _t(ru: 'КЛИЕНТ / ОФОРМЛЕНИЕ', en: 'CLIENT / CHECKOUT');
       case ClientView.payment:
-        return 'КЛИЕНТ / ОПЛАТА';
+        return _t(ru: 'КЛИЕНТ / ОПЛАТА', en: 'CLIENT / PAYMENT');
       case ClientView.tracking:
-        return 'КЛИЕНТ / ТРЕКИНГ';
+        return _t(ru: 'КЛИЕНТ / ТРЕКИНГ', en: 'CLIENT / TRACKING');
       case ClientView.root:
         switch (_tab) {
           case ClientTab.dashboard:
-            return 'КЛИЕНТ / ПАНЕЛЬ';
+            return _t(ru: 'КЛИЕНТ / ПАНЕЛЬ', en: 'CLIENT / HOME');
           case ClientTab.collections:
-            return 'КЛИЕНТ / КАТАЛОГ';
+            return _t(ru: 'КЛИЕНТ / КАТАЛОГ', en: 'CLIENT / CATALOG');
           case ClientTab.archive:
-            return 'КЛИЕНТ / ИСТОРИЯ';
+            return _t(ru: 'КЛИЕНТ / ИСТОРИЯ', en: 'CLIENT / ORDERS');
           case ClientTab.profile:
-            return 'КЛИЕНТ / ПРОФИЛЬ';
+            return _t(ru: 'КЛИЕНТ / ПРОФИЛЬ', en: 'CLIENT / PROFILE');
         }
     }
   }
@@ -350,25 +379,29 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _heroCard(
-          title: 'КАПСУЛА СЕЗОНА',
-          subtitle:
-              'Каталог теперь собран с разделами, фильтрами, сортировкой и полноценной карточкой товара в фирменном AVISHU-ритме.',
-          accent:
-              'НОВЫХ МОДЕЛЕЙ: ${_catalogProducts.where((item) => item.isNew).length}',
+          title: _t(ru: 'КАПСУЛА СЕЗОНА', en: 'SEASON CAPSULE'),
+          subtitle: _t(
+            ru: 'Каталог собран с разделами, фильтрами, сортировкой и полноценной карточкой товара в фирменном AVISHU-ритме.',
+            en: 'The catalog now combines sections, filters, sorting, and a full product card in the AVISHU rhythm.',
+          ),
+          accent: _t(
+            ru: 'НОВЫХ МОДЕЛЕЙ: ${_catalogProducts.where((item) => item.isNew).length}',
+            en: 'NEW MODELS: ${_catalogProducts.where((item) => item.isNew).length}',
+          ),
         ),
         const SizedBox(height: 12),
         Row(
           children: [
             Expanded(
               child: _metricCard(
-                label: 'Предзаказы',
+                label: _t(ru: 'Предзаказы', en: 'Preorders'),
                 value: preorderCount.toString(),
               ),
             ),
             const SizedBox(width: 8),
             Expanded(
               child: _metricCard(
-                label: 'Любимые',
+                label: _t(ru: 'Любимые', en: 'Favorites'),
                 value: _favoriteProductIds.length.toString(),
               ),
             ),
@@ -380,15 +413,21 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('АКТИВНЫЙ ЗАКАЗ', style: AppTypography.eyebrow),
+                Text(
+                  _t(ru: 'АКТИВНЫЙ ЗАКАЗ', en: 'ACTIVE ORDER'),
+                  style: AppTypography.eyebrow,
+                ),
                 const SizedBox(height: 12),
                 Text(
-                  'Заказов пока нет',
+                  _t(ru: 'Заказов пока нет', en: 'No orders yet'),
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  'Откройте каталог, настройте выдачу как на сайте и оформите первый заказ в одном потоке.',
+                  _t(
+                    ru: 'Откройте каталог, настройте выдачу как на сайте и оформите первый заказ в одном потоке.',
+                    en: 'Open the catalog, adjust the feed like on the website, and place the first order in one flow.',
+                  ),
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ],
@@ -397,7 +436,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         else
           _orderCard(
             order: activeOrder,
-            cta: 'ОТСЛЕДИТЬ',
+            cta: _t(ru: 'ОТСЛЕДИТЬ', en: 'TRACK'),
             onTap: () {
               setState(() {
                 _latestOrderId = activeOrder.id;
@@ -406,7 +445,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             },
           ),
         const SizedBox(height: 12),
-        _sectionLabel('БЫСТРЫЙ ВЫБОР'),
+        _sectionLabel(_t(ru: 'БЫСТРЫЙ ВЫБОР', en: 'QUICK PICK')),
         const SizedBox(height: 12),
         ...featuredProducts.map(
           (product) => Padding(
@@ -422,12 +461,12 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             children: [
               Expanded(
                 child: Text(
-                  'Перейти в каталог',
+                  _t(ru: 'Перейти в каталог', en: 'Open Catalog'),
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
               AvishuButton(
-                text: 'ОТКРЫТЬ',
+                text: _t(ru: 'ОТКРЫТЬ', en: 'OPEN'),
                 onPressed: () {
                   setState(() {
                     _tab = ClientTab.collections;
@@ -449,22 +488,36 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
 
   Widget _buildCompactCollectionsScreen() {
     final products = _visibleProducts;
+    final sectionLabel = _showFavoritesOnly
+        ? _t(ru: 'ИЗБРАННОЕ', en: 'FAVORITES')
+        : localizeCatalogSection(_language, _activeSection).toUpperCase();
     final filtersSummary = _activeCatalogFiltersCount == 0
-        ? '${products.length} моделей'
-        : '$_activeCatalogFiltersCount фильтров • ${products.length} моделей';
+        ? _t(ru: '${products.length} моделей', en: '${products.length} items')
+        : _t(
+            ru: '$_activeCatalogFiltersCount фильтров • ${products.length} моделей',
+            en: '$_activeCatalogFiltersCount filters • ${products.length} items',
+          );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'ГЛАВНАЯ / ${_activeSection.toUpperCase()}',
+          '${_t(ru: 'ГЛАВНАЯ', en: 'HOME')} / $sectionLabel',
           style: AppTypography.code,
         ),
         const SizedBox(height: 12),
         _catalogAccordion(
-          eyebrow: 'РАЗДЕЛЫ КАТАЛОГА',
-          title: _activeSection.toUpperCase(),
-          summary: 'Текущий раздел каталога',
+          eyebrow: _t(ru: 'РАЗДЕЛЫ КАТАЛОГА', en: 'CATALOG SECTIONS'),
+          title: sectionLabel,
+          summary: _showFavoritesOnly
+              ? _t(
+                  ru: 'Выбраны сохраненные модели профиля',
+                  en: 'Saved profile favorites only',
+                )
+              : _t(
+                  ru: 'Текущий раздел каталога',
+                  en: 'Current catalog section',
+                ),
           expanded: _catalogSectionsExpanded,
           onToggle: () {
             setState(
@@ -474,12 +527,24 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              _catalogSectionTile(
+                label: _t(ru: 'ИЗБРАННОЕ', en: 'FAVORITES'),
+                active: _showFavoritesOnly,
+                onTap: () {
+                  setState(() {
+                    _showFavoritesOnly = true;
+                    _catalogSectionsExpanded = false;
+                    _resetCatalogFilters();
+                  });
+                },
+              ),
               ...catalogSections.map(
                 (section) => _catalogSectionTile(
-                  label: section,
-                  active: section == _activeSection,
+                  label: localizeCatalogSection(_language, section),
+                  active: !_showFavoritesOnly && section == _activeSection,
                   onTap: () {
                     setState(() {
+                      _showFavoritesOnly = false;
                       _selectSection(section);
                       _catalogSectionsExpanded = false;
                     });
@@ -491,8 +556,8 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         ),
         const SizedBox(height: 12),
         _catalogAccordion(
-          eyebrow: 'ФИЛЬТРЫ И СОРТИРОВКА',
-          title: _activeSection.toUpperCase(),
+          eyebrow: _t(ru: 'ФИЛЬТРЫ И СОРТИРОВКА', en: 'FILTERS & SORTING'),
+          title: sectionLabel,
           summary: filtersSummary,
           expanded: _catalogFiltersExpanded,
           onToggle: () {
@@ -503,12 +568,14 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             children: [
               _sortSelector(),
               const SizedBox(height: 14),
+              _catalogCardSizeSelector(),
+              const SizedBox(height: 14),
               InkWell(
                 onTap: () {
                   setState(_resetCatalogFilters);
                 },
                 child: Text(
-                  'Очистить выбор',
+                  _t(ru: 'Очистить выбор', en: 'Clear filters'),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     decoration: TextDecoration.underline,
                   ),
@@ -516,24 +583,29 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               ),
               const SizedBox(height: 16),
               _filterGroup(
-                title: 'Категория',
+                title: _t(ru: 'Категория', en: 'Category'),
                 options: _categoryOptions,
                 selectedValue: _categoryFilter,
+                optionLabelBuilder: (value) =>
+                    localizeCatalogSection(_language, value),
                 onChanged: (value) => setState(() => _categoryFilter = value),
               ),
               _filterGroup(
-                title: 'Размер',
+                title: _t(ru: 'Размер', en: 'Size'),
                 options: _sizeOptions,
                 selectedValue: _sizeFilter,
                 onChanged: (value) => setState(() => _sizeFilter = value),
               ),
               _filterGroup(
-                title: 'Цвет',
+                title: _t(ru: 'Цвет', en: 'Color'),
                 options: _colorOptions,
                 selectedValue: _colorFilter,
                 onChanged: (value) => setState(() => _colorFilter = value),
               ),
-              Text('ЦЕНА', style: AppTypography.eyebrow),
+              Text(
+                _t(ru: 'ЦЕНА', en: 'PRICE'),
+                style: AppTypography.eyebrow,
+              ),
               const SizedBox(height: 10),
               SliderTheme(
                 data: SliderTheme.of(context).copyWith(
@@ -571,10 +643,21 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('НЕТ СОВПАДЕНИЙ', style: AppTypography.eyebrow),
+                Text(
+                  _t(ru: 'НЕТ СОВПАДЕНИЙ', en: 'NO MATCHES'),
+                  style: AppTypography.eyebrow,
+                ),
                 const SizedBox(height: 10),
                 Text(
-                  'Попробуйте снять один из фильтров или выбрать другой раздел каталога.',
+                  _showFavoritesOnly
+                      ? _t(
+                          ru: 'В избранном пока нет моделей. Откройте карточку товара и сохраните ее сердцем.',
+                          en: 'No favorite models yet. Open a product card and save it with the heart icon.',
+                        )
+                      : _t(
+                          ru: 'Попробуйте снять один из фильтров или выбрать другой раздел каталога.',
+                          en: 'Try clearing a filter or switching to another catalog section.',
+                        ),
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ],
@@ -748,12 +831,15 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionLabel('ИСТОРИЯ ЗАКАЗОВ'),
+        _sectionLabel(_t(ru: 'ИСТОРИЯ ЗАКАЗОВ', en: 'ORDER HISTORY')),
         const SizedBox(height: 12),
         if (orders.isEmpty)
           _surfaceCard(
             child: Text(
-              'История появится после первого оформленного заказа.',
+              _t(
+                ru: 'История появится после первого оформленного заказа.',
+                en: 'History will appear after the first completed checkout.',
+              ),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
           ),
@@ -762,7 +848,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             padding: const EdgeInsets.only(bottom: 12),
             child: _orderCard(
               order: order,
-              cta: 'ДЕТАЛИ',
+              cta: _t(ru: 'ДЕТАЛИ', en: 'DETAILS'),
               onTap: () {
                 setState(() {
                   _latestOrderId = order.id;
@@ -782,6 +868,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     OrderModel? trackedOrder,
   ) {
     final user = ref.watch(currentUserProvider).value;
+    final favoriteProducts = _favoriteProducts;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -790,7 +877,10 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('КЛИЕНТСКИЙ ПРОФИЛЬ', style: AppTypography.eyebrow),
+              Text(
+                _t(ru: 'КЛИЕНТСКИЙ ПРОФИЛЬ', en: 'CLIENT PROFILE'),
+                style: AppTypography.eyebrow,
+              ),
               const SizedBox(height: 12),
               Text(
                 user?.displayName.toUpperCase() ?? '',
@@ -818,7 +908,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                   children: [
                     Expanded(
                       child: Text(
-                        'РОЛЬ: ${roleLabel(currentRole)}',
+                        '${_t(ru: 'РОЛЬ', en: 'ROLE')}: ${localizedRoleLabel(currentRole, _language)}',
                         style: AppTypography.button.copyWith(
                           color: AppColors.white,
                           letterSpacing: 3,
@@ -826,7 +916,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                       ),
                     ),
                     Text(
-                      'ТЕКУЩАЯ',
+                      _t(ru: 'ТЕКУЩАЯ', en: 'CURRENT'),
                       style: AppTypography.eyebrow.copyWith(
                         color: AppColors.white,
                       ),
@@ -842,12 +932,18 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('ПРОГРАММА ЛОЯЛЬНОСТИ', style: AppTypography.eyebrow),
+              Text(
+                _t(ru: 'ПРОГРАММА ЛОЯЛЬНОСТИ', en: 'LOYALTY PROGRAM'),
+                style: AppTypography.eyebrow,
+              ),
               const SizedBox(height: 12),
               LinearProgressIndicator(value: ((orders.length % 4) + 1) / 4),
               const SizedBox(height: 10),
               Text(
-                'ЗАКАЗОВ: ${orders.length} / СЛЕДУЮЩИЙ УРОВЕНЬ: ПРИОРИТЕТ',
+                _t(
+                  ru: 'ЗАКАЗОВ: ${orders.length} / СЛЕДУЮЩИЙ УРОВЕНЬ: ПРИОРИТЕТ',
+                  en: 'ORDERS: ${orders.length} / NEXT LEVEL: PRIORITY',
+                ),
                 style: AppTypography.code,
               ),
             ],
@@ -855,11 +951,20 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         ),
         const SizedBox(height: 12),
         _surfaceCard(
+          onTap: () {
+            setState(() {
+              _tab = ClientTab.collections;
+              _view = ClientView.root;
+              _showFavoritesOnly = true;
+              _catalogFiltersExpanded = true;
+              _catalogSectionsExpanded = false;
+            });
+          },
           child: Row(
             children: [
               Expanded(
                 child: Text(
-                  'Любимые модели',
+                  _t(ru: 'Любимые модели', en: 'Favorite Models'),
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
@@ -870,17 +975,40 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             ],
           ),
         ),
+        if (favoriteProducts.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          ...favoriteProducts.map(
+            (product) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _productCard(
+                product: product,
+                onTap: () => _openProduct(product),
+              ),
+            ),
+          ),
+        ] else ...[
+          const SizedBox(height: 12),
+          _surfaceCard(
+            child: Text(
+              _t(
+                ru: 'Сохраненные модели появятся здесь и будут открываться как обычные карточки товара.',
+                en: 'Saved models will appear here and open like regular product cards.',
+              ),
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ),
+        ],
         if (trackedOrder != null) ...[
           const SizedBox(height: 12),
           _orderCard(
             order: trackedOrder,
-            cta: 'ОТСЛЕДИТЬ',
+            cta: _t(ru: 'ОТСЛЕДИТЬ', en: 'TRACK'),
             onTap: () => setState(() => _view = ClientView.tracking),
           ),
         ],
         const SizedBox(height: 16),
         AvishuButton(
-          text: 'ВЫЙТИ ИЗ АККАУНТА',
+          text: _t(ru: 'ВЫЙТИ ИЗ АККАУНТА', en: 'SIGN OUT'),
           expanded: true,
           variant: AvishuButtonVariant.outline,
           icon: Icons.logout,
@@ -897,12 +1025,14 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     final selectedColor = _selectedColor ?? product.defaultColor;
     final selectedSize = _selectedSize ?? product.defaultSize;
     final isFavorite = _favoriteProductIds.contains(product.id);
+    final categoryLabel = localizeCatalogSection(_language, product.category);
+    final seasonLabel = localizeCatalogSection(_language, product.season);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'ГЛАВНАЯ / ${product.season.toUpperCase()} / ${product.category.toUpperCase()} / ${product.title}',
+          '${_t(ru: 'ГЛАВНАЯ', en: 'HOME')} / ${seasonLabel.toUpperCase()} / ${categoryLabel.toUpperCase()} / ${product.title}',
           style: AppTypography.code,
         ),
         const SizedBox(height: 12),
@@ -912,10 +1042,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             children: [
               _productGallery(product),
               const SizedBox(height: 16),
-              Text(
-                product.category.toUpperCase(),
-                style: AppTypography.eyebrow,
-              ),
+              Text(categoryLabel.toUpperCase(), style: AppTypography.eyebrow),
               const SizedBox(height: 8),
               Text(
                 product.title,
@@ -936,7 +1063,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  _metaChip(product.availabilityLabel),
+                  _metaChip(product.availabilityLabelFor(_language)),
                   _metaChip(product.material),
                   _metaChip(product.silhouette.toUpperCase()),
                 ],
@@ -946,13 +1073,28 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         ),
         const SizedBox(height: 12),
         OrderInfoCard(
-          title: 'ИНФОРМАЦИЯ О ТОВАРЕ',
+          title: _t(ru: 'ИНФОРМАЦИЯ О ТОВАРЕ', en: 'PRODUCT INFO'),
           rows: [
-            OrderInfoRowData(label: 'Артикул', value: product.sku),
-            OrderInfoRowData(label: 'Материал', value: product.material),
-            OrderInfoRowData(label: 'Силуэт', value: product.silhouette),
-            OrderInfoRowData(label: 'Цвет', value: selectedColor),
-            OrderInfoRowData(label: 'Размер', value: selectedSize),
+            OrderInfoRowData(
+              label: _t(ru: 'Артикул', en: 'SKU'),
+              value: product.sku,
+            ),
+            OrderInfoRowData(
+              label: _t(ru: 'Материал', en: 'Material'),
+              value: product.material,
+            ),
+            OrderInfoRowData(
+              label: _t(ru: 'Силуэт', en: 'Silhouette'),
+              value: product.silhouette,
+            ),
+            OrderInfoRowData(
+              label: _t(ru: 'Цвет', en: 'Color'),
+              value: selectedColor,
+            ),
+            OrderInfoRowData(
+              label: _t(ru: 'Размер', en: 'Size'),
+              value: selectedSize,
+            ),
           ],
         ),
         const SizedBox(height: 12),
@@ -960,7 +1102,10 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('ЦВЕТ', style: AppTypography.eyebrow),
+              Text(
+                _t(ru: 'ЦВЕТ', en: 'COLOR'),
+                style: AppTypography.eyebrow,
+              ),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
@@ -976,7 +1121,10 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                     .toList(),
               ),
               const SizedBox(height: 16),
-              Text('РАЗМЕР', style: AppTypography.eyebrow),
+              Text(
+                _t(ru: 'РАЗМЕР', en: 'SIZE'),
+                style: AppTypography.eyebrow,
+              ),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
@@ -999,7 +1147,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                     const Icon(Icons.straighten, size: 18),
                     const SizedBox(width: 8),
                     Text(
-                      'Размерная сетка',
+                      _t(ru: 'Размерная сетка', en: 'Size Guide'),
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ],
@@ -1007,7 +1155,10 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               ),
               if (product.preorder) ...[
                 const SizedBox(height: 16),
-                Text('ДАТА ГОТОВНОСТИ', style: AppTypography.eyebrow),
+                Text(
+                  _t(ru: 'ДАТА ГОТОВНОСТИ', en: 'READY DATE'),
+                  style: AppTypography.eyebrow,
+                ),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
@@ -1016,7 +1167,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                       .map(
                         (date) => _selectionPill(
                           label:
-                              '${monthShort(date.month)} ${date.day.toString().padLeft(2, '0')}',
+                              '${monthShort(date.month, _language)} ${date.day.toString().padLeft(2, '0')}',
                           selected: _selectedDate == date,
                           onTap: () => setState(() => _selectedDate = date),
                         ),
@@ -1026,7 +1177,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               ],
               const SizedBox(height: 16),
               Text(
-                product.inStock ? 'В наличии' : 'Нет в наличии',
+                product.inStock
+                    ? _t(ru: 'В наличии', en: 'In Stock')
+                    : _t(ru: 'Нет в наличии', en: 'Out of Stock'),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: product.inStock ? AppColors.black : AppColors.error,
                   fontWeight: FontWeight.w700,
@@ -1044,7 +1197,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: AvishuButton(
-                      text: isFavorite ? 'В ИЗБРАННОМ' : 'В ИЗБРАННОЕ',
+                      text: isFavorite
+                          ? _t(ru: 'В ИЗБРАННОМ', en: 'IN FAVORITES')
+                          : _t(ru: 'В ИЗБРАННОЕ', en: 'ADD TO FAVORITES'),
                       expanded: true,
                       variant: AvishuButtonVariant.outline,
                       icon: isFavorite
@@ -1064,8 +1219,8 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               const SizedBox(height: 16),
               AvishuButton(
                 text: product.preorder
-                    ? 'ПРОДОЛЖИТЬ ПРЕДЗАКАЗ'
-                    : 'ОФОРМИТЬ ЗАКАЗ',
+                    ? _t(ru: 'ПРОДОЛЖИТЬ ПРЕДЗАКАЗ', en: 'CONTINUE PREORDER')
+                    : _t(ru: 'ОФОРМИТЬ ЗАКАЗ', en: 'PLACE ORDER'),
                 expanded: true,
                 variant: AvishuButtonVariant.filled,
                 onPressed: () {
@@ -1080,7 +1235,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         ),
         const SizedBox(height: 12),
         _productAccordion(
-          title: 'ОПИСАНИЕ',
+          title: _t(ru: 'ОПИСАНИЕ', en: 'DESCRIPTION'),
           expanded: _descriptionExpanded,
           onToggle: () {
             setState(() => _descriptionExpanded = !_descriptionExpanded);
@@ -1092,7 +1247,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         ),
         const SizedBox(height: 12),
         _productAccordion(
-          title: 'ХАРАКТЕРИСТИКИ',
+          title: _t(ru: 'ХАРАКТЕРИСТИКИ', en: 'SPECIFICATIONS'),
           expanded: _specificationsExpanded,
           onToggle: () {
             setState(() => _specificationsExpanded = !_specificationsExpanded);
@@ -1128,7 +1283,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         ),
         const SizedBox(height: 12),
         _productAccordion(
-          title: 'УХОД',
+          title: _t(ru: 'УХОД', en: 'CARE'),
           expanded: _careExpanded,
           onToggle: () {
             setState(() => _careExpanded = !_careExpanded);
@@ -1159,20 +1314,26 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         OrderInfoCard(
-          title: 'СОСТАВ ЗАКАЗА',
+          title: _t(ru: 'СОСТАВ ЗАКАЗА', en: 'ORDER SUMMARY'),
           rows: [
-            OrderInfoRowData(label: 'Изделие', value: product.title),
             OrderInfoRowData(
-              label: 'Цвет',
+              label: _t(ru: 'Изделие', en: 'Product'),
+              value: product.title,
+            ),
+            OrderInfoRowData(
+              label: _t(ru: 'Цвет', en: 'Color'),
               value: _selectedColor ?? product.defaultColor,
             ),
             OrderInfoRowData(
-              label: 'Размер',
+              label: _t(ru: 'Размер', en: 'Size'),
               value: _selectedSize ?? product.defaultSize,
             ),
-            OrderInfoRowData(label: 'Количество', value: '$_quantity'),
             OrderInfoRowData(
-              label: 'Стоимость позиции',
+              label: _t(ru: 'Количество', en: 'Quantity'),
+              value: '$_quantity',
+            ),
+            OrderInfoRowData(
+              label: _t(ru: 'Стоимость позиции', en: 'Unit Price'),
               value: formatCurrency(product.price),
             ),
           ],
@@ -1183,37 +1344,49 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             children: [
               TextField(
                 controller: _cityController,
-                decoration: const InputDecoration(labelText: 'Город'),
+                decoration: InputDecoration(
+                  labelText: _t(ru: 'Город', en: 'City'),
+                ),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: _addressController,
-                decoration: const InputDecoration(labelText: 'Адрес'),
+                decoration: InputDecoration(
+                  labelText: _t(ru: 'Адрес', en: 'Address'),
+                ),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: _apartmentController,
-                decoration: const InputDecoration(labelText: 'Квартира / офис'),
+                decoration: InputDecoration(
+                  labelText: _t(
+                    ru: 'Квартира / офис',
+                    en: 'Apartment / Office',
+                  ),
+                ),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: _noteController,
                 maxLines: 3,
-                decoration: const InputDecoration(
-                  labelText: 'Комментарий к заказу',
+                decoration: InputDecoration(
+                  labelText: _t(
+                    ru: 'Комментарий к заказу',
+                    en: 'Order Comment',
+                  ),
                 ),
               ),
             ],
           ),
         ),
         const SizedBox(height: 12),
-        _sectionLabel('СПОСОБ ПОЛУЧЕНИЯ'),
+        _sectionLabel(_t(ru: 'СПОСОБ ПОЛУЧЕНИЯ', en: 'FULFILLMENT METHOD')),
         const SizedBox(height: 12),
         Row(
           children: [
             Expanded(
               child: _deliveryCard(
-                label: DeliveryMethod.courier.label,
+                label: DeliveryMethod.courier.labelFor(_language),
                 active: _deliveryMethod == DeliveryMethod.courier,
                 onTap: () =>
                     setState(() => _deliveryMethod = DeliveryMethod.courier),
@@ -1222,7 +1395,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             const SizedBox(width: 10),
             Expanded(
               child: _deliveryCard(
-                label: DeliveryMethod.pickup.label,
+                label: DeliveryMethod.pickup.labelFor(_language),
                 active: _deliveryMethod == DeliveryMethod.pickup,
                 onTap: () =>
                     setState(() => _deliveryMethod = DeliveryMethod.pickup),
@@ -1231,10 +1404,13 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
           ],
         ),
         const SizedBox(height: 12),
-        OrderInfoCard(title: 'ИТОГО', rows: _checkoutRows(product)),
+        OrderInfoCard(
+          title: _t(ru: 'ИТОГО', en: 'TOTAL'),
+          rows: _checkoutRows(product),
+        ),
         const SizedBox(height: 18),
         AvishuButton(
-          text: 'ПЕРЕЙТИ К ОПЛАТЕ',
+          text: _t(ru: 'ПЕРЕЙТИ К ОПЛАТЕ', en: 'GO TO PAYMENT'),
           expanded: true,
           variant: AvishuButtonVariant.filled,
           onPressed: () {
@@ -1257,11 +1433,16 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('ОПЛАТА КАРТОЙ', style: AppTypography.eyebrow),
+              Text(
+                _t(ru: 'ОПЛАТА КАРТОЙ', en: 'CARD PAYMENT'),
+                style: AppTypography.eyebrow,
+              ),
               const SizedBox(height: 12),
               TextField(
                 controller: _cardController,
-                decoration: const InputDecoration(labelText: 'Номер карты'),
+                decoration: InputDecoration(
+                  labelText: _t(ru: 'Номер карты', en: 'Card Number'),
+                ),
               ),
               const SizedBox(height: 12),
               Row(
@@ -1285,10 +1466,13 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
           ),
         ),
         const SizedBox(height: 12),
-        OrderInfoCard(title: 'ДЕТАЛИ ОПЛАТЫ', rows: _checkoutRows(product)),
+        OrderInfoCard(
+          title: _t(ru: 'ДЕТАЛИ ОПЛАТЫ', en: 'PAYMENT DETAILS'),
+          rows: _checkoutRows(product),
+        ),
         const SizedBox(height: 18),
         AvishuButton(
-          text: 'ОПЛАТИТЬ',
+          text: _t(ru: 'ОПЛАТИТЬ', en: 'PAY'),
           expanded: true,
           variant: AvishuButtonVariant.filled,
           onPressed: () => _submitOrder(clientId),
@@ -1301,7 +1485,10 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     if (order == null) {
       return _surfaceCard(
         child: Text(
-          'Ожидаем синхронизацию заказа.',
+          _t(
+            ru: 'Ожидаем синхронизацию заказа.',
+            en: 'Waiting for order synchronization.',
+          ),
           style: Theme.of(context).textTheme.bodyMedium,
         ),
       );
@@ -1320,7 +1507,10 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('ЗАКАЗ #${order.shortId}', style: AppTypography.eyebrow),
+                Text(
+                  '${_t(ru: 'ЗАКАЗ', en: 'ORDER')} #${order.shortId}',
+                  style: AppTypography.eyebrow,
+                ),
                 const SizedBox(height: 12),
                 Text(
                   order.productName,
@@ -1328,14 +1518,14 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  order.status.roleDescription,
+                  order.status.roleDescriptionFor(_language),
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 12),
                 LinearProgressIndicator(value: order.status.progressValue),
                 const SizedBox(height: 10),
                 Text(
-                  'СТАТУС / ${order.status.clientLabel}',
+                  '${_t(ru: 'СТАТУС', en: 'STATUS')} / ${order.status.clientLabelFor(_language)}',
                   style: AppTypography.code,
                 ),
               ],
@@ -1343,34 +1533,40 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
           ),
         const SizedBox(height: 12),
         OrderInfoCard(
-          title: 'ДЕТАЛИ ЗАКАЗА',
-          rows: OrderSummaryRows.forOrder(order),
+          title: _t(ru: 'ДЕТАЛИ ЗАКАЗА', en: 'ORDER DETAILS'),
+          rows: OrderSummaryRows.forOrder(order, language: _language),
         ),
         if (order.clientNote.trim().isNotEmpty) ...[
           const SizedBox(height: 12),
           OrderInfoCard(
-            title: 'КОММЕНТАРИЙ КЛИЕНТА',
+            title: _t(ru: 'КОММЕНТАРИЙ КЛИЕНТА', en: 'CLIENT COMMENT'),
             rows: [
-              OrderInfoRowData(label: 'Комментарий', value: order.clientNote),
+              OrderInfoRowData(
+                label: _t(ru: 'Комментарий', en: 'Comment'),
+                value: order.clientNote,
+              ),
             ],
           ),
         ],
         if (order.franchiseeNote.trim().isNotEmpty) ...[
           const SizedBox(height: 12),
           OrderInfoCard(
-            title: 'ПОМЕТКА ФРАНЧАЙЗИ',
+            title: _t(ru: 'ПОМЕТКА ФРАНЧАЙЗИ', en: 'FRANCHISE NOTE'),
             rows: [
-              OrderInfoRowData(label: 'Статус', value: order.franchiseeNote),
+              OrderInfoRowData(
+                label: _t(ru: 'Статус', en: 'Status'),
+                value: order.franchiseeNote,
+              ),
             ],
           ),
         ],
         if (order.productionNote.trim().isNotEmpty) ...[
           const SizedBox(height: 12),
           OrderInfoCard(
-            title: 'ПОМЕТКА ПРОИЗВОДСТВА',
+            title: _t(ru: 'ПОМЕТКА ПРОИЗВОДСТВА', en: 'FACTORY NOTE'),
             rows: [
               OrderInfoRowData(
-                label: 'Производство',
+                label: _t(ru: 'Производство', en: 'Factory'),
                 value: order.productionNote,
               ),
             ],
@@ -1381,7 +1577,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
           children: [
             Expanded(
               child: AvishuButton(
-                text: 'НАЗАД',
+                text: _t(ru: 'НАЗАД', en: 'BACK'),
                 onPressed: () {
                   setState(() {
                     _tab = ClientTab.dashboard;
@@ -1394,7 +1590,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             const SizedBox(width: 10),
             Expanded(
               child: AvishuButton(
-                text: 'КАТАЛОГ',
+                text: _t(ru: 'КАТАЛОГ', en: 'CATALOG'),
                 onPressed: () {
                   setState(() {
                     _tab = ClientTab.collections;
@@ -1452,7 +1648,12 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
   bool _validateCheckoutFields() {
     if (_cityController.text.trim().isEmpty ||
         _addressController.text.trim().isEmpty) {
-      _showMessage('Заполните город и адрес доставки.');
+      _showMessage(
+        _t(
+          ru: 'Заполните город и адрес доставки.',
+          en: 'Fill in the city and delivery address.',
+        ),
+      );
       return false;
     }
     return true;
@@ -1463,7 +1664,12 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     if (digits.length < 4 ||
         _expiryController.text.trim().isEmpty ||
         _cvvController.text.trim().length < 3) {
-      _showMessage('Проверьте данные банковской карты.');
+      _showMessage(
+        _t(
+          ru: 'Проверьте данные банковской карты.',
+          en: 'Check the bank card details.',
+        ),
+      );
       return false;
     }
     return true;
@@ -1525,6 +1731,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
 
   void _selectSection(String section) {
     _activeSection = section;
+    _showFavoritesOnly = false;
     _resetCatalogFilters();
   }
 
@@ -1551,41 +1758,48 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
   String _composeOrderNote(CatalogProduct product) {
     final customerNote = _noteController.text.trim();
     final lines = <String>[
-      'Цвет: ${_selectedColor ?? product.defaultColor}',
-      'Количество: $_quantity',
-      if (customerNote.isNotEmpty) 'Комментарий клиента: $customerNote',
+      '${_t(ru: 'Цвет', en: 'Color')}: ${_selectedColor ?? product.defaultColor}',
+      '${_t(ru: 'Количество', en: 'Quantity')}: $_quantity',
+      if (customerNote.isNotEmpty)
+        '${_t(ru: 'Комментарий клиента', en: 'Client Comment')}: $customerNote',
     ];
     return lines.join('\n');
   }
 
   List<OrderInfoRowData> _checkoutRows(CatalogProduct product) {
     return [
-      OrderInfoRowData(label: 'Изделие', value: product.title),
       OrderInfoRowData(
-        label: 'Цвет',
+        label: _t(ru: 'Изделие', en: 'Product'),
+        value: product.title,
+      ),
+      OrderInfoRowData(
+        label: _t(ru: 'Цвет', en: 'Color'),
         value: _selectedColor ?? product.defaultColor,
       ),
       OrderInfoRowData(
-        label: 'Размер',
+        label: _t(ru: 'Размер', en: 'Size'),
         value: _selectedSize ?? product.defaultSize,
       ),
-      OrderInfoRowData(label: 'Количество', value: '$_quantity'),
       OrderInfoRowData(
-        label: 'Стоимость',
+        label: _t(ru: 'Количество', en: 'Quantity'),
+        value: '$_quantity',
+      ),
+      OrderInfoRowData(
+        label: _t(ru: 'Стоимость', en: 'Subtotal'),
         value: formatCurrency(product.price * _quantity),
       ),
       OrderInfoRowData(
-        label: 'Доставка',
+        label: _t(ru: 'Доставка', en: 'Delivery'),
         value:
-            '${_deliveryMethod.label} / ${formatCurrency(_deliveryMethod.fee)}',
+            '${_deliveryMethod.labelFor(_language)} / ${formatCurrency(_deliveryMethod.fee)}',
       ),
       if (product.preorder && _selectedDate != null)
         OrderInfoRowData(
-          label: 'Дата готовности',
+          label: _t(ru: 'Дата готовности', en: 'Ready Date'),
           value: formatDate(_selectedDate!),
         ),
       OrderInfoRowData(
-        label: 'Итого',
+        label: _t(ru: 'Итого', en: 'Total'),
         value: formatCurrency(_totalPrice(product)),
       ),
     ];
@@ -1743,7 +1957,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             .map(
               (option) => PopupMenuItem<CatalogSortOption>(
                 value: option,
-                child: Text(option.label),
+                child: Text(option.labelFor(_language)),
               ),
             )
             .toList(),
@@ -1753,7 +1967,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             children: [
               Expanded(
                 child: Text(
-                  'СОРТИРОВАТЬ: ${_sortOption.label.toUpperCase()}',
+                  '${_t(ru: 'СОРТИРОВАТЬ', en: 'SORT')}: ${_sortOption.labelFor(_language).toUpperCase()}',
                   style: AppTypography.button.copyWith(letterSpacing: 2.2),
                 ),
               ),
@@ -1765,11 +1979,68 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     );
   }
 
+  Widget _catalogCardSizeSelector() {
+    final settingsController = ref.read(appSettingsProvider.notifier);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          _t(ru: 'РАЗМЕР КАРТОЧЕК', en: 'CARD SIZE'),
+          style: AppTypography.eyebrow,
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: CatalogCardSize.values.map((size) {
+            final isActive = _catalogCardSize == size;
+
+            return Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  right: size == CatalogCardSize.large ? 0 : 8,
+                ),
+                child: InkWell(
+                  onTap: () => settingsController.setCatalogCardSize(size),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: isActive
+                          ? AppColors.black
+                          : AppColors.surfaceLowest,
+                      border: Border.all(color: AppColors.black),
+                    ),
+                    child: Text(
+                      '${catalogCardSizeLabel(size)} / ${_t(ru: size == CatalogCardSize.compact
+                          ? 'МЕНЬШЕ'
+                          : size == CatalogCardSize.standard
+                          ? 'БАЛАНС'
+                          : 'КРУПНЕЕ', en: size == CatalogCardSize.compact
+                          ? 'SMALL'
+                          : size == CatalogCardSize.standard
+                          ? 'BALANCED'
+                          : 'LARGE')}',
+                      textAlign: TextAlign.center,
+                      style: AppTypography.button.copyWith(
+                        color: isActive ? AppColors.white : AppColors.black,
+                        letterSpacing: 1.6,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
   Widget _filterGroup({
     required String title,
     required List<String> options,
     required String? selectedValue,
     required ValueChanged<String?> onChanged,
+    String Function(String value)? optionLabelBuilder,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
@@ -1783,13 +2054,13 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             runSpacing: 8,
             children: [
               _selectionPill(
-                label: 'Все',
+                label: _t(ru: 'Все', en: 'All'),
                 selected: selectedValue == null,
                 onTap: () => onChanged(null),
               ),
               ...options.map(
                 (option) => _selectionPill(
-                  label: option,
+                  label: optionLabelBuilder?.call(option) ?? option,
                   selected: selectedValue == option,
                   onTap: () => onChanged(option),
                 ),
@@ -1847,7 +2118,13 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
           child: Stack(
             children: [
               Positioned.fill(child: _networkProductImage(imageUrl)),
-              Positioned(top: 12, left: 12, child: _metaChip(product.season)),
+              Positioned(
+                top: 12,
+                left: 12,
+                child: _metaChip(
+                  localizeCatalogSection(_language, product.season),
+                ),
+              ),
               Positioned(
                 top: 12,
                 right: 12,
@@ -1969,11 +2246,45 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     );
   }
 
+  double get _catalogCardAspectRatio {
+    switch (_catalogCardSize) {
+      case CatalogCardSize.compact:
+        return 1.08;
+      case CatalogCardSize.standard:
+        return 0.88;
+      case CatalogCardSize.large:
+        return 0.72;
+    }
+  }
+
+  double get _catalogCardContentSpacing {
+    switch (_catalogCardSize) {
+      case CatalogCardSize.compact:
+        return 10;
+      case CatalogCardSize.standard:
+        return 14;
+      case CatalogCardSize.large:
+        return 18;
+    }
+  }
+
+  int get _catalogCardDescriptionLines {
+    switch (_catalogCardSize) {
+      case CatalogCardSize.compact:
+        return 2;
+      case CatalogCardSize.standard:
+        return 3;
+      case CatalogCardSize.large:
+        return 4;
+    }
+  }
+
   Widget _productCard({
     required CatalogProduct product,
     required VoidCallback onTap,
   }) {
     final isFavorite = _favoriteProductIds.contains(product.id);
+    final categoryLabel = localizeCatalogSection(_language, product.category);
 
     return _surfaceCard(
       onTap: onTap,
@@ -1981,7 +2292,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AspectRatio(
-            aspectRatio: 0.78,
+            aspectRatio: _catalogCardAspectRatio,
             child: Stack(
               children: [
                 Positioned.fill(
@@ -1990,13 +2301,13 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                     fit: BoxFit.cover,
                   ),
                 ),
-                Positioned(
-                  top: 12,
-                  left: 12,
-                  child: _metaChip(product.category),
-                ),
+                Positioned(top: 12, left: 12, child: _metaChip(categoryLabel)),
                 if (product.isNew)
-                  Positioned(top: 12, right: 12, child: _metaChip('Новинка')),
+                  Positioned(
+                    top: 12,
+                    right: 12,
+                    child: _metaChip(_t(ru: 'Новинка', en: 'New')),
+                  ),
                 Positioned(
                   bottom: 12,
                   right: 12,
@@ -2022,7 +2333,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               ],
             ),
           ),
-          const SizedBox(height: 14),
+          SizedBox(height: _catalogCardContentSpacing),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -2032,7 +2343,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                   children: [
                     Text(
                       product.title,
-                      style: Theme.of(context).textTheme.titleLarge,
+                      style: (_catalogCardSize == CatalogCardSize.compact
+                          ? Theme.of(context).textTheme.titleMedium
+                          : Theme.of(context).textTheme.titleLarge),
                     ),
                     const SizedBox(height: 6),
                     Text(
@@ -2055,15 +2368,22 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
           Text(
             product.shortDescription,
             style: Theme.of(context).textTheme.bodyMedium,
+            maxLines: _catalogCardDescriptionLines,
+            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
-              _metaChip(product.availabilityLabel),
+              _metaChip(product.availabilityLabelFor(_language)),
               _metaChip(product.defaultSize),
-              _metaChip('${product.colors.length} цвета'),
+              _metaChip(
+                _t(
+                  ru: '${product.colors.length} цвета',
+                  en: '${product.colors.length} colors',
+                ),
+              ),
             ],
           ),
         ],
@@ -2085,11 +2405,14 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             children: [
               Expanded(
                 child: Text(
-                  'ЗАКАЗ #${order.shortId}',
+                  '${_t(ru: 'ЗАКАЗ', en: 'ORDER')} #${order.shortId}',
                   style: AppTypography.eyebrow,
                 ),
               ),
-              Text(order.status.panelLabel, style: AppTypography.code),
+              Text(
+                order.status.panelLabelFor(_language),
+                style: AppTypography.code,
+              ),
             ],
           ),
           const SizedBox(height: 10),
@@ -2128,7 +2451,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'СПОСОБ',
+              _t(ru: 'СПОСОБ', en: 'METHOD'),
               style: AppTypography.eyebrow.copyWith(
                 color: active ? AppColors.surfaceDim : AppColors.outline,
               ),
@@ -2229,17 +2552,25 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('РАЗДЕЛЫ КАТАЛОГА', style: AppTypography.eyebrow),
+                        Text(
+                          _t(ru: 'РАЗДЕЛЫ КАТАЛОГА', en: 'CATALOG SECTIONS'),
+                          style: AppTypography.eyebrow,
+                        ),
                         const SizedBox(height: 8),
                         Text(
-                          'Быстрый переход по коллекциям в мобильной адаптации.',
+                          _t(
+                            ru: 'Быстрый переход по коллекциям в мобильной адаптации.',
+                            en: 'Fast navigation between collections in mobile mode.',
+                          ),
                           style: Theme.of(dialogContext).textTheme.bodyMedium,
                         ),
                         const SizedBox(height: 16),
                         ...catalogSections.map(
                           (section) => _catalogSectionTile(
-                            label: section,
-                            active: section == _activeSection,
+                            label: localizeCatalogSection(_language, section),
+                            active:
+                                !_showFavoritesOnly &&
+                                section == _activeSection,
                             onTap: () {
                               Navigator.of(dialogContext).pop();
                               setState(() => _selectSection(section));
@@ -2248,7 +2579,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                         ),
                         const SizedBox(height: 14),
                         AvishuButton(
-                          text: 'НАСТРОЙКИ',
+                          text: _t(ru: 'НАСТРОЙКИ', en: 'SETTINGS'),
                           expanded: true,
                           variant: AvishuButtonVariant.outline,
                           onPressed: () {
@@ -2300,7 +2631,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                     children: [
                       Expanded(
                         child: Text(
-                          'РАЗМЕРНАЯ СЕТКА',
+                          _t(ru: 'РАЗМЕРНАЯ СЕТКА', en: 'SIZE GUIDE'),
                           style: Theme.of(context).textTheme.headlineMedium,
                         ),
                       ),
@@ -2330,6 +2661,16 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
   }
 
   Widget _sizeGuideTable(SizeGuideGroup group) {
+    final title = switch (group.title) {
+      'Базовые размеры' => _t(ru: 'БАЗОВЫЕ РАЗМЕРЫ', en: 'BASE SIZES'),
+      'Размеры Plus (+20% к стоимости)' => _t(
+        ru: 'РАЗМЕРЫ PLUS (+20% К СТОИМОСТИ)',
+        en: 'PLUS SIZES (+20% PRICE)',
+      ),
+      _ => group.title.toUpperCase(),
+    };
+    final unit = _language == AppLanguage.russian ? group.unitLabel : 'CM';
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surfaceLowest,
@@ -2344,11 +2685,11 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               children: [
                 Expanded(
                   child: Text(
-                    group.title.toUpperCase(),
+                    title,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
-                Text(group.unitLabel.toUpperCase(), style: AppTypography.code),
+                Text(unit.toUpperCase(), style: AppTypography.code),
               ],
             ),
             const SizedBox(height: 12),
@@ -2369,15 +2710,15 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                     ],
                   ),
                   _measurementRow(
-                    'Обхват груди',
+                    _t(ru: 'Обхват груди', en: 'Bust'),
                     group.columns.map((column) => column.chest).toList(),
                   ),
                   _measurementRow(
-                    'Обхват талии',
+                    _t(ru: 'Обхват талии', en: 'Waist'),
                     group.columns.map((column) => column.waist).toList(),
                   ),
                   _measurementRow(
-                    'Обхват бедер',
+                    _t(ru: 'Обхват бедер', en: 'Hips'),
                     group.columns.map((column) => column.hips).toList(),
                   ),
                 ],
