@@ -4,12 +4,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/typography.dart';
-
 import '../../../../shared/providers/app_settings.dart';
+import '../../../../shared/providers/global_state.dart';
 import '../../../../shared/widgets/app_settings_sheet.dart';
 import '../../../../shared/widgets/avishu_button.dart';
 import '../../../../shared/widgets/avishu_mobile_frame.dart';
-
 import '../../../auth/data/auth_repository.dart';
 import '../../../orders/data/order_repository.dart';
 import '../../../orders/domain/enums/order_status.dart';
@@ -17,7 +16,12 @@ import '../../../orders/domain/models/order_model.dart';
 import '../shared/order_panels.dart';
 
 final franchiseeOrdersProvider = StreamProvider<List<OrderModel>>((ref) {
-  return ref.watch(orderRepositoryProvider).allOrders();
+  return ref.watch(orderRepositoryProvider).ordersByStatuses(const [
+    OrderStatus.newOrder,
+    OrderStatus.accepted,
+    OrderStatus.inProduction,
+    OrderStatus.ready,
+  ]);
 });
 
 enum FranchiseeTab { dashboard, queue, ready, profile }
@@ -309,9 +313,16 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
             expanded: true,
             variant: AvishuButtonVariant.filled,
             onPressed: () async {
+              final currentUserId =
+                  ref.read(currentUserProvider).value?.uid ?? '';
               await ref
                   .read(orderRepositoryProvider)
-                  .acceptOrder(order.id, note: _noteController.text.trim());
+                  .acceptOrder(
+                    order.id,
+                    note: _noteController.text.trim(),
+                    changedByUserId: currentUserId,
+                    franchiseeId: currentUserId,
+                  );
               if (mounted) {
                 setState(() => _selectedOrder = null);
               }

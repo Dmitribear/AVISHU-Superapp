@@ -1,5 +1,6 @@
 import '../../../orders/domain/models/order_model.dart';
 import '../../../orders/domain/enums/order_status.dart';
+import '../../../products/domain/models/product_model.dart';
 
 enum ClientTab { dashboard, collections, archive, profile }
 
@@ -535,4 +536,187 @@ OrderModel? resolveTrackedOrder(
   }
 
   return orders.first;
+}
+
+List<CatalogProduct> catalogFromProducts(Iterable<ProductModel> products) {
+  final mapped = products.map(catalogProductFromFirestore).toList();
+  return mapped.isEmpty ? catalog : mapped;
+}
+
+CatalogProduct catalogProductFromFirestore(ProductModel product) {
+  final fallback = _catalogFallbackById(product.id);
+  final categoryLabel =
+      fallback?.category ?? _displayCategory(product.category);
+  final sections = fallback?.sections ?? _inferSections(categoryLabel);
+  final season = fallback?.season ?? _inferSeason(sections);
+  final colors = fallback?.colors ?? _defaultColors(categoryLabel);
+  final sizes = fallback?.sizes ?? _defaultSizes(categoryLabel);
+  final imageUrls = product.gallery.isNotEmpty
+      ? product.gallery
+      : (product.coverImage.isNotEmpty
+            ? <String>[product.coverImage]
+            : (fallback?.imageUrls ?? const <String>[]));
+  final description = product.description.isNotEmpty
+      ? product.description
+      : (fallback?.description ?? 'Премиальная модель из каталога AVISHU.');
+  final shortDescription =
+      fallback?.shortDescription ?? _shortDescription(description);
+  final productionDays = product.defaultProductionDays > 0
+      ? '${product.defaultProductionDays} дн.'
+      : '2-4 дн.';
+
+  return CatalogProduct(
+    id: product.id,
+    title: product.name,
+    category: categoryLabel,
+    sections: sections,
+    season: season,
+    material: fallback?.material ?? _defaultMaterial(categoryLabel),
+    silhouette: fallback?.silhouette ?? _defaultSilhouette(categoryLabel),
+    sku: fallback?.sku ?? product.slug.toUpperCase(),
+    price: product.price,
+    preorder: product.isPreorderAvailable,
+    inStock: !product.isPreorderAvailable,
+    shortDescription: shortDescription,
+    description: description,
+    colors: colors,
+    defaultColor: fallback?.defaultColor ?? colors.first,
+    sizes: sizes,
+    defaultSize: fallback?.defaultSize ?? sizes.first,
+    imageUrls: imageUrls.isNotEmpty
+        ? imageUrls
+        : const <String>[
+            'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1200&q=80',
+          ],
+    specifications:
+        fallback?.specifications ??
+        <ProductSpec>[
+          ProductSpec(label: 'Категория', value: categoryLabel),
+          ProductSpec(label: 'Артикул', value: product.slug.toUpperCase()),
+          ProductSpec(
+            label: 'Пошив',
+            value: product.isPreorderAvailable ? productionDays : 'В наличии',
+          ),
+        ],
+    care:
+        fallback?.care ??
+        const <String>[
+          'Деликатный уход согласно составу ткани.',
+          'Хранить изделие на мягкой вешалке или в чехле.',
+          'Избегать агрессивной машинной сушки.',
+        ],
+    atelierNote:
+        fallback?.atelierNote ??
+        'Модель подключена из Firestore и готова для demo-заказа в AVISHU.',
+  );
+}
+
+CatalogProduct? _catalogFallbackById(String productId) {
+  for (final item in catalog) {
+    if (item.id == productId) {
+      return item;
+    }
+  }
+  return null;
+}
+
+String _displayCategory(String rawCategory) {
+  final normalized = rawCategory.trim().toLowerCase();
+  switch (normalized) {
+    case 'outerwear':
+      return 'Верхняя одежда';
+    case 'cardigans':
+      return 'Кардиганы и кофты';
+    case 'suits':
+      return 'Костюмы';
+    case 'base':
+      return 'База';
+    case 'trousers':
+      return 'Брюки';
+    case 'skirts':
+      return 'Юбки';
+    default:
+      return rawCategory.isEmpty ? 'База' : rawCategory;
+  }
+}
+
+List<String> _inferSections(String categoryLabel) {
+  final sections = <String>['Новинки', categoryLabel];
+  if (categoryLabel == 'Верхняя одежда') {
+    sections.add('Зима');
+  } else if (categoryLabel == 'Кардиганы и кофты' ||
+      categoryLabel == 'Костюмы') {
+    sections.add('Весна');
+  } else if (categoryLabel == 'Юбки' ||
+      categoryLabel == 'Брюки' ||
+      categoryLabel == 'База') {
+    sections.add('Лето');
+  }
+  return sections;
+}
+
+String _inferSeason(List<String> sections) {
+  for (final section in const <String>['Лето', 'Зима', 'Весна']) {
+    if (sections.contains(section)) {
+      return section;
+    }
+  }
+  return 'Весна';
+}
+
+List<String> _defaultColors(String categoryLabel) {
+  if (categoryLabel == 'Юбки' || categoryLabel == 'Брюки') {
+    return const <String>['Черный', 'Песочный', 'Кофе'];
+  }
+  if (categoryLabel == 'Верхняя одежда') {
+    return const <String>['Графит', 'Черный'];
+  }
+  return const <String>['Черный', 'Молочный'];
+}
+
+List<String> _defaultSizes(String categoryLabel) {
+  if (categoryLabel == 'Верхняя одежда' || categoryLabel == 'Костюмы') {
+    return const <String>['S', 'M', 'L', 'XL'];
+  }
+  return const <String>['XS', 'S', 'M', 'L', 'XL'];
+}
+
+String _defaultMaterial(String categoryLabel) {
+  if (categoryLabel == 'Верхняя одежда') {
+    return 'Шерсть / кашемир';
+  }
+  if (categoryLabel == 'Костюмы') {
+    return 'Костюмная шерсть';
+  }
+  if (categoryLabel == 'Кардиганы и кофты') {
+    return 'Хлопок / кашемир';
+  }
+  return 'Премиальный хлопок';
+}
+
+String _defaultSilhouette(String categoryLabel) {
+  if (categoryLabel == 'Юбки') {
+    return 'A-line midi';
+  }
+  if (categoryLabel == 'Брюки') {
+    return 'Wide leg';
+  }
+  if (categoryLabel == 'Верхняя одежда') {
+    return 'Longline coat';
+  }
+  if (categoryLabel == 'Костюмы') {
+    return 'Relaxed tailoring';
+  }
+  return 'AVISHU capsule fit';
+}
+
+String _shortDescription(String description) {
+  final compact = description.trim();
+  if (compact.isEmpty) {
+    return 'Премиальная модель из каталога AVISHU.';
+  }
+  if (compact.length <= 110) {
+    return compact;
+  }
+  return '${compact.substring(0, 107).trim()}...';
 }

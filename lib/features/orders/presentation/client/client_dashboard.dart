@@ -15,6 +15,7 @@ import '../../../orders/data/order_repository.dart';
 import '../../../orders/domain/enums/delivery_method.dart';
 import '../../../orders/domain/enums/order_status.dart';
 import '../../../orders/domain/models/order_model.dart';
+import '../../../products/data/product_repository.dart';
 import '../shared/order_formatters.dart';
 import '../shared/order_panels.dart';
 import 'client_data.dart';
@@ -48,6 +49,13 @@ final clientOrdersProvider = StreamProvider.family<List<OrderModel>, String>((
   return ref.watch(orderRepositoryProvider).clientOrders(clientId);
 });
 
+final catalogProductsProvider = StreamProvider<List<CatalogProduct>>((ref) {
+  return ref
+      .watch(productRepositoryProvider)
+      .watchActiveProducts()
+      .map(catalogFromProducts);
+});
+
 class ClientDashboard extends ConsumerStatefulWidget {
   const ClientDashboard({super.key});
 
@@ -75,6 +83,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
   bool _descriptionExpanded = true;
   bool _specificationsExpanded = false;
   bool _careExpanded = false;
+  List<CatalogProduct> _catalogProducts = catalog;
 
   final Set<String> _favoriteProductIds = <String>{};
   final _cityController = TextEditingController(text: 'Алматы');
@@ -110,13 +119,15 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     super.dispose();
   }
 
-  double get _catalogMinPrice =>
-      catalog.map((product) => product.price).reduce((a, b) => a < b ? a : b);
+  double get _catalogMinPrice => _catalogProducts
+      .map((product) => product.price)
+      .reduce((a, b) => a < b ? a : b);
 
-  double get _catalogMaxPrice =>
-      catalog.map((product) => product.price).reduce((a, b) => a > b ? a : b);
+  double get _catalogMaxPrice => _catalogProducts
+      .map((product) => product.price)
+      .reduce((a, b) => a > b ? a : b);
 
-  List<CatalogProduct> get _sectionProducts => catalog
+  List<CatalogProduct> get _sectionProducts => _catalogProducts
       .where((product) => product.sections.contains(_activeSection))
       .toList();
 
@@ -172,6 +183,14 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         body: Center(child: CircularProgressIndicator(color: Colors.black)),
       );
     }
+
+    final catalogProducts = ref
+        .watch(catalogProductsProvider)
+        .maybeWhen(
+          data: (products) => products.isEmpty ? catalog : products,
+          orElse: () => catalog,
+        );
+    _applyCatalogSource(catalogProducts);
 
     final ordersAsync = ref.watch(clientOrdersProvider(user.uid));
     final trackedOrder = ordersAsync.value == null
@@ -295,7 +314,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
   Widget _buildDashboardScreen(List<OrderModel> orders) {
     final activeOrder = resolveTrackedOrder(orders, _latestOrderId);
     final preorderCount = orders.where((order) => order.isPreorder).length;
-    final featuredProducts = catalog
+    final featuredProducts = _catalogProducts
         .where((product) => product.isNew)
         .take(2)
         .toList();
@@ -308,7 +327,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
           subtitle:
               'Каталог теперь собран с разделами, фильтрами, сортировкой и полноценной карточкой товара в фирменном AVISHU-ритме.',
           accent:
-              'НОВЫХ МОДЕЛЕЙ: ${catalog.where((item) => item.isNew).length}',
+              'НОВЫХ МОДЕЛЕЙ: ${_catalogProducts.where((item) => item.isNew).length}',
         ),
         const SizedBox(height: 12),
         Row(
@@ -1270,6 +1289,31 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       return false;
     }
     return true;
+  }
+
+  void _applyCatalogSource(List<CatalogProduct> products) {
+    if (products.isEmpty) {
+      return;
+    }
+
+    _catalogProducts = products;
+
+    final minPrice = _catalogMinPrice;
+    final maxPrice = _catalogMaxPrice;
+    if (_priceRange.start < minPrice ||
+        _priceRange.end > maxPrice ||
+        _priceRange.start > _priceRange.end) {
+      _priceRange = RangeValues(minPrice, maxPrice);
+    }
+
+    if (_selectedProduct != null) {
+      for (final product in _catalogProducts) {
+        if (product.id == _selectedProduct!.id) {
+          _selectedProduct = product;
+          break;
+        }
+      }
+    }
   }
 
   void _showMessage(String message) {
