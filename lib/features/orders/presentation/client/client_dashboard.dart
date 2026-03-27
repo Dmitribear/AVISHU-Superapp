@@ -122,19 +122,19 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
   String get _metaLabel {
     switch (_view) {
       case ClientView.product:
-        return 'CLIENT / PRODUCT';
+        return 'КЛИЕНТ / ТОВАР';
       case ClientView.checkout:
-        return 'CLIENT / CHECKOUT';
+        return 'КЛИЕНТ / ОФОРМЛЕНИЕ';
       case ClientView.payment:
-        return 'CLIENT / PAYMENT';
+        return 'КЛИЕНТ / ОПЛАТА';
       case ClientView.tracking:
-        return 'CLIENT / TRACKING';
+        return 'КЛИЕНТ / ОТСЛЕЖИВАНИЕ';
       case ClientView.root:
         return switch (_tab) {
-          ClientTab.dashboard => 'CLIENT / DASHBOARD',
-          ClientTab.collections => 'CLIENT / COLLECTIONS',
-          ClientTab.archive => 'CLIENT / ARCHIVE',
-          ClientTab.profile => 'CLIENT / PROFILE',
+          ClientTab.dashboard => 'КЛИЕНТ / ГЛАВНАЯ',
+          ClientTab.collections => 'КЛИЕНТ / КОЛЛЕКЦИИ',
+          ClientTab.archive => 'КЛИЕНТ / ИСТОРИЯ',
+          ClientTab.profile => 'КЛИЕНТ / ПРОФИЛЬ',
         };
     }
   }
@@ -174,9 +174,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _heroCard(
-          title: 'НОВАЯ КОЛЛЕКЦИЯ 2024',
-          subtitle: 'Каталог, предзаказ, оплата и трекинг внутри одного мобильного потока.',
-          accent: '${orders.length.toString().padLeft(2, '0')} LIVE ORDERS',
+          title: 'АКТУАЛЬНАЯ КОЛЛЕКЦИЯ',
+          subtitle: 'Выберите изделие, оформите заказ и отслеживайте его статус в приложении.',
+          accent: 'АКТИВНЫХ ЗАКАЗОВ: ${orders.length.toString().padLeft(2, '0')}',
         ),
         const SizedBox(height: 18),
         if (activeOrder != null) _orderCard(activeOrder, cta: 'ОТСЛЕДИТЬ', onTap: () {
@@ -231,7 +231,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                     ],
                   ),
                 ),
-                Text(collection.released ? 'LIVE' : 'ARCHIVE', style: AppTypography.code),
+                Text(collection.released ? 'АКТИВНАЯ' : 'АРХИВ', style: AppTypography.code),
               ],
             ),
           ),
@@ -284,11 +284,11 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             children: [
               Text('ПРОФИЛЬ', style: AppTypography.eyebrow),
               const SizedBox(height: 12),
-              Text('PRIVATE CLIENT / BLACK TIER', style: Theme.of(context).textTheme.titleLarge),
+              Text('ПЕРСОНАЛЬНЫЙ КЛИЕНТ', style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 10),
               LinearProgressIndicator(value: ((orders.length % 4) + 1) / 4),
               const SizedBox(height: 10),
-              Text('ORDERS ${orders.length} / NEXT LEVEL: PLATINUM', style: AppTypography.code),
+              Text('ЗАКАЗОВ: ${orders.length} / СЛЕДУЮЩИЙ УРОВЕНЬ: ПРИОРИТЕТ', style: AppTypography.code),
             ],
           ),
         ),
@@ -473,7 +473,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             children: [
               Text('ТРЕКИНГ ЗАКАЗА', style: AppTypography.eyebrow),
               const SizedBox(height: 12),
-              Text('ORDER #${order.id.substring(0, 6).toUpperCase()}', style: Theme.of(context).textTheme.titleLarge),
+              Text('ЗАКАЗ #${order.id.substring(0, 6).toUpperCase()}', style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 10),
               Text(order.productName, style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
@@ -481,7 +481,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               const SizedBox(height: 18),
               LinearProgressIndicator(value: order.status.progressValue),
               const SizedBox(height: 10),
-              Text('STATUS / ${order.status.clientLabel}', style: AppTypography.code),
+              Text('СТАТУС / ${order.status.clientLabel}', style: AppTypography.code),
             ],
           ),
         ),
@@ -579,7 +579,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                 const SizedBox(height: 8),
                 Text(product.material, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.secondary)),
                 const SizedBox(height: 8),
-                Text('${product.preorder ? 'PREORDER' : 'IN STOCK'} / ${product.sizeLabel}', style: AppTypography.code),
+                Text('${product.preorder ? 'ПРЕДЗАКАЗ' : 'В НАЛИЧИИ'} / ${product.sizeLabel}', style: AppTypography.code),
               ],
             ),
           ),
@@ -598,7 +598,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         children: [
           Row(
             children: [
-              Expanded(child: Text('ORDER #${order.id.substring(0, 6).toUpperCase()}', style: AppTypography.eyebrow)),
+              Expanded(child: Text('ЗАКАЗ #${order.id.substring(0, 6).toUpperCase()}', style: AppTypography.eyebrow)),
               Text(order.status.panelLabel, style: AppTypography.code),
             ],
           ),
@@ -627,7 +627,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('MODE', style: AppTypography.eyebrow.copyWith(color: active ? AppColors.surfaceDim : AppColors.outline)),
+            Text('СПОСОБ', style: AppTypography.eyebrow.copyWith(color: active ? AppColors.surfaceDim : AppColors.outline)),
             const SizedBox(height: 8),
             Text(label, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: active ? AppColors.white : AppColors.black)),
           ],

@@ -32,13 +32,13 @@ extension OrderStatusX on OrderStatus {
   String get panelLabel {
     switch (this) {
       case OrderStatus.newOrder:
-        return 'NEW';
+        return 'НОВЫЙ';
       case OrderStatus.accepted:
-        return 'QUEUED';
+        return 'В ОЧЕРЕДИ';
       case OrderStatus.inProduction:
-        return 'SEWING';
+        return 'ПОШИВ';
       case OrderStatus.ready:
-        return 'READY';
+        return 'ГОТОВ';
     }
   }
 

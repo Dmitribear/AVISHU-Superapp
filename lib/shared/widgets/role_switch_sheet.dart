@@ -32,11 +32,11 @@ String roleRoute(UserRole role) {
 String roleCaption(UserRole role) {
   switch (role) {
     case UserRole.client:
-      return 'Витрина, заказ, оплата и трекинг.';
+      return 'Каталог, оформление заказа и отслеживание.';
     case UserRole.franchisee:
-      return 'Подтверждение заказа и передача в цех.';
+      return 'Прием заказа и передача в производство.';
     case UserRole.production:
-      return 'Очередь задач, пошив и завершение.';
+      return 'Очередь задач, пошив и завершение заказа.';
   }
 }
 
@@ -46,7 +46,7 @@ Future<void> showRoleSwitchSheet(BuildContext context, WidgetRef ref) {
     backgroundColor: AppColors.surfaceLowest,
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
     builder: (sheetContext) {
-      final currentRole = ref.watch(currentUserProvider).value?.role;
+      final currentRole = ref.read(currentUserProvider).value?.role;
 
       return SafeArea(
         child: Padding(
@@ -65,7 +65,7 @@ Future<void> showRoleSwitchSheet(BuildContext context, WidgetRef ref) {
                 const SizedBox(height: 8),
               ],
               Text(
-                'Выберите роль для демонстрации сквозного сценария.',
+                'Выберите раздел приложения.',
                 style: Theme.of(sheetContext).textTheme.bodyMedium,
               ),
               const SizedBox(height: 18),
@@ -91,7 +91,7 @@ Future<void> showRoleSwitchSheet(BuildContext context, WidgetRef ref) {
   );
 }
 
-class RoleControlCard extends ConsumerWidget {
+class RoleControlCard extends StatelessWidget {
   final UserRole currentRole;
   final String title;
 
@@ -102,7 +102,7 @@ class RoleControlCard extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -201,7 +201,7 @@ class _RoleSwitchTile extends ConsumerWidget {
               ),
               const SizedBox(width: 12),
               Text(
-                isActive ? 'ACTIVE' : 'OPEN',
+                isActive ? 'ТЕКУЩАЯ' : 'ОТКРЫТЬ',
                 style: AppTypography.eyebrow.copyWith(
                   color: isActive ? AppColors.white : AppColors.black,
                 ),

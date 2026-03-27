@@ -42,7 +42,7 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
 
     return AvishuMobileFrame(
       title: 'AVISHU',
-      metaLabel: _selectedOrder == null ? 'PRODUCTION / TABLET' : 'PRODUCTION / TASK',
+      metaLabel: _selectedOrder == null ? 'ПРОИЗВОДСТВО / ОЧЕРЕДЬ' : 'ПРОИЗВОДСТВО / ЗАДАЧА',
       leadingIcon: _selectedOrder == null ? Icons.menu : Icons.arrow_back,
       actionIcon: Icons.swap_horiz_rounded,
       currentIndex: _tab.index,
@@ -85,8 +85,8 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
         children: [
           _hero(
             'ОЧЕРЕДЬ ЗАДАЧ',
-            'Цех получает заказ после подтверждения франчайзи и завершает цикл для клиента.',
-            '${accepted.length + inProduction.length} ACTIVE',
+            'После подтверждения заказ попадает в очередь цеха и проходит этапы пошива до готовности.',
+            'АКТИВНЫХ ЗАДАЧ: ${accepted.length + inProduction.length}',
           ),
           const SizedBox(height: 12),
           Row(
@@ -145,9 +145,9 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
               children: [
                 Text('СТАНЦИЯ ЦЕХА', style: AppTypography.eyebrow),
                 const SizedBox(height: 12),
-                Text('Минимум текста, максимум контраста', style: Theme.of(context).textTheme.titleLarge),
+                Text('Рабочее место мастера', style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 10),
-                Text('Интерфейс мастера показывает только задачу, состояние и одно действие: взять в пошив или завершить.', style: Theme.of(context).textTheme.bodyMedium),
+                Text('Экран показывает текущую задачу, состояние заказа и доступное действие по следующему этапу.', style: Theme.of(context).textTheme.bodyMedium),
               ],
             ),
           ),
@@ -174,7 +174,7 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('ORDER #${order.id.substring(0, 6).toUpperCase()}', style: AppTypography.eyebrow),
+              Text('ЗАКАЗ #${order.id.substring(0, 6).toUpperCase()}', style: AppTypography.eyebrow),
               const SizedBox(height: 12),
               Text(order.productName, style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 8),
@@ -220,7 +220,7 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
         children: [
           Row(
             children: [
-              Expanded(child: Text('ORDER #${order.id.substring(0, 6).toUpperCase()}', style: AppTypography.eyebrow)),
+              Expanded(child: Text('ЗАКАЗ #${order.id.substring(0, 6).toUpperCase()}', style: AppTypography.eyebrow)),
               Text(order.status.panelLabel, style: AppTypography.code),
             ],
           ),

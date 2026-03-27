@@ -55,19 +55,16 @@ class LoginScreen extends ConsumerWidget {
                               const SizedBox(height: 26),
                               _RoleButton(
                                 label: 'КЛИЕНТ',
-                                code: 'ROLE_01',
                                 onTap: () => enterRole(UserRole.client),
                               ),
                               const SizedBox(height: 12),
                               _RoleButton(
                                 label: 'ФРАНЧАЙЗИ',
-                                code: 'ROLE_02',
                                 onTap: () => enterRole(UserRole.franchisee),
                               ),
                               const SizedBox(height: 12),
                               _RoleButton(
                                 label: 'ПРОИЗВОДСТВО',
-                                code: 'ROLE_03',
                                 onTap: () => enterRole(UserRole.production),
                               ),
                               const Spacer(),
@@ -143,12 +140,10 @@ class LoginScreen extends ConsumerWidget {
 
 class _RoleButton extends StatelessWidget {
   final String label;
-  final String code;
   final VoidCallback onTap;
 
   const _RoleButton({
     required this.label,
-    required this.code,
     required this.onTap,
   });
 
@@ -167,22 +162,13 @@ class _RoleButton extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const SizedBox(width: 58),
             Expanded(
               child: Center(
                 child: Text(
                   label,
                   textAlign: TextAlign.center,
-                  overflow: TextOverflow.ellipsis,
                   style: AppTypography.button.copyWith(letterSpacing: 3.2),
                 ),
-              ),
-            ),
-            SizedBox(
-              width: 58,
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: Text(code, style: AppTypography.eyebrow),
               ),
             ),
           ],

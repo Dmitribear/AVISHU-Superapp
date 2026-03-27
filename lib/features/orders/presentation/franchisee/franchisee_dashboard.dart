@@ -42,7 +42,7 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
 
     return AvishuMobileFrame(
       title: 'AVISHU',
-      metaLabel: _selectedOrder == null ? 'FRANCHISEE / CONTROL' : 'FRANCHISEE / ORDER',
+      metaLabel: _selectedOrder == null ? 'ФРАНЧАЙЗИ / ЗАКАЗЫ' : 'ФРАНЧАЙЗИ / КАРТОЧКА',
       leadingIcon: _selectedOrder == null ? Icons.menu : Icons.arrow_back,
       actionIcon: Icons.swap_horiz_rounded,
       currentIndex: _tab.index,
@@ -83,7 +83,11 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
       FranchiseeTab.dashboard => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _hero('CONTROL TOWER', 'Франчайзи получает заказ сразу после оплаты клиента и передает его в работу цеха.', '${newOrders.length} NEW'),
+          _hero(
+            'ПАНЕЛЬ ЗАКАЗОВ',
+            'Новые заказы появляются сразу после оплаты и могут быть переданы в производство без перезагрузки.',
+            'НОВЫХ ЗАКАЗОВ: ${newOrders.length}',
+          ),
           const SizedBox(height: 12),
           _metricRow([
             _metric('ОБОРОТ', '\$${revenue.toStringAsFixed(0)}'),
@@ -141,9 +145,9 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
               children: [
                 Text('ФРАНШИЗА', style: AppTypography.eyebrow),
                 const SizedBox(height: 12),
-                Text('Бизнес в кармане', style: Theme.of(context).textTheme.titleLarge),
+                Text('Кабинет франчайзи', style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 10),
-                Text('Одна кодовая база показывает разные интерфейсы для клиента, франчайзи и производства.', style: Theme.of(context).textTheme.bodyMedium),
+                Text('Здесь собраны заказы клиентов, текущий поток производства и готовые позиции.', style: Theme.of(context).textTheme.bodyMedium),
               ],
             ),
           ),
@@ -169,7 +173,7 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('ORDER #${order.id.substring(0, 6).toUpperCase()}', style: AppTypography.eyebrow),
+              Text('ЗАКАЗ #${order.id.substring(0, 6).toUpperCase()}', style: AppTypography.eyebrow),
               const SizedBox(height: 12),
               Text(order.productName, style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 8),
@@ -228,7 +232,7 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
         children: [
           Row(
             children: [
-              Expanded(child: Text('ORDER #${order.id.substring(0, 6).toUpperCase()}', style: AppTypography.eyebrow)),
+              Expanded(child: Text('ЗАКАЗ #${order.id.substring(0, 6).toUpperCase()}', style: AppTypography.eyebrow)),
               Text(order.status.panelLabel, style: AppTypography.code),
             ],
           ),
