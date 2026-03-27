@@ -8,37 +8,49 @@ import '../../features/auth/data/auth_repository.dart';
 import '../../features/auth/domain/user_role.dart';
 import '../providers/global_state.dart';
 
+const _switchableRoles = <UserRole>[
+  UserRole.client,
+  UserRole.franchisee,
+  UserRole.production,
+];
+
 String roleLabel(UserRole role) {
-  switch (role) {
-    case UserRole.client:
-      return 'КЛИЕНТ';
-    case UserRole.franchisee:
-      return 'ФРАНЧАЙЗИ';
-    case UserRole.production:
-      return 'ПРОИЗВОДСТВО';
+  if (role == UserRole.client) {
+    return 'КЛИЕНТ';
   }
+  if (role == UserRole.franchisee) {
+    return 'ФРАНЧАЙЗИ';
+  }
+  if (role == UserRole.production) {
+    return 'ПРОИЗВОДСТВО';
+  }
+  return 'ADMIN';
 }
 
 String roleRoute(UserRole role) {
-  switch (role) {
-    case UserRole.client:
-      return '/client';
-    case UserRole.franchisee:
-      return '/franchisee';
-    case UserRole.production:
-      return '/production';
+  if (role == UserRole.client) {
+    return '/client';
   }
+  if (role == UserRole.franchisee) {
+    return '/franchisee';
+  }
+  if (role == UserRole.production) {
+    return '/production';
+  }
+  return '/franchisee';
 }
 
 String roleCaption(UserRole role) {
-  switch (role) {
-    case UserRole.client:
-      return 'Каталог, оформление заказа и отслеживание.';
-    case UserRole.franchisee:
-      return 'Прием заказа и передача в производство.';
-    case UserRole.production:
-      return 'Очередь задач, пошив и завершение заказа.';
+  if (role == UserRole.client) {
+    return 'Catalog, checkout, and live order tracking.';
   }
+  if (role == UserRole.franchisee) {
+    return 'Incoming orders, acceptance, and transfer to production.';
+  }
+  if (role == UserRole.production) {
+    return 'Factory queue, tailoring progress, and completion.';
+  }
+  return 'Demo control role.';
 }
 
 Future<void> showRoleSwitchSheet(BuildContext context, WidgetRef ref) {
@@ -70,7 +82,7 @@ Future<void> showRoleSwitchSheet(BuildContext context, WidgetRef ref) {
                 style: Theme.of(sheetContext).textTheme.bodyMedium,
               ),
               const SizedBox(height: 18),
-              ...UserRole.values.map((role) {
+              ..._switchableRoles.map((role) {
                 final isActive = role == currentRole;
 
                 return Padding(
@@ -79,7 +91,6 @@ Future<void> showRoleSwitchSheet(BuildContext context, WidgetRef ref) {
                     label: roleLabel(role),
                     caption: roleCaption(role),
                     route: roleRoute(role),
-                    role: role,
                     isActive: isActive,
                   ),
                 );
@@ -103,7 +114,7 @@ class RoleControlCard extends ConsumerWidget {
   const RoleControlCard({
     super.key,
     required this.currentRole,
-    this.title = 'РОЛЬ И ДОСТУП',
+    this.title = 'ROLE ACCESS',
   });
 
   @override
@@ -121,7 +132,7 @@ class RoleControlCard extends ConsumerWidget {
           Text(title, style: AppTypography.eyebrow),
           const SizedBox(height: 12),
           Text(
-            'ТЕКУЩАЯ РОЛЬ',
+            'CURRENT ROLE',
             style: AppTypography.eyebrow.copyWith(color: AppColors.outline),
           ),
           const SizedBox(height: 6),
@@ -135,7 +146,7 @@ class RoleControlCard extends ConsumerWidget {
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 16),
-          ...UserRole.values.map((role) {
+          ..._switchableRoles.map((role) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: _InlineRoleButton(
@@ -157,14 +168,12 @@ class RoleControlCard extends ConsumerWidget {
 class _RoleSwitchTile extends StatelessWidget {
   final String label;
   final String caption;
-  final UserRole role;
   final String route;
   final bool isActive;
 
   const _RoleSwitchTile({
     required this.label,
     required this.caption,
-    required this.role,
     required this.route,
     required this.isActive,
   });
@@ -201,17 +210,17 @@ class _RoleSwitchTile extends StatelessWidget {
                     Text(
                       caption,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: isActive
-                                ? AppColors.surfaceHighest
-                                : AppColors.secondary,
-                          ),
+                        color: isActive
+                            ? AppColors.surfaceHighest
+                            : AppColors.secondary,
+                      ),
                     ),
                   ],
                 ),
               ),
               const SizedBox(width: 12),
               Text(
-                isActive ? 'ТЕКУЩАЯ' : 'ОТКРЫТЬ',
+                isActive ? 'CURRENT' : 'OPEN',
                 style: AppTypography.eyebrow.copyWith(
                   color: isActive ? AppColors.white : AppColors.black,
                 ),
@@ -228,23 +237,14 @@ class _InlineRoleButton extends StatelessWidget {
   final UserRole role;
   final bool isActive;
 
-  const _InlineRoleButton({
-    required this.role,
-    required this.isActive,
-  });
+  const _InlineRoleButton({required this.role, required this.isActive});
 
   @override
   Widget build(BuildContext context) {
-    final label = roleLabel(role);
-
     return SizedBox(
       width: double.infinity,
       child: OutlinedButton(
-        onPressed: isActive
-            ? null
-            : () {
-                context.go(roleRoute(role));
-              },
+        onPressed: isActive ? null : () => context.go(roleRoute(role)),
         style: OutlinedButton.styleFrom(
           backgroundColor: isActive ? AppColors.black : AppColors.surfaceLowest,
           disabledBackgroundColor: AppColors.black,
@@ -256,7 +256,7 @@ class _InlineRoleButton extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  label,
+                  roleLabel(role),
                   style: AppTypography.button.copyWith(
                     letterSpacing: 3,
                     color: isActive ? AppColors.white : AppColors.black,
@@ -264,7 +264,7 @@ class _InlineRoleButton extends StatelessWidget {
                 ),
               ),
               Text(
-                isActive ? 'ТЕКУЩАЯ' : 'ПЕРЕЙТИ',
+                isActive ? 'CURRENT' : 'GO',
                 style: AppTypography.eyebrow.copyWith(
                   color: isActive ? AppColors.white : AppColors.black,
                 ),
@@ -284,7 +284,7 @@ class _SignOutButton extends ConsumerWidget {
       width: double.infinity,
       child: OutlinedButton(
         onPressed: () async {
-          Navigator.of(context).pop(); // close sheet/dialog
+          Navigator.of(context).pop();
           await ref.read(authRepositoryProvider).signOut();
           if (context.mounted) {
             context.go('/login');
@@ -294,7 +294,7 @@ class _SignOutButton extends ConsumerWidget {
           side: const BorderSide(color: AppColors.error),
         ),
         child: Text(
-          'ВЫЙТИ ИЗ АККАУНТА',
+          'SIGN OUT',
           style: AppTypography.button.copyWith(
             color: AppColors.error,
             letterSpacing: 3,

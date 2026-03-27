@@ -114,7 +114,9 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
           const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(child: _metricCard('Оборот', revenue.toStringAsFixed(0))),
+              Expanded(
+                child: _metricCard('Оборот', revenue.toStringAsFixed(0)),
+              ),
               const SizedBox(width: 8),
               Expanded(child: _metricCard('Новые', '${newOrders.length}')),
               const SizedBox(width: 8),
@@ -122,10 +124,7 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
             ],
           ),
           const SizedBox(height: 12),
-          ...[
-            ...newOrders.take(2),
-            ...queuedOrders.take(1),
-          ].map(
+          ...[...newOrders.take(2), ...queuedOrders.take(1)].map(
             (order) => Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: _orderCard(order),
@@ -164,7 +163,9 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
           _sectionLabel('ГОТОВО К ВЫДАЧЕ'),
           const SizedBox(height: 12),
           if (readyOrders.isEmpty)
-            _emptyCard('Готовые заказы появятся после завершения производства.'),
+            _emptyCard(
+              'Готовые заказы появятся после завершения производства.',
+            ),
           ...readyOrders.map(
             (order) => Padding(
               padding: const EdgeInsets.only(bottom: 12),
@@ -194,7 +195,10 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
               const SizedBox(height: 10),
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.black,
                   border: Border.all(color: AppColors.black),
@@ -305,10 +309,9 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
             expanded: true,
             variant: AvishuButtonVariant.filled,
             onPressed: () async {
-              await ref.read(orderRepositoryProvider).acceptOrder(
-                    order.id,
-                    note: _noteController.text.trim(),
-                  );
+              await ref
+                  .read(orderRepositoryProvider)
+                  .acceptOrder(order.id, note: _noteController.text.trim());
               if (mounted) {
                 setState(() => _selectedOrder = null);
               }
@@ -318,7 +321,9 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
           AvishuButton(
             text: canOpenProduction ? 'ОТКРЫТЬ ПРОИЗВОДСТВО' : 'ЗАКАЗ ЗАВЕРШЕН',
             expanded: true,
-            onPressed: canOpenProduction ? () => context.go('/production') : null,
+            onPressed: canOpenProduction
+                ? () => context.go('/production')
+                : null,
           ),
       ],
     );
@@ -429,10 +434,7 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
   }
 
   Widget _sectionLabel(String label) {
-    return Text(
-      label,
-      style: AppTypography.eyebrow.copyWith(letterSpacing: 3),
-    );
+    return Text(label, style: AppTypography.eyebrow.copyWith(letterSpacing: 3));
   }
 
   void _openOrder(OrderModel order) {

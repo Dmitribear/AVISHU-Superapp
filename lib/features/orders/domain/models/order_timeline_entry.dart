@@ -1,4 +1,5 @@
 import '../enums/order_status.dart';
+import '../../../../shared/utils/firestore_parsing.dart';
 
 class OrderTimelineEntry {
   final OrderStatus status;
@@ -17,8 +18,8 @@ class OrderTimelineEntry {
 
   factory OrderTimelineEntry.fromMap(Map<String, dynamic> map) {
     return OrderTimelineEntry(
-      status: OrderStatus.fromMap(map['status'] as String? ?? 'New'),
-      createdAt: DateTime.tryParse(map['createdAt'] as String? ?? '') ?? DateTime.now(),
+      status: OrderStatus.fromMap(map['status'] as String? ?? 'new'),
+      createdAt: dateTimeFromFirestoreValue(map['createdAt']) ?? DateTime.now(),
       title: map['title'] as String? ?? '',
       description: map['description'] as String? ?? '',
       actor: map['actor'] as String? ?? '',

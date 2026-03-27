@@ -40,10 +40,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() => _loading = true);
 
     try {
-      await ref.read(authRepositoryProvider).signIn(
-            email: email,
-            password: password,
-          );
+      await ref
+          .read(authRepositoryProvider)
+          .signIn(email: email, password: password);
       // Router redirect will handle navigation
     } on FirebaseAuthException catch (e) {
       _showError(_mapAuthError(e.code));

@@ -41,63 +41,66 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final confirm = _confirmController.text;
 
     if (name.isEmpty || email.isEmpty || password.isEmpty || confirm.isEmpty) {
-      _showError('ЗАПОЛНИТЕ ВСЕ ПОЛЯ');
+      _showError('Fill in all fields.');
       return;
     }
     if (!email.contains('@')) {
-      _showError('НЕКОРРЕКТНЫЙ ФОРМАТ EMAIL');
+      _showError('Enter a valid email.');
       return;
     }
     if (password.length < 6) {
-      _showError('ПАРОЛЬ ДОЛЖЕН БЫТЬ НЕ МЕНЕЕ 6 СИМВОЛОВ');
+      _showError('Password must be at least 6 characters.');
       return;
     }
     if (password != confirm) {
-      _showError('ПАРОЛИ НЕ СОВПАДАЮТ');
+      _showError('Passwords do not match.');
       return;
     }
 
     setState(() => _loading = true);
 
     try {
-      await ref.read(authRepositoryProvider).register(
+      await ref
+          .read(authRepositoryProvider)
+          .register(
             email: email,
             password: password,
             role: _selectedRole,
             name: name,
           );
-      // Router redirect will handle navigation
-    } on FirebaseAuthException catch (e) {
-      _showError(_mapAuthError(e.code));
-    } catch (e) {
-      _showError('ОШИБКА: $e');
+    } on FirebaseAuthException catch (error) {
+      _showError(_mapAuthError(error.code));
+    } catch (error) {
+      _showError('Registration error: $error');
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 
   void _showError(String message) {
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
+
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message, style: const TextStyle(letterSpacing: 1.5)),
-        backgroundColor: AppColors.black,
-      ),
+      SnackBar(content: Text(message), backgroundColor: AppColors.black),
     );
   }
 
   String _mapAuthError(String code) {
     switch (code) {
       case 'email-already-in-use':
-        return 'ЭТОТ EMAIL УЖЕ ЗАРЕГИСТРИРОВАН';
+        return 'This email is already in use.';
       case 'invalid-email':
-        return 'НЕКОРРЕКТНЫЙ EMAIL';
+        return 'Email format is invalid.';
       case 'weak-password':
-        return 'СЛИШКОМ ПРОСТОЙ ПАРОЛЬ';
+        return 'Choose a stronger password.';
       case 'operation-not-allowed':
-        return 'РЕГИСТРАЦИЯ ВРЕМЕННО НЕДОСТУПНА';
+        return 'Registration is currently disabled.';
       default:
-        return 'ОШИБКА РЕГИСТРАЦИИ: $code';
+        return 'Registration failed: $code';
     }
   }
 
@@ -130,7 +133,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                 ),
                                 const SizedBox(height: 32),
                                 Text(
-                                  'РЕГИСТРАЦИЯ',
+                                  'CREATE ACCOUNT',
                                   textAlign: TextAlign.center,
                                   style: AppTypography.eyebrow.copyWith(
                                     color: AppColors.outline,
@@ -139,7 +142,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                 const SizedBox(height: 22),
                                 _buildTextField(
                                   controller: _nameController,
-                                  label: 'ИМЯ',
+                                  label: 'FULL NAME',
                                   keyboardType: TextInputType.name,
                                 ),
                                 const SizedBox(height: 12),
@@ -151,20 +154,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                 const SizedBox(height: 12),
                                 _buildTextField(
                                   controller: _passwordController,
-                                  label: 'ПАРОЛЬ',
+                                  label: 'PASSWORD',
                                   obscure: true,
                                 ),
                                 const SizedBox(height: 12),
                                 _buildTextField(
                                   controller: _confirmController,
-                                  label: 'ПОДТВЕРДИТЕ ПАРОЛЬ',
+                                  label: 'CONFIRM PASSWORD',
                                   obscure: true,
                                 ),
                                 const SizedBox(height: 22),
                                 Align(
                                   alignment: Alignment.centerLeft,
                                   child: Text(
-                                    'ВЫБЕРИТЕ РОЛЬ',
+                                    'SELECT ROLE',
                                     style: AppTypography.eyebrow.copyWith(
                                       color: AppColors.outline,
                                       letterSpacing: 3,
@@ -172,7 +175,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 14),
-                                ...UserRole.values.map(
+                                ...UserRole.registrationRoles.map(
                                   (role) => Padding(
                                     padding: const EdgeInsets.only(bottom: 10),
                                     child: _RoleOption(
@@ -196,14 +199,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                         ),
                                       )
                                     : AvishuButton(
-                                        text: 'ЗАРЕГИСТРИРОВАТЬСЯ',
+                                        text: 'REGISTER',
                                         expanded: true,
                                         variant: AvishuButtonVariant.filled,
                                         onPressed: _register,
                                       ),
                                 const SizedBox(height: 12),
                                 AvishuButton(
-                                  text: 'НАЗАД К ВХОДУ',
+                                  text: 'BACK TO LOGIN',
                                   expanded: true,
                                   variant: AvishuButtonVariant.ghost,
                                   onPressed: _loading
@@ -226,7 +229,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           child: Column(
                             children: [
                               Text(
-                                'V.2.04 / НОВЫЙ ПОЛЬЗОВАТЕЛЬ',
+                                'V.2.04 / NEW USER',
                                 style: AppTypography.eyebrow,
                               ),
                               const SizedBox(height: 10),
@@ -303,25 +306,29 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
   String _roleLabel(UserRole role) {
-    switch (role) {
-      case UserRole.client:
-        return 'КЛИЕНТ';
-      case UserRole.franchisee:
-        return 'ФРАНЧАЙЗИ';
-      case UserRole.production:
-        return 'ПРОИЗВОДСТВО';
+    if (role == UserRole.client) {
+      return 'CLIENT';
     }
+    if (role == UserRole.franchisee) {
+      return 'FRANCHISEE';
+    }
+    if (role == UserRole.production) {
+      return 'FACTORY';
+    }
+    return 'ADMIN';
   }
 
   String _roleCaption(UserRole role) {
-    switch (role) {
-      case UserRole.client:
-        return 'Каталог, оформление и отслеживание заказа.';
-      case UserRole.franchisee:
-        return 'Прием заказов и передача в производство.';
-      case UserRole.production:
-        return 'Очередь задач, пошив и готовность.';
+    if (role == UserRole.client) {
+      return 'Catalog, checkout, and live order tracking.';
     }
+    if (role == UserRole.franchisee) {
+      return 'Accept incoming orders and send them to production.';
+    }
+    if (role == UserRole.production) {
+      return 'See the factory queue and complete orders.';
+    }
+    return 'System access for demo control.';
   }
 }
 
@@ -366,10 +373,10 @@ class _RoleOption extends StatelessWidget {
                   Text(
                     caption,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: isSelected
-                              ? AppColors.surfaceHighest
-                              : AppColors.secondary,
-                        ),
+                      color: isSelected
+                          ? AppColors.surfaceHighest
+                          : AppColors.secondary,
+                    ),
                   ),
                 ],
               ),

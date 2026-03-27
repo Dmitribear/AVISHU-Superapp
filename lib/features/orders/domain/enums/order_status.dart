@@ -1,15 +1,24 @@
 enum OrderStatus {
-  newOrder('New'),
-  accepted('Accepted'),
-  inProduction('InProduction'),
-  ready('Ready');
+  newOrder('new', legacyValues: ['New']),
+  accepted('accepted', legacyValues: ['Accepted']),
+  inProduction('in_production', legacyValues: ['InProduction']),
+  ready('ready', legacyValues: ['Ready']),
+  completed('completed'),
+  cancelled('cancelled');
 
   final String value;
-  const OrderStatus(this.value);
+  final List<String> legacyValues;
+
+  const OrderStatus(this.value, {this.legacyValues = const <String>[]});
 
   factory OrderStatus.fromMap(String value) {
+    final normalized = value.trim().toLowerCase();
     return OrderStatus.values.firstWhere(
-      (e) => e.value.toLowerCase() == value.toLowerCase(),
+      (status) =>
+          status.value == normalized ||
+          status.legacyValues.any(
+            (legacyValue) => legacyValue.toLowerCase() == normalized,
+          ),
       orElse: () => OrderStatus.newOrder,
     );
   }
@@ -25,7 +34,11 @@ extension OrderStatusX on OrderStatus {
       case OrderStatus.inProduction:
         return 'ПОШИВ';
       case OrderStatus.ready:
-        return 'ГОТОВО';
+        return 'ГОТОВ';
+      case OrderStatus.completed:
+        return 'ЗАВЕРШЕН';
+      case OrderStatus.cancelled:
+        return 'ОТМЕНЕН';
     }
   }
 
@@ -34,11 +47,15 @@ extension OrderStatusX on OrderStatus {
       case OrderStatus.newOrder:
         return 'НОВЫЙ';
       case OrderStatus.accepted:
-        return 'В ОЧЕРЕДИ';
+        return 'ПРИНЯТ';
       case OrderStatus.inProduction:
-        return 'ПОШИВ';
+        return 'В ЦЕХЕ';
       case OrderStatus.ready:
         return 'ГОТОВ';
+      case OrderStatus.completed:
+        return 'ЗАВЕРШЕН';
+      case OrderStatus.cancelled:
+        return 'ОТМЕНЕН';
     }
   }
 
@@ -50,7 +67,10 @@ extension OrderStatusX on OrderStatus {
       case OrderStatus.inProduction:
         return 1;
       case OrderStatus.ready:
+      case OrderStatus.completed:
         return 2;
+      case OrderStatus.cancelled:
+        return 0;
     }
   }
 
@@ -64,6 +84,10 @@ extension OrderStatusX on OrderStatus {
         return 'ПРИНЯТЬ';
       case OrderStatus.ready:
         return 'ГОТОВО';
+      case OrderStatus.completed:
+        return 'ЗАВЕРШЕН';
+      case OrderStatus.cancelled:
+        return 'ОТМЕНЕН';
     }
   }
 
@@ -76,20 +100,45 @@ extension OrderStatusX on OrderStatus {
       case OrderStatus.inProduction:
         return 'Изделие находится в пошиве и сборке.';
       case OrderStatus.ready:
-        return 'Изделие готово и доступно клиенту.';
+        return 'Изделие готово и доступно к выдаче клиенту.';
+      case OrderStatus.completed:
+        return 'Заказ успешно завершен.';
+      case OrderStatus.cancelled:
+        return 'Заказ отменен.';
+    }
+  }
+
+  String get timelineTitle {
+    switch (this) {
+      case OrderStatus.newOrder:
+        return 'Заказ оформлен';
+      case OrderStatus.accepted:
+        return 'Заказ принят';
+      case OrderStatus.inProduction:
+        return 'Пошив начат';
+      case OrderStatus.ready:
+        return 'Заказ готов';
+      case OrderStatus.completed:
+        return 'Заказ завершен';
+      case OrderStatus.cancelled:
+        return 'Заказ отменен';
     }
   }
 
   double get progressValue {
     switch (this) {
       case OrderStatus.newOrder:
-        return 0.25;
+        return 0.2;
       case OrderStatus.accepted:
-        return 0.55;
+        return 0.45;
       case OrderStatus.inProduction:
-        return 0.8;
+        return 0.75;
       case OrderStatus.ready:
+        return 0.95;
+      case OrderStatus.completed:
         return 1;
+      case OrderStatus.cancelled:
+        return 0.05;
     }
   }
 }

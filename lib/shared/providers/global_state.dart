@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/auth/domain/app_user.dart';
 import '../../features/auth/domain/user_role.dart';
+import '../../features/users/domain/models/user_profile.dart';
 
 final authStateChangesProvider = StreamProvider<User?>((ref) {
   return FirebaseAuth.instance.authStateChanges();
@@ -24,12 +25,11 @@ final currentUserProvider = StreamProvider<AppUser?>((ref) async* {
           .collection('users')
           .doc(user.uid)
           .get();
-      final data = userSnapshot.data();
-      final rawRole = data?['role'] as String?;
-      if (rawRole != null) {
-        role = UserRole.fromMap(rawRole);
+      if (userSnapshot.exists) {
+        final profile = UserProfile.fromFirestore(userSnapshot);
+        role = profile.role;
+        name = profile.fullName;
       }
-      name = data?['name'] as String? ?? '';
     } catch (_) {
       role = UserRole.client;
     }

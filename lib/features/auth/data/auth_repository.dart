@@ -12,20 +12,15 @@ class AuthRepository {
   final FirebaseAuth _auth;
   final FirebaseFirestore _firestore;
 
-  AuthRepository({
-    FirebaseAuth? auth,
-    FirebaseFirestore? firestore,
-  })  : _auth = auth ?? FirebaseAuth.instance,
-        _firestore = firestore ?? FirebaseFirestore.instance;
+  AuthRepository({FirebaseAuth? auth, FirebaseFirestore? firestore})
+    : _auth = auth ?? FirebaseAuth.instance,
+      _firestore = firestore ?? FirebaseFirestore.instance;
 
   User? get currentUser => _auth.currentUser;
 
   Stream<User?> authStateChanges() => _auth.authStateChanges();
 
-  Future<User> signIn({
-    required String email,
-    required String password,
-  }) async {
+  Future<User> signIn({required String email, required String password}) async {
     final credential = await _auth.signInWithEmailAndPassword(
       email: email.trim(),
       password: password,
@@ -57,13 +52,22 @@ class AuthRepository {
       );
     }
 
+    final now = DateTime.now();
     await _firestore.collection('users').doc(user.uid).set({
+      'id': user.uid,
       'uid': user.uid,
       'email': email.trim(),
+      'fullName': name.trim(),
       'name': name.trim(),
       'role': role.value,
-      'createdAt': FieldValue.serverTimestamp(),
-    });
+      'phone': '',
+      'avatarUrl': '',
+      'city': '',
+      'loyaltyPoints': 0,
+      'isActive': true,
+      'createdAt': Timestamp.fromDate(now),
+      'updatedAt': Timestamp.fromDate(now),
+    }, SetOptions(merge: true));
 
     return user;
   }
@@ -74,7 +78,7 @@ class AuthRepository {
     final doc = await _firestore.collection('users').doc(uid).get();
     final data = doc.data();
     final rawRole = data?['role'] as String?;
-    final name = data?['name'] as String? ?? '';
+    final name = data?['fullName'] as String? ?? data?['name'] as String? ?? '';
     final role = rawRole != null ? UserRole.fromMap(rawRole) : UserRole.client;
     return (role: role, name: name);
   }

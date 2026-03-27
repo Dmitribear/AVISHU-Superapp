@@ -6,10 +6,6 @@ class AvishuDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Divider(
-      color: AppColors.black,
-      height: 1,
-      thickness: 1,
-    );
+    return const Divider(color: AppColors.black, height: 1, thickness: 1);
   }
 }

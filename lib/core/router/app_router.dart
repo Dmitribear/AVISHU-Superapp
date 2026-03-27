@@ -16,9 +16,7 @@ class LoadingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      body: Center(
-        child: CircularProgressIndicator(color: Colors.black),
-      ),
+      body: Center(child: CircularProgressIndicator(color: Colors.black)),
     );
   }
 }
@@ -49,6 +47,8 @@ final routerProvider = Provider<GoRouter>((ref) {
             return '/franchisee';
           case UserRole.production:
             return '/production';
+          case UserRole.admin:
+            return '/franchisee';
         }
       }
 
@@ -56,10 +56,7 @@ final routerProvider = Provider<GoRouter>((ref) {
     },
     routes: [
       GoRoute(path: '/', builder: (context, state) => const LoadingScreen()),
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginScreen(),
-      ),
+      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(
         path: '/register',
         builder: (context, state) => const RegisterScreen(),

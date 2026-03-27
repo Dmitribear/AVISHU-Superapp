@@ -11,11 +11,7 @@ class OrderInfoCard extends StatelessWidget {
   final String title;
   final List<OrderInfoRowData> rows;
 
-  const OrderInfoCard({
-    super.key,
-    required this.title,
-    required this.rows,
-  });
+  const OrderInfoCard({super.key, required this.title, required this.rows});
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +31,9 @@ class OrderInfoCard extends StatelessWidget {
             final index = entry.$1;
             final row = entry.$2;
             return Padding(
-              padding: EdgeInsets.only(bottom: index == rows.length - 1 ? 0 : 10),
+              padding: EdgeInsets.only(
+                bottom: index == rows.length - 1 ? 0 : 10,
+              ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -69,19 +67,13 @@ class OrderInfoRowData {
   final String label;
   final String value;
 
-  const OrderInfoRowData({
-    required this.label,
-    required this.value,
-  });
+  const OrderInfoRowData({required this.label, required this.value});
 }
 
 class OrderTimelineCard extends StatelessWidget {
   final List<OrderTimelineEntry> timeline;
 
-  const OrderTimelineCard({
-    super.key,
-    required this.timeline,
-  });
+  const OrderTimelineCard({super.key, required this.timeline});
 
   @override
   Widget build(BuildContext context) {
@@ -135,7 +127,10 @@ class _TimelineRow extends StatelessWidget {
             children: [
               Text(entry.title, style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 4),
-              Text(entry.description, style: Theme.of(context).textTheme.bodySmall),
+              Text(
+                entry.description,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
               const SizedBox(height: 4),
               Text(
                 '${entry.actor} / ${formatTimelineDate(entry.createdAt)}',

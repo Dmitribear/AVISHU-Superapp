@@ -1222,9 +1222,14 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         .read(orderRepositoryProvider)
         .createOrder(
           clientId: clientId,
+          productId: product.id,
           productName:
               '${product.title} / ${_selectedColor ?? product.defaultColor}',
           sizeLabel: _selectedSize ?? product.defaultSize,
+          quantity: _quantity,
+          unitPrice: product.price,
+          imageUrl: product.imageUrls.first,
+          currency: 'KZT',
           amount: _totalPrice(product),
           isPreorder: product.preorder,
           readyBy: product.preorder ? _selectedDate : null,

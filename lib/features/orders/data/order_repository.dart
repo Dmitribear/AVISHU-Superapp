@@ -1,72 +1,140 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../auth/domain/user_role.dart';
+import '../../products/domain/models/product_model.dart';
 import '../domain/enums/delivery_method.dart';
+import '../domain/enums/fulfillment_type.dart';
+import '../domain/enums/order_priority.dart';
 import '../domain/enums/order_status.dart';
+import '../domain/enums/payment_status.dart';
+import '../domain/models/order_history_entry.dart';
+import '../domain/models/order_item_model.dart';
 import '../domain/models/order_model.dart';
-import '../domain/models/order_timeline_entry.dart';
+import '../domain/services/order_status_transition_service.dart';
 
 final orderRepositoryProvider = Provider<OrderRepository>(
-  (ref) => OrderRepository(),
+  (ref) =>
+      OrderRepository(statusTransitionService: OrderStatusTransitionService()),
 );
 
 class OrderRepository {
   final FirebaseFirestore _firestore;
+  final OrderStatusTransitionService _statusTransitionService;
 
-  OrderRepository({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+  OrderRepository({
+    FirebaseFirestore? firestore,
+    OrderStatusTransitionService? statusTransitionService,
+  }) : _firestore = firestore ?? FirebaseFirestore.instance,
+       _statusTransitionService =
+           statusTransitionService ?? OrderStatusTransitionService();
 
-  Future<void> updateOrderStatus(String orderId, OrderStatus newStatus) {
-    return _changeStatus(
+  CollectionReference<Map<String, dynamic>> get _orders =>
+      _firestore.collection('orders');
+
+  CollectionReference<Map<String, dynamic>> _orderItems(String orderId) {
+    return _orders.doc(orderId).collection('items');
+  }
+
+  CollectionReference<Map<String, dynamic>> _orderHistory(String orderId) {
+    return _orders.doc(orderId).collection('history');
+  }
+
+  CollectionReference<Map<String, dynamic>> get _products =>
+      _firestore.collection('products');
+
+  Future<void> updateOrderStatus(
+    String orderId,
+    OrderStatus newStatus, {
+    String note = '',
+    String changedByUserId = '',
+    UserRole changedByRole = UserRole.admin,
+  }) {
+    return _transitionOrder(
       orderId: orderId,
       newStatus: newStatus,
-      title: 'Статус обновлен',
-      description: newStatus.roleDescription,
-      actor: 'Система',
+      note: note,
+      changedByUserId: changedByUserId,
+      changedByRole: changedByRole,
     );
   }
 
-  Future<void> acceptOrder(String orderId, {String note = ''}) {
-    return _changeStatus(
+  Future<void> acceptOrder(
+    String orderId, {
+    String note = '',
+    String changedByUserId = '',
+    String franchiseeId = '',
+  }) {
+    return _transitionOrder(
       orderId: orderId,
       newStatus: OrderStatus.accepted,
-      title: 'Заказ подтвержден',
-      description: note.isEmpty
-          ? 'Франчайзи подтвердил заказ и передал его в очередь производства.'
-          : note,
-      actor: 'Франчайзи',
-      franchiseeNote: note,
+      note: note,
+      changedByUserId: changedByUserId,
+      changedByRole: UserRole.franchisee,
+      franchiseeId: franchiseeId,
     );
   }
 
-  Future<void> startProduction(String orderId, {String note = ''}) {
-    return _changeStatus(
+  Future<void> startProduction(
+    String orderId, {
+    String note = '',
+    String changedByUserId = '',
+  }) {
+    return _transitionOrder(
       orderId: orderId,
       newStatus: OrderStatus.inProduction,
-      title: 'Пошив начат',
-      description: note.isEmpty
-          ? 'Заказ взят в работу мастером производства.'
-          : note,
-      actor: 'Производство',
-      productionNote: note,
+      note: note,
+      changedByUserId: changedByUserId,
+      changedByRole: UserRole.production,
     );
   }
 
-  Future<void> completeOrder(String orderId, {String note = ''}) {
-    return _changeStatus(
+  Future<void> completeOrder(
+    String orderId, {
+    String note = '',
+    String changedByUserId = '',
+  }) {
+    return _transitionOrder(
       orderId: orderId,
       newStatus: OrderStatus.ready,
-      title: 'Заказ готов',
-      description: note.isEmpty
-          ? 'Изделие завершено и готово к выдаче клиенту.'
-          : note,
-      actor: 'Производство',
-      productionNote: note,
+      note: note,
+      changedByUserId: changedByUserId,
+      changedByRole: UserRole.production,
+    );
+  }
+
+  Future<void> finalizeOrder(
+    String orderId, {
+    String note = '',
+    String changedByUserId = '',
+    UserRole changedByRole = UserRole.franchisee,
+  }) {
+    return _transitionOrder(
+      orderId: orderId,
+      newStatus: OrderStatus.completed,
+      note: note,
+      changedByUserId: changedByUserId,
+      changedByRole: changedByRole,
+    );
+  }
+
+  Future<void> cancelOrder(
+    String orderId, {
+    String note = '',
+    String changedByUserId = '',
+    UserRole changedByRole = UserRole.franchisee,
+  }) {
+    return _transitionOrder(
+      orderId: orderId,
+      newStatus: OrderStatus.cancelled,
+      note: note,
+      changedByUserId: changedByUserId,
+      changedByRole: changedByRole,
     );
   }
 
   Stream<List<OrderModel>> ordersByStatus(OrderStatus status) {
-    return ordersByStatuses([status]);
+    return ordersByStatuses(<OrderStatus>[status]);
   }
 
   Stream<List<OrderModel>> ordersByStatuses(List<OrderStatus> statuses) {
@@ -74,30 +142,38 @@ class OrderRepository {
       return Stream.value(const <OrderModel>[]);
     }
 
-    final query = statuses.length == 1
-        ? _firestore
-              .collection('orders')
-              .where('status', isEqualTo: statuses.first.value)
-        : _firestore
-              .collection('orders')
-              .where(
-                'status',
-                whereIn: statuses.map((status) => status.value).toList(),
-              );
+    final values = statuses.map((status) => status.value).toList();
+    final query = values.length == 1
+        ? _orders.where('status', isEqualTo: values.first)
+        : _orders.where('status', whereIn: values);
 
-    return query.snapshots().map(_mapAndSort);
+    return query.snapshots().asyncMap(_hydrateAndSort);
   }
 
   Stream<List<OrderModel>> allOrders() {
-    return _firestore.collection('orders').snapshots().map(_mapAndSort);
+    return _orders.snapshots().asyncMap(_hydrateAndSort);
   }
 
   Stream<List<OrderModel>> clientOrders(String clientId) {
-    return _firestore
-        .collection('orders')
+    return _orders
         .where('clientId', isEqualTo: clientId)
         .snapshots()
-        .map(_mapAndSort);
+        .asyncMap(_hydrateAndSort);
+  }
+
+  Stream<List<OrderModel>> franchiseeOrders({String? franchiseeId}) {
+    final query = franchiseeId == null || franchiseeId.isEmpty
+        ? _orders
+        : _orders.where('franchiseeId', isEqualTo: franchiseeId);
+    return query.snapshots().asyncMap(_hydrateAndSort);
+  }
+
+  Stream<List<OrderModel>> productionQueue() {
+    return ordersByStatuses(const <OrderStatus>[
+      OrderStatus.accepted,
+      OrderStatus.inProduction,
+      OrderStatus.ready,
+    ]);
   }
 
   Future<String> createOrder({
@@ -114,29 +190,86 @@ class OrderRepository {
     DateTime? readyBy,
     String paymentMethod = 'card',
     String clientNote = '',
+    String productId = '',
+    String imageUrl = '',
+    int quantity = 1,
+    double? unitPrice,
+    String currency = 'KZT',
   }) async {
-    final doc = _firestore.collection('orders').doc();
+    final doc = _orders.doc();
+    final itemDoc = _orderItems(doc.id).doc();
+    final historyDoc = _orderHistory(doc.id).doc();
     final now = DateTime.now();
-    final timeline = [
-      OrderTimelineEntry(
-        status: OrderStatus.newOrder,
-        createdAt: now,
-        title: 'Заказ оформлен',
-        description: 'Клиент оформил заказ и выполнил оплату.',
-        actor: 'Клиент',
-      ),
-    ];
-
+    final safeQuantity = quantity < 1 ? 1 : quantity;
+    final product = await _loadProduct(productId);
+    final resolvedIsPreorder =
+        isPreorder || (product?.isPreorderAvailable ?? false);
+    final resolvedUnitPrice =
+        unitPrice ?? product?.price ?? (amount / safeQuantity);
+    final estimatedReadyAt = _resolveEstimatedReadyAt(
+      createdAt: now,
+      requestedReadyAt: readyBy,
+      isPreorder: resolvedIsPreorder,
+      product: product,
+    );
+    final priority = _resolvePriority(
+      isPreorder: resolvedIsPreorder,
+      comment: clientNote,
+    );
+    final orderNumber = _buildOrderNumber(now, doc.id);
+    final item = OrderItemModel(
+      id: itemDoc.id,
+      orderId: doc.id,
+      productId: productId,
+      productName: productName,
+      sizeLabel: sizeLabel,
+      quantity: safeQuantity,
+      unitPrice: resolvedUnitPrice,
+      lineTotal: resolvedUnitPrice * safeQuantity,
+      isPreorder: resolvedIsPreorder,
+      readyBy: estimatedReadyAt,
+      imageUrl: imageUrl.isNotEmpty ? imageUrl : (product?.coverImage ?? ''),
+      createdAt: now,
+      updatedAt: now,
+    );
+    final historyEntry = OrderHistoryEntry(
+      id: historyDoc.id,
+      orderId: doc.id,
+      fromStatus: null,
+      toStatus: OrderStatus.newOrder,
+      changedByUserId: clientId,
+      changedByRole: UserRole.client,
+      comment: clientNote,
+      createdAt: now,
+    );
     final order = OrderModel(
       id: doc.id,
+      orderNumber: orderNumber,
       clientId: clientId,
-      items: [productName, sizeLabel],
+      franchiseeId: '',
+      status: OrderStatus.newOrder,
+      paymentStatus: PaymentStatus.paid,
+      fulfillmentType: resolvedIsPreorder
+          ? FulfillmentType.preorder
+          : FulfillmentType.inStock,
+      totalAmount: amount,
+      currency: currency,
+      comment: clientNote,
+      priority: priority,
+      estimatedReadyAt: estimatedReadyAt,
+      acceptedAt: null,
+      completedAt: null,
+      lastStatusChangedAt: now,
       createdAt: now,
+      updatedAt: now,
+      orderItemsList: <OrderItemModel>[item],
+      historyEntries: <OrderHistoryEntry>[historyEntry],
+      items: <String>[productName, sizeLabel],
       productName: productName,
       sizeLabel: sizeLabel,
       amount: amount,
-      isPreorder: isPreorder,
-      readyBy: readyBy,
+      isPreorder: resolvedIsPreorder,
+      readyBy: estimatedReadyAt,
       deliveryMethod: deliveryMethod,
       deliveryCity: deliveryCity,
       deliveryAddress: deliveryAddress,
@@ -144,60 +277,154 @@ class OrderRepository {
       paymentMethod: paymentMethod,
       paymentLast4: paymentLast4,
       clientNote: clientNote,
-      timeline: timeline,
+      timeline: const [],
     );
 
-    await doc.set(order.toMap());
+    final batch = _firestore.batch();
+    batch.set(doc, order.toMap());
+    batch.set(itemDoc, item.toMap());
+    batch.set(historyDoc, historyEntry.toMap());
+    await batch.commit();
     return doc.id;
   }
 
   Future<OrderModel?> getOrderById(String orderId) async {
-    final snapshot = await _firestore.collection('orders').doc(orderId).get();
+    final snapshot = await _orders.doc(orderId).get();
     if (!snapshot.exists) {
       return null;
     }
-    return OrderModel.fromFirestore(snapshot);
+    return _hydrateOrder(snapshot);
   }
 
-  Future<void> _changeStatus({
+  Future<void> _transitionOrder({
     required String orderId,
     required OrderStatus newStatus,
-    required String title,
-    required String description,
-    required String actor,
-    String? franchiseeNote,
-    String? productionNote,
+    required String note,
+    required String changedByUserId,
+    required UserRole changedByRole,
+    String franchiseeId = '',
   }) async {
-    final doc = await _firestore.collection('orders').doc(orderId).get();
-    if (!doc.exists) {
+    final order = await getOrderById(orderId);
+    if (order == null) {
       throw StateError('Order not found: $orderId');
     }
 
-    final order = OrderModel.fromFirestore(doc);
-    final timeline = [
-      ...order.timeline,
-      OrderTimelineEntry(
-        status: newStatus,
-        createdAt: DateTime.now(),
-        title: title,
-        description: description,
-        actor: actor,
-      ),
-    ];
+    _statusTransitionService.validateTransition(order.status, newStatus);
 
-    await doc.reference.update({
+    final now = DateTime.now();
+    final historyDoc = _orderHistory(orderId).doc();
+    final historyEntry = OrderHistoryEntry(
+      id: historyDoc.id,
+      orderId: orderId,
+      fromStatus: order.status,
+      toStatus: newStatus,
+      changedByUserId: changedByUserId,
+      changedByRole: changedByRole,
+      comment: note,
+      createdAt: now,
+    );
+
+    final updates = <String, dynamic>{
       'status': newStatus.value,
-      'timeline': timeline.map((entry) => entry.toMap()).toList(),
-      if (franchiseeNote != null && franchiseeNote.isNotEmpty)
-        'franchiseeNote': franchiseeNote,
-      if (productionNote != null && productionNote.isNotEmpty)
-        'productionNote': productionNote,
-    });
+      'updatedAt': Timestamp.fromDate(now),
+      'lastStatusChangedAt': Timestamp.fromDate(now),
+      if (newStatus == OrderStatus.accepted)
+        'acceptedAt': Timestamp.fromDate(now),
+      if (newStatus == OrderStatus.completed)
+        'completedAt': Timestamp.fromDate(now),
+      if (franchiseeId.isNotEmpty) 'franchiseeId': franchiseeId,
+      if (changedByRole == UserRole.franchisee && note.isNotEmpty)
+        'franchiseeNote': note,
+      if (changedByRole == UserRole.production && note.isNotEmpty)
+        'productionNote': note,
+    };
+
+    final batch = _firestore.batch();
+    batch.update(_orders.doc(orderId), updates);
+    batch.set(historyDoc, historyEntry.toMap());
+    await batch.commit();
   }
 
-  List<OrderModel> _mapAndSort(QuerySnapshot<Map<String, dynamic>> snapshot) {
-    final orders = snapshot.docs.map(OrderModel.fromFirestore).toList();
+  Future<List<OrderModel>> _hydrateAndSort(
+    QuerySnapshot<Map<String, dynamic>> snapshot,
+  ) async {
+    final orders = await Future.wait(snapshot.docs.map(_hydrateOrder));
     orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return orders;
+  }
+
+  Future<OrderModel> _hydrateOrder(
+    DocumentSnapshot<Map<String, dynamic>> doc,
+  ) async {
+    final itemsSnapshot = await _orderItems(doc.id).get();
+    final historySnapshot = await _orderHistory(
+      doc.id,
+    ).orderBy('createdAt').get().catchError((_) => _orderHistory(doc.id).get());
+    final items = itemsSnapshot.docs
+        .map((itemDoc) => OrderItemModel.fromFirestore(itemDoc, doc.id))
+        .toList();
+    final history =
+        historySnapshot.docs
+            .map(
+              (historyDoc) =>
+                  OrderHistoryEntry.fromFirestore(historyDoc, doc.id),
+            )
+            .toList()
+          ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+
+    return OrderModel.fromFirestore(doc, orderItems: items, history: history);
+  }
+
+  Future<ProductModel?> _loadProduct(String productId) async {
+    if (productId.isEmpty) {
+      return null;
+    }
+    final snapshot = await _products.doc(productId).get();
+    if (!snapshot.exists) {
+      return null;
+    }
+    return ProductModel.fromFirestore(snapshot);
+  }
+
+  DateTime? _resolveEstimatedReadyAt({
+    required DateTime createdAt,
+    required DateTime? requestedReadyAt,
+    required bool isPreorder,
+    required ProductModel? product,
+  }) {
+    if (requestedReadyAt != null) {
+      return requestedReadyAt;
+    }
+
+    final defaultDays = product?.defaultProductionDays ?? 0;
+    if (isPreorder || defaultDays > 0) {
+      final days = defaultDays > 0 ? defaultDays : 3;
+      return createdAt.add(Duration(days: days));
+    }
+
+    return null;
+  }
+
+  OrderPriority _resolvePriority({
+    required bool isPreorder,
+    required String comment,
+  }) {
+    final normalizedComment = comment.toLowerCase();
+    final hasUrgentFlag =
+        normalizedComment.contains('urgent') ||
+        normalizedComment.contains('asap') ||
+        normalizedComment.contains('сроч');
+
+    if (isPreorder || hasUrgentFlag) {
+      return OrderPriority.high;
+    }
+    return OrderPriority.normal;
+  }
+
+  String _buildOrderNumber(DateTime now, String orderId) {
+    final month = now.month.toString().padLeft(2, '0');
+    final day = now.day.toString().padLeft(2, '0');
+    final suffix = orderId.substring(0, 5).toUpperCase();
+    return 'AV-$month$day-$suffix';
   }
 }

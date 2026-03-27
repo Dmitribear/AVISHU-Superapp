@@ -1,4 +1,5 @@
 import '../../../orders/domain/models/order_model.dart';
+import '../../../orders/domain/enums/order_status.dart';
 
 enum ClientTab { dashboard, collections, archive, profile }
 
@@ -526,7 +527,9 @@ OrderModel? resolveTrackedOrder(
   }
 
   for (final order in orders) {
-    if (order.status.value != 'Ready') {
+    if (order.status != OrderStatus.ready &&
+        order.status != OrderStatus.completed &&
+        order.status != OrderStatus.cancelled) {
       return order;
     }
   }

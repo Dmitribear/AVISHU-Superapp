@@ -189,7 +189,10 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
                 const SizedBox(height: 10),
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.black,
                     border: Border.all(color: AppColors.black),
@@ -311,10 +314,9 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
             expanded: true,
             variant: AvishuButtonVariant.filled,
             onPressed: () async {
-              await ref.read(orderRepositoryProvider).startProduction(
-                    order.id,
-                    note: _noteController.text.trim(),
-                  );
+              await ref
+                  .read(orderRepositoryProvider)
+                  .startProduction(order.id, note: _noteController.text.trim());
               if (mounted) {
                 setState(() => _selectedOrder = null);
               }
@@ -326,10 +328,9 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
             expanded: true,
             variant: AvishuButtonVariant.filled,
             onPressed: () async {
-              await ref.read(orderRepositoryProvider).completeOrder(
-                    order.id,
-                    note: _noteController.text.trim(),
-                  );
+              await ref
+                  .read(orderRepositoryProvider)
+                  .completeOrder(order.id, note: _noteController.text.trim());
               if (mounted) {
                 setState(() => _selectedOrder = null);
               }
@@ -416,10 +417,7 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 8),
-          Text(
-            order.sizeLabel,
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
+          Text(order.sizeLabel, style: Theme.of(context).textTheme.bodyMedium),
           const SizedBox(height: 12),
           LinearProgressIndicator(value: order.status.progressValue),
           const SizedBox(height: 10),
@@ -450,10 +448,7 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
   }
 
   Widget _sectionLabel(String label) {
-    return Text(
-      label,
-      style: AppTypography.eyebrow.copyWith(letterSpacing: 3),
-    );
+    return Text(label, style: AppTypography.eyebrow.copyWith(letterSpacing: 3));
   }
 
   void _openOrder(OrderModel order) {

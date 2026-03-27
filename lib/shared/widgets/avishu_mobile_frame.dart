@@ -7,10 +7,7 @@ class AvishuNavItem {
   final String label;
   final IconData icon;
 
-  const AvishuNavItem({
-    required this.label,
-    required this.icon,
-  });
+  const AvishuNavItem({required this.label, required this.icon});
 }
 
 class AvishuMobileFrame extends StatelessWidget {
@@ -91,10 +88,7 @@ class AvishuMobileFrame extends StatelessWidget {
                             ],
                           ),
                         ),
-                        _FrameIconButton(
-                          icon: actionIcon,
-                          onTap: onActionTap,
-                        ),
+                        _FrameIconButton(icon: actionIcon, onTap: onActionTap),
                       ],
                     ),
                   ),
@@ -163,10 +157,7 @@ class _FrameIconButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback? onTap;
 
-  const _FrameIconButton({
-    required this.icon,
-    required this.onTap,
-  });
+  const _FrameIconButton({required this.icon, required this.onTap});
 
   @override
   Widget build(BuildContext context) {

@@ -73,5 +73,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'avishu.firebasestorage.app',
     measurementId: 'G-Y5PBHKQ285',
   );
-
 }

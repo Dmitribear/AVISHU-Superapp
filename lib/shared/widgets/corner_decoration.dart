@@ -6,11 +6,7 @@ class CornerDecoration extends StatelessWidget {
   final bool top;
   final bool left;
 
-  const CornerDecoration({
-    super.key,
-    required this.top,
-    required this.left,
-  });
+  const CornerDecoration({super.key, required this.top, required this.left});
 
   @override
   Widget build(BuildContext context) {
@@ -28,10 +24,7 @@ class _CornerPainter extends CustomPainter {
   final bool top;
   final bool left;
 
-  const _CornerPainter({
-    required this.top,
-    required this.left,
-  });
+  const _CornerPainter({required this.top, required this.left});
 
   @override
   void paint(Canvas canvas, Size size) {
