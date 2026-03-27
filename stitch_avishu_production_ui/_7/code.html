@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ru"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AVISHU - ОПЛАТА</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "tertiary": "#3b3b3b",
+                        "surface-variant": "#e2e2e2",
+                        "surface-dim": "#dadada",
+                        "tertiary-fixed-dim": "#474747",
+                        "surface-bright": "#f9f9f9",
+                        "secondary": "#5e5e5e",
+                        "surface-container-high": "#e8e8e8",
+                        "inverse-on-surface": "#f0f1f1",
+                        "surface-container": "#eeeeee",
+                        "on-secondary-fixed-variant": "#3b3b3b",
+                        "on-tertiary-fixed-variant": "#e2e2e2",
+                        "primary-container": "#3b3b3b",
+                        "error": "#ba1a1a",
+                        "surface-container-low": "#f3f3f4",
+                        "on-error-container": "#410002",
+                        "inverse-primary": "#c6c6c6",
+                        "tertiary-container": "#747474",
+                        "surface-container-lowest": "#ffffff",
+                        "background": "#f9f9f9",
+                        "surface-container-highest": "#e2e2e2",
+                        "primary": "#000000",
+                        "on-primary-container": "#ffffff",
+                        "on-background": "#1a1c1c",
+                        "primary-fixed-dim": "#474747",
+                        "on-surface-variant": "#474747",
+                        "on-primary": "#e2e2e2",
+                        "outline": "#777777",
+                        "on-primary-fixed-variant": "#e2e2e2",
+                        "primary-fixed": "#5e5e5e",
+                        "on-secondary-container": "#1b1b1b",
+                        "on-primary-fixed": "#ffffff",
+                        "outline-variant": "#c6c6c6",
+                        "on-surface": "#1a1c1c",
+                        "error-container": "#ffdad6",
+                        "surface": "#f9f9f9",
+                        "tertiary-fixed": "#5e5e5e",
+                        "on-tertiary": "#e2e2e2",
+                        "secondary-fixed": "#c6c6c6",
+                        "on-tertiary-fixed": "#ffffff",
+                        "secondary-container": "#d4d4d4",
+                        "on-tertiary-container": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed": "#1b1b1b",
+                        "surface-tint": "#5e5e5e",
+                        "on-error": "#ffffff",
+                        "secondary-fixed-dim": "#ababab",
+                        "inverse-surface": "#2f3131"
+                    },
+                    fontFamily: {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: { "DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9f9f9;
+            color: #1a1c1c;
+        }
+        input:focus {
+            outline: none !important;
+            border-color: #000000 !important;
+            ring: 0 !important;
+        }
+        /* Custom scrollbar for brutalist look */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f9f9f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #000000;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#F9F9F9] dark:bg-[#000000] border-b border-[#777777] dark:border-[#C6C6C6] flex justify-between items-center px-[2.5rem] h-20 w-full">
+<div class="flex items-center">
+<button class="material-symbols-outlined text-[#000000] dark:text-[#F9F9F9] p-2 hover:bg-[#E2E2E2] dark:hover:bg-[#1A1A1A]">arrow_back</button>
+</div>
+<div class="text-2xl font-black tracking-[0.1em] text-[#000000] dark:text-[#F9F9F9] font-['Inter'] uppercase">AVISHU</div>
+<div class="flex items-center">
+<button class="material-symbols-outlined text-[#000000] dark:text-[#F9F9F9] p-2 hover:bg-[#E2E2E2] dark:hover:bg-[#1A1A1A]">shopping_bag</button>
+</div>
+</header>
+<main class="pt-32 pb-40 px-6 md:px-20 max-w-7xl mx-auto min-h-screen">
+<!-- Header Section -->
+<section class="mb-20">
+<p class="text-[10px] tracking-[0.2em] font-bold text-outline uppercase mb-2">CHECKOUT / STAGE 03</p>
+<h1 class="text-6xl md:text-8xl font-black tracking-tight uppercase leading-none border-l-4 border-primary pl-6">ОПЛАТА</h1>
+</section>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-20">
+<!-- Form Section -->
+<div class="lg:col-span-7">
+<div class="mb-12">
+<h2 class="text-xl font-bold tracking-[0.1em] uppercase mb-10 text-primary">ДАННЫЕ КАРТЫ</h2>
+<!-- Card Schematic Visual -->
+<div class="w-full max-w-md h-56 border border-outline p-8 mb-16 relative overflow-hidden">
+<div class="absolute top-8 right-8 w-12 h-8 border border-outline-variant opacity-50 flex items-center justify-center">
+<span class="text-[8px] font-bold tracking-widest text-outline">CHIP</span>
+</div>
+<div class="mt-16">
+<div class="text-xs tracking-[0.3em] text-outline mb-1 uppercase">Cardholder Identity</div>
+<div class="text-lg tracking-[0.2em] font-mono text-primary uppercase">•••• •••• •••• ••••</div>
+</div>
+<div class="absolute bottom-8 left-8 flex gap-8">
+<div>
+<div class="text-[8px] tracking-[0.1em] text-outline uppercase">Valid Thru</div>
+<div class="text-sm font-mono tracking-widest text-primary">MM / YY</div>
+</div>
+</div>
+<!-- Abstract texture/pattern bleed -->
+<div class="absolute -bottom-10 -right-10 w-40 h-40 border-t border-l border-outline-variant opacity-20"></div>
+</div>
+<!-- Input Fields -->
+<div class="space-y-12">
+<div class="relative group">
+<label class="block text-[10px] font-bold tracking-[0.2em] uppercase text-outline mb-2 group-focus-within:text-primary transition-colors">НОМЕР КАРТЫ</label>
+<input class="w-full bg-transparent border-b border-outline py-4 text-lg tracking-[0.2em] font-mono text-primary placeholder:text-outline-variant focus:border-primary" placeholder="0000 0000 0000 0000" type="text"/>
+</div>
+<div class="grid grid-cols-2 gap-12">
+<div class="relative group">
+<label class="block text-[10px] font-bold tracking-[0.2em] uppercase text-outline mb-2 group-focus-within:text-primary transition-colors">ММ/ГГ</label>
+<input class="w-full bg-transparent border-b border-outline py-4 text-lg tracking-[0.2em] font-mono text-primary placeholder:text-outline-variant focus:border-primary" placeholder="01 / 28" type="text"/>
+</div>
+<div class="relative group">
+<label class="block text-[10px] font-bold tracking-[0.2em] uppercase text-outline mb-2 group-focus-within:text-primary transition-colors">CVV</label>
+<input class="w-full bg-transparent border-b border-outline py-4 text-lg tracking-[0.2em] font-mono text-primary placeholder:text-outline-variant focus:border-primary" placeholder="•••" type="password"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Summary Section -->
+<div class="lg:col-span-5">
+<div class="bg-surface-container-low p-10 border border-outline-variant">
+<h3 class="text-xs font-black tracking-[0.2em] uppercase mb-8 pb-4 border-b border-outline">ДЕТАЛИ ЗАКАЗА</h3>
+<div class="space-y-6 mb-12">
+<div class="flex justify-between items-end">
+<span class="text-xs tracking-wider text-outline uppercase">Product Archive ID</span>
+<span class="text-xs font-bold tracking-widest text-primary uppercase">AV-2024-881</span>
+</div>
+<div class="flex justify-between items-end">
+<span class="text-xs tracking-wider text-outline uppercase">Subtotal</span>
+<span class="text-sm font-mono text-primary">$810.00</span>
+</div>
+<div class="flex justify-between items-end">
+<span class="text-xs tracking-wider text-outline uppercase">Shipping (Archive Logistics)</span>
+<span class="text-sm font-mono text-primary">$30.00</span>
+</div>
+</div>
+<div class="pt-8 border-t border-primary mb-12">
+<div class="flex justify-between items-start">
+<div class="text-[10px] font-bold tracking-[0.2em] text-outline uppercase">ИТОГО К ОПЛАТЕ:</div>
+<div class="text-4xl font-black tracking-tight text-primary leading-none">$840.00</div>
+</div>
+</div>
+<button class="w-full bg-primary text-on-primary py-6 text-sm font-black tracking-[0.3em] uppercase hover:bg-surface-container-lowest hover:text-primary border border-primary transition-all active:scale-[0.98] duration-75">
+                        [ ОПЛАТИТЬ ]
+                    </button>
+<div class="mt-8 flex items-center justify-center gap-4 grayscale opacity-40">
+<span class="text-[8px] font-bold tracking-widest uppercase text-outline">SECURED BY ENCRYPT_V.2</span>
+<span class="material-symbols-outlined text-sm">lock</span>
+</div>
+</div>
+<!-- Editorial Visual -->
+<div class="mt-12 group cursor-crosshair">
+<div class="relative overflow-hidden aspect-[4/5] border border-outline-variant">
+<img alt="Luxury fashion minimalist accessory" class="w-full h-full object-cover grayscale brightness-90 hover:scale-105 transition-transform duration-700" data-alt="High-end minimalist editorial photography of a black leather structural garment against a stark warm grey background with sharp shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtsRoyNR7C-1UpM7QiCTluQhLh_IVKDyWOFSOPz64D9_4hEZbX8ECx1dE3t7XnuIauHF2zMmcLbWSAmvvzDW5NN7JUrvzvijlnV7vrHPx0LRQgx0FdGKpJdNVe505R5kpXXpjfaJDS1FHheEBt6yuIQVzKZlOAJC6oy3JsjVffWghsfUZrfen4JQ7J2QT_ZswoPU931S5CAZKywayHUBYa1tSNS5En8YTMz9aEFAzcNJkezBdmWO1LfBruZhpRNtr3KT3SdtooleM"/>
+<div class="absolute bottom-4 left-4 bg-background px-3 py-1 text-[8px] font-bold tracking-[0.2em] uppercase border border-outline">
+                            AVISHU LOOKBOOK 2024
+                        </div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Navigation suppression check: Page is transactional (Checkout/Payment), so BottomNavBar is suppressed as per the "Destination" rule. -->
+</body></html>

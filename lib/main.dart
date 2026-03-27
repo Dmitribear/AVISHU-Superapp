@@ -11,9 +11,12 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    print("AVISHU DEBUG: Firebase initialized successfully for ${DefaultFirebaseOptions.currentPlatform.projectId}");
+    debugPrint(
+      'AVISHU DEBUG: Firebase initialized successfully for '
+      '${DefaultFirebaseOptions.currentPlatform.projectId}',
+    );
   } catch (e) {
-    print("AVISHU DEBUG: Firebase init error: $e");
+    debugPrint('AVISHU DEBUG: Firebase init error: $e');
   }
   runApp(const ProviderScope(child: AvishuApp()));
 }
@@ -24,7 +27,7 @@ class AvishuApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
-    
+
     return MaterialApp.router(
       title: 'AVISHU',
       theme: AppTheme.brutalistTheme,

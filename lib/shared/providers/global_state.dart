@@ -1,5 +1,8 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart' show StateProvider;
+
 import '../../features/auth/domain/app_user.dart';
 import '../../features/auth/domain/user_role.dart';
 
@@ -7,12 +10,41 @@ final authStateChangesProvider = StreamProvider<User?>((ref) {
   return FirebaseAuth.instance.authStateChanges();
 });
 
-final currentUserProvider = FutureProvider<AppUser?>((ref) async {
-  final user = await ref.watch(authStateChangesProvider.future);
-  if (user == null) return null;
-  
-  // Here we would normally fetch the user document from Firestore to get the role.
-  // For the architecture template, we return a mock AppUser with a Client role by default.
-  // We can change this manually during testing to see different dashboards.
-  return AppUser(uid: user.uid, email: user.email ?? '', role: UserRole.production);
+final demoRoleProvider = StateProvider<UserRole?>((ref) => null);
+
+final currentUserProvider = StreamProvider<AppUser?>((ref) async* {
+  final demoRole = ref.watch(demoRoleProvider);
+
+  if (demoRole != null) {
+    yield AppUser(
+      uid: 'demo-${demoRole.name}',
+      email: '${demoRole.name}@avishu.demo',
+      role: demoRole,
+    );
+    return;
+  }
+
+  await for (final user in FirebaseAuth.instance.authStateChanges()) {
+    if (user == null) {
+      yield null;
+      continue;
+    }
+
+    var role = UserRole.client;
+
+    try {
+      final userSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      final rawRole = userSnapshot.data()?['role'] as String?;
+      if (rawRole != null) {
+        role = UserRole.fromMap(rawRole);
+      }
+    } catch (_) {
+      role = UserRole.client;
+    }
+
+    yield AppUser(uid: user.uid, email: user.email ?? '', role: role);
+  }
 });

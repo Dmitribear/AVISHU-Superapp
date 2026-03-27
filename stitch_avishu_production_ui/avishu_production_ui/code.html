@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "background": "#f9f9f9",
+              "primary": "#000000",
+              "surface-container-highest": "#e2e2e2",
+              "on-background": "#1a1c1c",
+              "on-primary-container": "#ffffff",
+              "primary-fixed-dim": "#474747",
+              "on-surface-variant": "#474747",
+              "on-primary": "#e2e2e2",
+              "surface-container-low": "#f3f3f4",
+              "inverse-primary": "#c6c6c6",
+              "on-error-container": "#410002",
+              "tertiary-container": "#747474",
+              "surface-container-lowest": "#ffffff",
+              "surface-container-high": "#e8e8e8",
+              "inverse-on-surface": "#f0f1f1",
+              "on-secondary-fixed-variant": "#3b3b3b",
+              "surface-container": "#eeeeee",
+              "on-tertiary-fixed-variant": "#e2e2e2",
+              "error": "#ba1a1a",
+              "primary-container": "#3b3b3b",
+              "tertiary": "#3b3b3b",
+              "surface-variant": "#e2e2e2",
+              "surface-dim": "#dadada",
+              "secondary": "#5e5e5e",
+              "surface-bright": "#f9f9f9",
+              "tertiary-fixed-dim": "#474747",
+              "on-secondary-fixed": "#1b1b1b",
+              "surface-tint": "#5e5e5e",
+              "on-error": "#ffffff",
+              "secondary-fixed-dim": "#ababab",
+              "inverse-surface": "#2f3131",
+              "secondary-fixed": "#c6c6c6",
+              "on-tertiary-fixed": "#ffffff",
+              "secondary-container": "#d4d4d4",
+              "on-secondary": "#ffffff",
+              "on-tertiary-container": "#ffffff",
+              "surface": "#f9f9f9",
+              "tertiary-fixed": "#5e5e5e",
+              "on-tertiary": "#e2e2e2",
+              "outline": "#777777",
+              "on-primary-fixed-variant": "#e2e2e2",
+              "on-secondary-container": "#1b1b1b",
+              "primary-fixed": "#5e5e5e",
+              "on-primary-fixed": "#ffffff",
+              "outline-variant": "#c6c6c6",
+              "on-surface": "#1a1c1c",
+              "error-container": "#ffdad6"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 100, 'GRAD' 0, 'opsz' 24;
+            font-size: 24px;
+        }
+        body {
+            background-color: #f9f9f9;
+            color: #000000;
+            -webkit-font-smoothing: antialiased;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body selection:bg-black selection:text-white">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-10 h-24 bg-white border-b border-gray-200">
+<div class="flex items-center gap-6">
+<button class="material-symbols-outlined text-black hover:bg-gray-100 transition-colors p-2" data-icon="menu">menu</button>
+<h1 class="font-['Inter'] font-black tracking-[0.3em] text-2xl text-black uppercase">AVISHU</h1>
+</div>
+<div class="flex items-center gap-8">
+<span class="font-['Inter'] font-bold uppercase tracking-[0.2em] text-sm text-black">FACTORY_STATION_04</span>
+<button class="material-symbols-outlined text-black hover:bg-gray-100 transition-colors p-2" data-icon="shopping_bag">shopping_bag</button>
+</div>
+</header>
+<main class="pt-24 pb-20 min-h-screen flex flex-col">
+<!-- Production Dashboard Layout -->
+<div class="flex-1 grid grid-cols-12 gap-0">
+<!-- Left Panel: Product Identity -->
+<div class="col-span-12 lg:col-span-7 p-10 lg:p-20 flex flex-col justify-between border-r border-outline-variant">
+<div>
+<div class="mb-20">
+<p class="font-['Inter'] font-semibold uppercase tracking-widest text-sm text-gray-500 mb-4">CURRENT JOB</p>
+<h2 class="text-8xl md:text-9xl font-black tracking-tighter leading-none text-black">ORDER #2031</h2>
+</div>
+<div class="space-y-12">
+<div>
+<p class="font-['Inter'] font-semibold uppercase tracking-widest text-xs text-gray-400 mb-2">PRODUCT NAME</p>
+<h3 class="text-6xl font-bold tracking-tight uppercase text-black">COAT BLACK</h3>
+</div>
+<div>
+<p class="font-['Inter'] font-semibold uppercase tracking-widest text-xs text-gray-400 mb-2">SIZE</p>
+<h3 class="text-6xl font-bold tracking-tight uppercase text-black">LARGE</h3>
+</div>
+</div>
+</div>
+<div class="mt-24 grid grid-cols-2 gap-4">
+<div class="p-8 bg-surface-container-low border border-outline-variant">
+<p class="font-['Inter'] font-semibold uppercase tracking-widest text-[10px] text-gray-500 mb-2">MATERIAL</p>
+<p class="font-bold text-lg uppercase">Heavy Twill / 400GSM</p>
+</div>
+<div class="p-8 bg-surface-container-low border border-outline-variant">
+<p class="font-['Inter'] font-semibold uppercase tracking-widest text-[10px] text-gray-500 mb-2">DESTINATION</p>
+<p class="font-bold text-lg uppercase">EU_LOGISTICS_HUB</p>
+</div>
+</div>
+</div>
+<!-- Right Panel: Interaction Zone -->
+<div class="col-span-12 lg:col-span-5 flex flex-col bg-white">
+<!-- Visual Reference -->
+<div class="aspect-square w-full relative overflow-hidden bg-surface-container-highest">
+<img alt="Production view" class="object-cover w-full h-full grayscale contrast-125" data-alt="Close up architectural detail of a heavy black wool coat texture with sharp structural seams and industrial minimalist aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9TPtIOFHT26USlO61ngNi0QBiBThDTjnfCSE8ekss4GMrZIQjISyej4fcPUH8ILOD_aMeB2xoRHsUEIWuiqUxYBBkn04G3_zw8c6MFu4A_-9StkOwi9xCXdm8ZCUbQMAjOHGRVD-WU-2Q89uviu2HeaqCrWn4bLoaDM0e1hM8emHVTLmDInUyjy5wyrhkHKlTD3aMNvlzF5D1eBNYQj0yEyp1_7f4u6aFAdSUavNfCvl6AqEJvXroQ4ijnKLLzZTQLyZrRofHaIs"/>
+<div class="absolute top-6 right-6 bg-black text-white px-4 py-2 text-xs font-bold tracking-widest">REF_IMG_01</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex-1 flex flex-col">
+<button class="group relative flex-1 flex items-center justify-center border-b border-outline-variant hover:bg-gray-50 transition-all active:bg-gray-100">
+<div class="text-center">
+<span class="block text-4xl font-black tracking-[0.2em] text-black uppercase mb-2">[ START ]</span>
+<span class="text-xs tracking-widest text-gray-400 font-semibold uppercase">INITIALIZE ASSEMBLY SEQUENCE</span>
+</div>
+</button>
+<button class="group relative flex-[1.5] flex items-center justify-center bg-black text-white hover:bg-gray-900 transition-all active:scale-[0.98] duration-150">
+<div class="text-center">
+<span class="block text-6xl font-black tracking-[0.2em] uppercase mb-4">[ COMPLETE ]</span>
+<span class="text-sm tracking-[0.3em] text-gray-400 font-bold uppercase">FINALIZE AND LOG QUALITY CONTROL</span>
+</div>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Hidden on desktop as per Shell Visibility Rules, shown as a conceptual anchor) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-20 px-4 pb-safe bg-white border-t border-gray-200 lg:hidden">
+<div class="flex flex-col items-center justify-center bg-black text-white px-8 py-2">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+<span class="font-['Inter'] font-semibold uppercase tracking-widest text-[10px] mt-1">DASHBOARD</span>
+</div>
+<div class="flex flex-col items-center justify-center text-gray-500 px-8 py-2 hover:text-black transition-all">
+<span class="material-symbols-outlined" data-icon="layers">layers</span>
+<span class="font-['Inter'] font-semibold uppercase tracking-widest text-[10px] mt-1">COLLECTIONS</span>
+</div>
+<div class="flex flex-col items-center justify-center text-gray-500 px-8 py-2 hover:text-black transition-all">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="font-['Inter'] font-semibold uppercase tracking-widest text-[10px] mt-1">ARCHIVE</span>
+</div>
+<div class="flex flex-col items-center justify-center text-gray-500 px-8 py-2 hover:text-black transition-all">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-['Inter'] font-semibold uppercase tracking-widest text-[10px] mt-1">PROFILE</span>
+</div>
+</nav>
+</body></html>

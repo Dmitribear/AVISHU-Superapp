@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' 0, 'opsz' 24;
+            font-size: 20px;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9f9f9;
+            color: #1a1c1c;
+            -webkit-font-smoothing: antialiased;
+        }
+        .editorial-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+        }
+        @media (max-width: 768px) {
+            .editorial-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "background": "#f9f9f9",
+                "primary": "#000000",
+                "surface-container-highest": "#e2e2e2",
+                "on-background": "#1a1c1c",
+                "on-primary-container": "#ffffff",
+                "primary-fixed-dim": "#474747",
+                "on-surface-variant": "#474747",
+                "on-primary": "#e2e2e2",
+                "surface-container-low": "#f3f3f4",
+                "inverse-primary": "#c6c6c6",
+                "on-error-container": "#410002",
+                "tertiary-container": "#747474",
+                "surface-container-lowest": "#ffffff",
+                "surface-container-high": "#e8e8e8",
+                "inverse-on-surface": "#f0f1f1",
+                "on-secondary-fixed-variant": "#3b3b3b",
+                "surface-container": "#eeeeee",
+                "on-tertiary-fixed-variant": "#e2e2e2",
+                "error": "#ba1a1a",
+                "primary-container": "#3b3b3b",
+                "tertiary": "#3b3b3b",
+                "surface-variant": "#e2e2e2",
+                "surface-dim": "#dadada",
+                "secondary": "#5e5e5e",
+                "surface-bright": "#f9f9f9",
+                "tertiary-fixed-dim": "#474747",
+                "on-secondary-fixed": "#1b1b1b",
+                "surface-tint": "#5e5e5e",
+                "on-error": "#ffffff",
+                "secondary-fixed-dim": "#ababab",
+                "inverse-surface": "#2f3131",
+                "secondary-fixed": "#c6c6c6",
+                "on-tertiary-fixed": "#ffffff",
+                "secondary-container": "#d4d4d4",
+                "on-secondary": "#ffffff",
+                "on-tertiary-container": "#ffffff",
+                "surface": "#f9f9f9",
+                "tertiary-fixed": "#5e5e5e",
+                "on-tertiary": "#e2e2e2",
+                "outline": "#777777",
+                "on-primary-fixed-variant": "#e2e2e2",
+                "on-secondary-container": "#1b1b1b",
+                "primary-fixed": "#5e5e5e",
+                "on-primary-fixed": "#ffffff",
+                "outline-variant": "#c6c6c6",
+                "on-surface": "#1a1c1c",
+                "error-container": "#ffdad6"
+              },
+              fontFamily: {
+                "headline": ["Inter"],
+                "body": ["Inter"],
+                "label": ["Inter"]
+              },
+              borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px"},
+            },
+          },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface min-h-screen">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-6 h-20 bg-white dark:bg-black border-b border-gray-200 dark:border-gray-800">
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors p-2 active:opacity-80">menu</button>
+</div>
+<div class="text-2xl font-black tracking-[0.3em] text-black dark:text-white uppercase">AVISHU</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors p-2 active:opacity-80">shopping_bag</button>
+</div>
+</header>
+<main class="pt-20 pb-32 px-8 md:px-12 max-w-[1600px] mx-auto">
+<!-- Dashboard Header & Metrics -->
+<section class="py-12 md:py-20">
+<h1 class="font-['Inter'] font-bold uppercase tracking-[0.2em] text-4xl mb-12 text-black">DASHBOARD</h1>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0 border border-outline-variant">
+<div class="p-8 border-r border-outline-variant">
+<p class="font-['Inter'] font-semibold uppercase tracking-widest text-[10px] text-secondary mb-2">REVENUE TODAY</p>
+<p class="text-3xl font-bold tracking-tight">$14,290.00</p>
+</div>
+<div class="p-8 border-r border-outline-variant">
+<p class="font-['Inter'] font-semibold uppercase tracking-widest text-[10px] text-secondary mb-2">ORDERS</p>
+<p class="text-3xl font-bold tracking-tight">42</p>
+</div>
+<div class="p-8 border-r border-outline-variant">
+<p class="font-['Inter'] font-semibold uppercase tracking-widest text-[10px] text-secondary mb-2">ACTIVE SESSIONS</p>
+<p class="text-3xl font-bold tracking-tight">108</p>
+</div>
+<div class="p-8">
+<p class="font-['Inter'] font-semibold uppercase tracking-widest text-[10px] text-secondary mb-2">EFFICIENCY</p>
+<p class="text-3xl font-bold tracking-tight">94%</p>
+</div>
+</div>
+</section>
+<!-- Kanban Board -->
+<section class="mb-20">
+<div class="editorial-grid border-t border-b border-l border-outline-variant">
+<!-- CREATED COLUMN -->
+<div class="border-r border-outline-variant min-h-[600px]">
+<div class="p-6 bg-surface-container-low border-b border-outline-variant">
+<h2 class="font-['Inter'] font-bold uppercase tracking-[0.15em] text-sm text-black">CREATED</h2>
+</div>
+<div class="p-0">
+<!-- Entry 1 -->
+<div class="p-8 border-b border-outline-variant group hover:bg-surface-container-lowest transition-colors">
+<div class="flex justify-between items-start mb-4">
+<span class="font-['Inter'] font-medium text-[11px] tracking-widest text-secondary">#2031</span>
+<span class="font-['Inter'] font-bold text-[10px] uppercase tracking-widest bg-black text-white px-2 py-0.5">NEW</span>
+</div>
+<h3 class="text-lg font-bold tracking-tight uppercase mb-1">MOTO LEATHER JACKET</h3>
+<p class="text-xs text-secondary mb-6 tracking-wide">SIZE: LARGE / CALF SKIN</p>
+<button class="w-full py-3 px-6 border border-black text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-black hover:text-white transition-all">
+                                ACCEPT
+                            </button>
+</div>
+<!-- Entry 2 -->
+<div class="p-8 border-b border-outline-variant group hover:bg-surface-container-lowest transition-colors">
+<div class="flex justify-between items-start mb-4">
+<span class="font-['Inter'] font-medium text-[11px] tracking-widest text-secondary">#2034</span>
+<span class="font-['Inter'] font-bold text-[10px] uppercase tracking-widest border border-outline px-2 py-0.5">QUEUED</span>
+</div>
+<h3 class="text-lg font-bold tracking-tight uppercase mb-1">RAW DENIM SELVEDGE</h3>
+<p class="text-xs text-secondary mb-6 tracking-wide">SIZE: 32 / INDIGO</p>
+<button class="w-full py-3 px-6 border border-black text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-black hover:text-white transition-all">
+                                ACCEPT
+                            </button>
+</div>
+</div>
+</div>
+<!-- SEWING COLUMN -->
+<div class="border-r border-outline-variant min-h-[600px]">
+<div class="p-6 bg-surface-container-low border-b border-outline-variant">
+<h2 class="font-['Inter'] font-bold uppercase tracking-[0.15em] text-sm text-black">SEWING</h2>
+</div>
+<div class="p-0">
+<!-- Entry 3 -->
+<div class="p-8 border-b border-outline-variant group hover:bg-surface-container-lowest transition-colors">
+<div class="flex justify-between items-start mb-4">
+<span class="font-['Inter'] font-medium text-[11px] tracking-widest text-secondary">#1998</span>
+<span class="font-['Inter'] font-bold text-[10px] uppercase tracking-widest text-black">IN PROGRESS (45%)</span>
+</div>
+<h3 class="text-lg font-bold tracking-tight uppercase mb-1">WOOL OVERCOAT</h3>
+<p class="text-xs text-secondary mb-6 tracking-wide">SIZE: XL / CHARCOAL HERRINGBONE</p>
+<div class="flex gap-2">
+<button class="flex-1 py-3 px-4 border border-outline-variant text-[10px] font-bold uppercase tracking-[0.15em] hover:border-black transition-all">
+                                    DETAILS
+                                </button>
+<button class="flex-1 py-3 px-4 border border-black text-[10px] font-bold uppercase tracking-[0.15em] hover:bg-black hover:text-white transition-all">
+                                    MOVE
+                                </button>
+</div>
+</div>
+</div>
+</div>
+<!-- DONE COLUMN -->
+<div class="border-r border-outline-variant min-h-[600px]">
+<div class="p-6 bg-surface-container-low border-b border-outline-variant">
+<h2 class="font-['Inter'] font-bold uppercase tracking-[0.15em] text-sm text-black">DONE</h2>
+</div>
+<div class="p-0">
+<!-- Entry 4 -->
+<div class="p-8 border-b border-outline-variant group hover:bg-surface-container-lowest transition-colors">
+<div class="flex justify-between items-start mb-4">
+<span class="font-['Inter'] font-medium text-[11px] tracking-widest text-secondary">#1852</span>
+<span class="font-['Inter'] font-bold text-[10px] uppercase tracking-widest text-secondary">READY FOR SHIPPING</span>
+</div>
+<h3 class="text-lg font-bold tracking-tight uppercase mb-1">SILK SHIRT</h3>
+<p class="text-xs text-secondary mb-6 tracking-wide">SIZE: M / CHAMPAGNE</p>
+<button class="w-full py-3 px-6 border border-black text-[11px] font-bold uppercase tracking-[0.2em] bg-black text-white hover:opacity-80 transition-all">
+                                DISPATCH
+                            </button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Industrial Imagery Section -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+<div class="aspect-[4/5] bg-surface-container-highest">
+<img alt="Close up textile detail" class="w-full h-full object-cover grayscale brightness-90" data-alt="Close-up of high-quality black structured leather with a fine grain, minimalist lighting emphasizing texture and industrial luxury feel" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcGJIl9E-_0Y5xBUPVYA5giKuBCqQCNb_Cz-8cX2d9hJFiPUerrpdhY_hidcZgnA4z6xDIfflGEjhiv05Fy7EwFMVl-f14EJx2GYmsH-aOfxA-8OIJNemvZvZqKGfTDTMpJ6GO9YoL5eCXmM6wMS2UH6gX2sC3SL0O_z4_td_lo_WziwC2CzlnlHY9ePYGjgNvFd2bku4S0UojSSV3iOfygBRJ4EAtQbRXh8I0rG7TjmUauQGwGkyw2lOpx6wLAgWye8OJYIz59JI"/>
+</div>
+<div class="space-y-8 pr-12">
+<h2 class="text-4xl font-black uppercase tracking-[0.25em] leading-tight">QUALITY <br/> THROUGH <br/> PRECISION</h2>
+<p class="text-sm text-secondary leading-relaxed max-w-md">
+                    Every garment in the AVISHU ecosystem undergoes rigorous assessment at the SEWING stage. Ensure all measurements align with the digital pattern before moving to the DONE column.
+                </p>
+<div class="pt-4">
+<a class="inline-block border-b-2 border-black pb-1 text-xs font-bold uppercase tracking-[0.3em] hover:opacity-60 transition-opacity" href="#">VIEW PRODUCTION GUIDELINES</a>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-20 px-4 pb-safe bg-white dark:bg-black border-t border-gray-200 dark:border-gray-800">
+<a class="flex flex-col items-center justify-center bg-black dark:bg-white text-white dark:text-black px-4 py-2" href="#">
+<span class="material-symbols-outlined mb-1">grid_view</span>
+<span class="font-['Inter'] font-semibold uppercase tracking-widest text-[10px]">DASHBOARD</span>
+</a>
+<a class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-500 px-4 py-2 hover:text-black dark:hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined mb-1">layers</span>
+<span class="font-['Inter'] font-semibold uppercase tracking-widest text-[10px]">COLLECTIONS</span>
+</a>
+<a class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-500 px-4 py-2 hover:text-black dark:hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined mb-1">history</span>
+<span class="font-['Inter'] font-semibold uppercase tracking-widest text-[10px]">ARCHIVE</span>
+</a>
+<a class="flex flex-col items-center justify-center text-gray-500 dark:text-gray-500 px-4 py-2 hover:text-black dark:hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined mb-1">person</span>
+<span class="font-['Inter'] font-semibold uppercase tracking-widest text-[10px]">PROFILE</span>
+</a>
+</nav>
+</body></html>
