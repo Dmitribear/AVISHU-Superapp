@@ -1,5 +1,16 @@
 String formatCurrency(double value) {
-  return '\$${value.toStringAsFixed(0)}';
+  final whole = value.round().toString();
+  final buffer = StringBuffer();
+
+  for (var index = 0; index < whole.length; index++) {
+    final reverseIndex = whole.length - index;
+    buffer.write(whole[index]);
+    if (reverseIndex > 1 && reverseIndex % 3 == 1) {
+      buffer.write(' ');
+    }
+  }
+
+  return '${buffer.toString()} \u20B8';
 }
 
 String formatTimelineDate(DateTime value) {
