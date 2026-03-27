@@ -189,7 +189,11 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       navItems: _navItems,
       onLeadingTap: () {
         if (_view == ClientView.root) {
-          showAppSettingsSheet(context);
+          if (_tab == ClientTab.collections) {
+            _showCatalogMenuSheet();
+          } else {
+            showAppSettingsSheet(context);
+          }
         } else {
           setState(() => _view = ClientView.root);
         }
@@ -1918,6 +1922,86 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
   List<String> _sortedDistinct(Iterable<String> values) {
     final result = values.toSet().toList()..sort();
     return result;
+  }
+
+  Future<void> _showCatalogMenuSheet() {
+    final screenHeight = MediaQuery.sizeOf(context).height;
+
+    return showGeneralDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'catalog-menu',
+      barrierColor: Colors.black54,
+      transitionDuration: const Duration(milliseconds: 220),
+      pageBuilder: (dialogContext, animation, secondaryAnimation) {
+        return SafeArea(
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 72),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: 430,
+                  maxHeight: screenHeight * 0.72,
+                ),
+                child: Material(
+                  color: AppColors.surfaceLowest,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('РАЗДЕЛЫ КАТАЛОГА', style: AppTypography.eyebrow),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Быстрый переход по коллекциям в мобильной адаптации.',
+                          style: Theme.of(dialogContext).textTheme.bodyMedium,
+                        ),
+                        const SizedBox(height: 16),
+                        ...catalogSections.map(
+                          (section) => _catalogSectionTile(
+                            label: section,
+                            active: section == _activeSection,
+                            onTap: () {
+                              Navigator.of(dialogContext).pop();
+                              setState(() => _selectSection(section));
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        AvishuButton(
+                          text: 'НАСТРОЙКИ',
+                          expanded: true,
+                          variant: AvishuButtonVariant.outline,
+                          onPressed: () {
+                            Navigator.of(dialogContext).pop();
+                            showAppSettingsSheet(context);
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        final offsetAnimation =
+            Tween<Offset>(
+              begin: const Offset(0, -0.04),
+              end: Offset.zero,
+            ).animate(
+              CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+            );
+
+        return FadeTransition(
+          opacity: animation,
+          child: SlideTransition(position: offsetAnimation, child: child),
+        );
+      },
+    );
   }
 
   void _showSizeGuideSheet() {
