@@ -156,7 +156,7 @@ class _RoleButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: 50,
+      height: 62,
       child: OutlinedButton(
         onPressed: onTap,
         style: OutlinedButton.styleFrom(
@@ -165,14 +165,25 @@ class _RoleButton extends StatelessWidget {
           side: const BorderSide(color: AppColors.black),
           alignment: Alignment.center,
         ),
-        child: Stack(
-          alignment: Alignment.center,
+        child: Row(
           children: [
-            Text(label, style: AppTypography.button.copyWith(letterSpacing: 4)),
-            Positioned(
-              right: 0,
-              top: 2,
-              child: Text(code, style: AppTypography.eyebrow),
+            const SizedBox(width: 58),
+            Expanded(
+              child: Center(
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.button.copyWith(letterSpacing: 3.2),
+                ),
+              ),
+            ),
+            SizedBox(
+              width: 58,
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Text(code, style: AppTypography.eyebrow),
+              ),
             ),
           ],
         ),

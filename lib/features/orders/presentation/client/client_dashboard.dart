@@ -7,6 +7,7 @@ import '../../../../shared/providers/global_state.dart';
 import '../../../../shared/widgets/avishu_button.dart';
 import '../../../../shared/widgets/avishu_mobile_frame.dart';
 import '../../../../shared/widgets/role_switch_sheet.dart';
+import '../../../auth/domain/user_role.dart';
 import '../../../orders/data/order_repository.dart';
 import '../../../orders/domain/enums/order_status.dart';
 import '../../../orders/domain/models/order_model.dart';
@@ -109,7 +110,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       body: ordersAsync.when(
         data: (orders) => SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(18, 18, 18, 22),
-          child: _buildScreen(context, orders, user.uid, trackedOrder),
+          child: _buildScreen(context, orders, user.uid, user.role, trackedOrder),
         ),
         loading: () =>
             const Center(child: CircularProgressIndicator(color: Colors.black)),
@@ -142,6 +143,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     BuildContext context,
     List<OrderModel> orders,
     String clientId,
+    UserRole currentRole,
     OrderModel? trackedOrder,
   ) {
     if (_view == ClientView.product && _selectedProduct != null) {
@@ -161,7 +163,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       ClientTab.dashboard => _buildDashboardScreen(orders),
       ClientTab.collections => _buildCollectionsScreen(),
       ClientTab.archive => _buildArchiveScreen(orders),
-      ClientTab.profile => _buildProfileScreen(orders, trackedOrder),
+      ClientTab.profile => _buildProfileScreen(orders, currentRole, trackedOrder),
     };
   }
 
@@ -266,10 +268,16 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     );
   }
 
-  Widget _buildProfileScreen(List<OrderModel> orders, OrderModel? trackedOrder) {
+  Widget _buildProfileScreen(
+    List<OrderModel> orders,
+    UserRole currentRole,
+    OrderModel? trackedOrder,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        RoleControlCard(currentRole: currentRole),
+        const SizedBox(height: 12),
         _flatCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/typography.dart';
+import '../../../../features/auth/domain/user_role.dart';
 import '../../../../shared/widgets/avishu_button.dart';
 import '../../../../shared/widgets/avishu_mobile_frame.dart';
 import '../../../../shared/widgets/role_switch_sheet.dart';
@@ -132,6 +133,8 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
       FranchiseeTab.profile => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const RoleControlCard(currentRole: UserRole.franchisee),
+          const SizedBox(height: 12),
           _flatCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
