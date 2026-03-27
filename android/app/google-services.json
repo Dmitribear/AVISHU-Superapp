@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "784342026466",
+    "project_id": "avishu",
+    "storage_bucket": "avishu.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:784342026466:android:4750acc606d52054b436bb",
+        "android_client_info": {
+          "package_name": "com.avishu.avishu"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAlZ4ZG0jXuac8CnDZuPXEjJtUqljhYasg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
