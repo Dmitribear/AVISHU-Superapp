@@ -61,9 +61,7 @@ class OrderGeocodingService {
 
         final location = locations.first;
         return GeoPoint(location.latitude, location.longitude);
-      } catch (_) {
-        // The mobile geocoder may be unavailable or rate-limited.
-      }
+      } catch (_) {}
     }
 
     return null;
@@ -75,7 +73,9 @@ class OrderGeocodingService {
 
     return <String>[
       'Kazakhstan, $normalizedCity, $normalizedAddress',
+      '$normalizedAddress, $normalizedCity, Kazakhstan',
       '$normalizedCity, $normalizedAddress',
+      '$normalizedAddress, $normalizedCity',
       normalizedAddress,
     ];
   }

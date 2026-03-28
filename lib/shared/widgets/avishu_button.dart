@@ -25,29 +25,40 @@ class AvishuButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final label = Row(
-      mainAxisSize: expanded ? MainAxisSize.max : MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
+    final labelColor = variant == AvishuButtonVariant.filled
+        ? AppColors.white
+        : AppColors.black;
+    final label = LayoutBuilder(
+      builder: (context, constraints) {
+        final compactWidth =
+            constraints.hasBoundedWidth && constraints.maxWidth < 190;
+        final labelStyle = AppTypography.button.copyWith(
+          color: labelColor,
+          letterSpacing: compactWidth ? 1.8 : 2.8,
+        );
+        final labelText = Text(
           text.toUpperCase(),
-          style: AppTypography.button.copyWith(
-            color: variant == AvishuButtonVariant.filled
-                ? AppColors.white
-                : AppColors.black,
-          ),
-        ),
-        if (icon != null) ...[
-          const SizedBox(width: 10),
-          Icon(
-            icon,
-            size: 18,
-            color: variant == AvishuButtonVariant.filled
-                ? AppColors.white
-                : AppColors.black,
-          ),
-        ],
-      ],
+          textAlign: TextAlign.center,
+          maxLines: compactWidth ? 2 : 1,
+          overflow: TextOverflow.ellipsis,
+          style: labelStyle,
+        );
+
+        return Row(
+          mainAxisSize: expanded ? MainAxisSize.max : MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (constraints.hasBoundedWidth)
+              Flexible(child: labelText)
+            else
+              labelText,
+            if (icon != null) ...[
+              SizedBox(width: compactWidth ? 8 : 10),
+              Icon(icon, size: 18, color: labelColor),
+            ],
+          ],
+        );
+      },
     );
 
     final resolvedPadding =

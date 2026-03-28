@@ -33,6 +33,42 @@ void main() {
     expect(route.destinationLocation.longitude, 76.945);
   });
 
+  test('resolveRoute retries with address-first query when needed', () async {
+    final requestedQueries = <String>[];
+    final service = OrderGeocodingService(
+      lookup: (address) async {
+        requestedQueries.add(address);
+        if (requestedQueries.length == 1) {
+          return const <Location>[];
+        }
+
+        return <Location>[
+          Location(
+            latitude: 43.247,
+            longitude: 76.901,
+            timestamp: DateTime.utc(2026, 3, 28),
+          ),
+        ];
+      },
+    );
+
+    final route = await service.resolveRoute(
+      deliveryMethod: DeliveryMethod.courier,
+      city: 'Almaty',
+      address: 'Satpayev 22',
+    );
+
+    expect(
+      requestedQueries,
+      containsAllInOrder(<String>[
+        'Kazakhstan, Almaty, Satpayev 22',
+        'Satpayev 22, Almaty, Kazakhstan',
+      ]),
+    );
+    expect(route.destinationLocation.latitude, 43.247);
+    expect(route.destinationLocation.longitude, 76.901);
+  });
+
   test(
     'resolveRoute falls back to internal resolver when lookup fails',
     () async {
