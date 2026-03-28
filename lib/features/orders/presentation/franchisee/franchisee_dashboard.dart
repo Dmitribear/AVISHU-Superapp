@@ -328,7 +328,7 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
         ),
         const SizedBox(height: 16),
         AvishuButton(
-          text: 'WHY AVISHU',
+          text: _t(ru: 'ПОЧЕМУ AVISHU', en: 'WHY AVISHU', kk: 'НЕГЕ AVISHU'),
           expanded: true,
           variant: AvishuButtonVariant.filled,
           icon: Icons.arrow_outward,

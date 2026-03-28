@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/typography.dart';
@@ -298,7 +299,14 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          AvishuButton(
+            text: _t(ru: 'ПОЧЕМУ AVISHU', en: 'WHY AVISHU', kk: 'НЕГЕ AVISHU'),
+            expanded: true,
+            variant: AvishuButtonVariant.filled,
+            icon: Icons.arrow_outward,
+            onPressed: () => context.push('/why-avishu'),
+          ),
+          const SizedBox(height: 12),
           AvishuButton(
             text: _t(ru: 'ВЫЙТИ ИЗ АККАУНТА', en: 'SIGN OUT', kk: 'АККАУНТТАН ШЫҒУ'),
             expanded: true,

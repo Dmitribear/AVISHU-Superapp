@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/typography.dart';
@@ -1036,6 +1037,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               _t(
                 ru: 'Сохраненные модели появятся здесь и будут открываться как обычные карточки товара.',
                 en: 'Saved models will appear here and open like regular product cards.',
+                kk: 'Сақталған модельдер осында пайда болады және әдеттегі тауар карточкалары сияқты ашылады.',
               ),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
@@ -1045,13 +1047,21 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
           const SizedBox(height: 12),
           _orderCard(
             order: trackedOrder,
-            cta: _t(ru: 'ОТСЛЕДИТЬ', en: 'TRACK'),
+            cta: _t(ru: 'ОТСЛЕДИТЬ', en: 'TRACK', kk: 'БАҚЫЛАУ'),
             onTap: () => setState(() => _view = ClientView.tracking),
           ),
         ],
         const SizedBox(height: 16),
         AvishuButton(
-          text: _t(ru: 'ВЫЙТИ ИЗ АККАУНТА', en: 'SIGN OUT'),
+          text: _t(ru: 'ПОЧЕМУ AVISHU', en: 'WHY AVISHU', kk: 'НЕГЕ AVISHU'),
+          expanded: true,
+          variant: AvishuButtonVariant.filled,
+          icon: Icons.arrow_outward,
+          onPressed: () => context.push('/why-avishu'),
+        ),
+        const SizedBox(height: 16),
+        AvishuButton(
+          text: _t(ru: 'ВЫЙТИ ИЗ АККАУНТА', en: 'SIGN OUT', kk: 'АККАУНТТАН ШЫҒУ'),
           expanded: true,
           variant: AvishuButtonVariant.outline,
           icon: Icons.logout,
