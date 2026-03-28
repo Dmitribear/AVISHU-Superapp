@@ -304,7 +304,7 @@ class _OrderDeliveryMapCardState extends State<OrderDeliveryMapCard> {
     final markers = <Marker>[
       Marker(
         point: widget.origin,
-        width: 88,
+        width: 120,
         height: 56,
         child: _MapMarkerChip(
           label: widget.originLabel,
@@ -314,7 +314,7 @@ class _OrderDeliveryMapCardState extends State<OrderDeliveryMapCard> {
       ),
       Marker(
         point: widget.destination,
-        width: 96,
+        width: 120,
         height: 64,
         child: _MapMarkerChip(
           label: widget.destinationLabel,
@@ -454,9 +454,13 @@ class _MapMarkerChip extends StatelessWidget {
           children: [
             Icon(icon, size: 15, color: accent),
             const SizedBox(width: 6),
-            Text(
-              label,
-              style: AppTypography.eyebrow.copyWith(color: AppColors.white),
+            Flexible(
+              child: Text(
+                label,
+                style: AppTypography.eyebrow.copyWith(color: AppColors.white),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
             ),
           ],
         ),

@@ -576,9 +576,9 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
           const SizedBox(height: 12),
           Text(
             _t(
-              ru: 'Обновления пишутся прямо в Firestore и сразу попадают на клиентскую карту.',
-              en: 'Updates are written straight to Firestore and show up on the client map instantly.',
-              kk: 'Жаңартулар Firestore-ға бірден жазылып, клиент картасына дереу түседі.',
+              ru: 'Сразу после оформления заявки мы назначим курьера. Вы сможете отслеживать его движение на карте в режиме реального времени',
+              en: 'As soon as your request is finalized, a courier will be assigned immediately. You can track their progress on the map in real-time',
+              kk: 'Өтінім рәсімделген бойда біз бірден курьер тағайындаймыз. Оның қозғалысын картадан нақты уақыт режимінде бақылай аласыз',
             ),
             style: Theme.of(context).textTheme.bodyMedium,
           ),
@@ -586,14 +586,14 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
           Text(
             order.courierLocationUpdatedAt == null
                 ? _t(
-                    ru: 'Последний sync: еще не отправляли',
-                    en: 'Last sync: not sent yet',
-                    kk: 'Соңғы sync: әлі жіберілген жоқ',
+                    ru: 'Последняя проверка: данных пока нет',
+                    en: 'Last check: no data yet',
+                    kk: 'Соңғы тексеру: мәлімет әлі жоқ',
                   )
                 : _t(
-                    ru: 'Последний sync: ${_formatDateTime(order.courierLocationUpdatedAt!)}',
-                    en: 'Last sync: ${_formatDateTime(order.courierLocationUpdatedAt!)}',
-                    kk: 'Соңғы sync: ${_formatDateTime(order.courierLocationUpdatedAt!)}',
+                    ru: 'Последняя проверка: ${_formatDateTime(order.courierLocationUpdatedAt!)}',
+                    en: 'Last check: ${_formatDateTime(order.courierLocationUpdatedAt!)}',
+                    kk: 'Соңғы тексеру: ${_formatDateTime(order.courierLocationUpdatedAt!)}',
                   ),
             style: AppTypography.code,
           ),
