@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/typography.dart';
@@ -17,6 +19,7 @@ import '../../../orders/data/order_repository.dart';
 import '../../../orders/domain/enums/delivery_method.dart';
 import '../../../orders/domain/enums/order_status.dart';
 import '../../../orders/domain/models/order_model.dart';
+import '../../../orders/domain/services/order_map_location_resolver.dart';
 import '../../../products/data/product_repository.dart';
 import '../shared/order_digital_twin_card.dart';
 import '../shared/order_delivery_map_card.dart';
@@ -339,26 +342,58 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     switch (_view) {
       case ClientView.product:
         if (_selectedProduct == null) {
-          return _t(ru: 'КЛИЕНТ / ТОВАР', en: 'CLIENT / PRODUCT', kk: 'КЛИЕНТ / ТАУАР');
+          return _t(
+            ru: 'КЛИЕНТ / ТОВАР',
+            en: 'CLIENT / PRODUCT',
+            kk: 'КЛИЕНТ / ТАУАР',
+          );
         }
         return '${_t(ru: 'КЛИЕНТ', en: 'CLIENT', kk: 'КЛИЕНТ')} / '
             '${localizeCatalogSection(_language, _selectedProduct!.category).toUpperCase()}';
       case ClientView.checkout:
-        return _t(ru: 'КЛИЕНТ / ОФОРМЛЕНИЕ', en: 'CLIENT / CHECKOUT', kk: 'КЛИЕНТ / ТАПСЫРЫС');
+        return _t(
+          ru: 'КЛИЕНТ / ОФОРМЛЕНИЕ',
+          en: 'CLIENT / CHECKOUT',
+          kk: 'КЛИЕНТ / ТАПСЫРЫС',
+        );
       case ClientView.payment:
-        return _t(ru: 'КЛИЕНТ / ОПЛАТА', en: 'CLIENT / PAYMENT', kk: 'КЛИЕНТ / ТӨЛЕМ');
+        return _t(
+          ru: 'КЛИЕНТ / ОПЛАТА',
+          en: 'CLIENT / PAYMENT',
+          kk: 'КЛИЕНТ / ТӨЛЕМ',
+        );
       case ClientView.tracking:
-        return _t(ru: 'КЛИЕНТ / ТРЕКИНГ', en: 'CLIENT / TRACKING', kk: 'КЛИЕНТ / БАҚЫЛАУ');
+        return _t(
+          ru: 'КЛИЕНТ / ТРЕКИНГ',
+          en: 'CLIENT / TRACKING',
+          kk: 'КЛИЕНТ / БАҚЫЛАУ',
+        );
       case ClientView.root:
         switch (_tab) {
           case ClientTab.dashboard:
-            return _t(ru: 'КЛИЕНТ / ПАНЕЛЬ', en: 'CLIENT / HOME', kk: 'КЛИЕНТ / ПАНЕЛЬ');
+            return _t(
+              ru: 'КЛИЕНТ / ПАНЕЛЬ',
+              en: 'CLIENT / HOME',
+              kk: 'КЛИЕНТ / ПАНЕЛЬ',
+            );
           case ClientTab.collections:
-            return _t(ru: 'КЛИЕНТ / КАТАЛОГ', en: 'CLIENT / CATALOG', kk: 'КЛИЕНТ / КАТАЛОГ');
+            return _t(
+              ru: 'КЛИЕНТ / КАТАЛОГ',
+              en: 'CLIENT / CATALOG',
+              kk: 'КЛИЕНТ / КАТАЛОГ',
+            );
           case ClientTab.archive:
-            return _t(ru: 'КЛИЕНТ / ИСТОРИЯ', en: 'CLIENT / ORDERS', kk: 'КЛИЕНТ / ТАРИХЫ');
+            return _t(
+              ru: 'КЛИЕНТ / ИСТОРИЯ',
+              en: 'CLIENT / ORDERS',
+              kk: 'КЛИЕНТ / ТАРИХЫ',
+            );
           case ClientTab.profile:
-            return _t(ru: 'КЛИЕНТ / ПРОФИЛЬ', en: 'CLIENT / PROFILE', kk: 'КЛИЕНТ / ПРОФИЛЬ');
+            return _t(
+              ru: 'КЛИЕНТ / ПРОФИЛЬ',
+              en: 'CLIENT / PROFILE',
+              kk: 'КЛИЕНТ / ПРОФИЛЬ',
+            );
         }
     }
   }
@@ -410,7 +445,11 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _heroCard(
-          title: _t(ru: 'КАПСУЛА СЕЗОНА', en: 'SEASON CAPSULE', kk: 'МАУСЫМДЫҚ КАПСУЛА'),
+          title: _t(
+            ru: 'КАПСУЛА СЕЗОНА',
+            en: 'SEASON CAPSULE',
+            kk: 'МАУСЫМДЫҚ КАПСУЛА',
+          ),
           subtitle: _t(
             ru: 'Каталог собран с разделами, фильтрами, сортировкой и полноценной карточкой товара в фирменном AVISHU-ритме.',
             en: 'The catalog now combines sections, filters, sorting, and a full product card in the AVISHU rhythm.',
@@ -427,7 +466,11 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
           children: [
             Expanded(
               child: _metricCard(
-                label: _t(ru: 'Предзаказы', en: 'Preorders', kk: 'Алдын ала тапсырыстар'),
+                label: _t(
+                  ru: 'Предзаказы',
+                  en: 'Preorders',
+                  kk: 'Алдын ала тапсырыстар',
+                ),
                 value: preorderCount.toString(),
               ),
             ),
@@ -447,12 +490,20 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _t(ru: 'АКТИВНЫЙ ЗАКАЗ', en: 'ACTIVE ORDER', kk: 'БЕЛСЕНДІ ТАПСЫРЫС'),
+                  _t(
+                    ru: 'АКТИВНЫЙ ЗАКАЗ',
+                    en: 'ACTIVE ORDER',
+                    kk: 'БЕЛСЕНДІ ТАПСЫРЫС',
+                  ),
                   style: AppTypography.eyebrow,
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  _t(ru: 'Заказов пока нет', en: 'No orders yet', kk: 'Әзірге тапсырыстар жоқ'),
+                  _t(
+                    ru: 'Заказов пока нет',
+                    en: 'No orders yet',
+                    kk: 'Әзірге тапсырыстар жоқ',
+                  ),
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 10),
@@ -479,7 +530,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             },
           ),
         const SizedBox(height: 12),
-        _sectionLabel(_t(ru: 'БЫСТРЫЙ ВЫБОР', en: 'QUICK PICK', kk: 'ЖЕДЕЛ ТАҢДАУ')),
+        _sectionLabel(
+          _t(ru: 'БЫСТРЫЙ ВЫБОР', en: 'QUICK PICK', kk: 'ЖЕДЕЛ ТАҢДАУ'),
+        ),
         const SizedBox(height: 12),
         ...featuredProducts.map(
           (product) => Padding(
@@ -495,7 +548,11 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             children: [
               Expanded(
                 child: Text(
-                  _t(ru: 'Перейти в каталог', en: 'Open Catalog', kk: 'Каталогқа өту'),
+                  _t(
+                    ru: 'Перейти в каталог',
+                    en: 'Open Catalog',
+                    kk: 'Каталогқа өту',
+                  ),
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
@@ -546,7 +603,11 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         ),
         const SizedBox(height: 12),
         _catalogAccordion(
-          eyebrow: _t(ru: 'РАЗДЕЛЫ КАТАЛОГА', en: 'CATALOG SECTIONS', kk: 'КАТАЛОГ БӨЛІМДЕРІ'),
+          eyebrow: _t(
+            ru: 'РАЗДЕЛЫ КАТАЛОГА',
+            en: 'CATALOG SECTIONS',
+            kk: 'КАТАЛОГ БӨЛІМДЕРІ',
+          ),
           title: sectionLabel,
           summary: _showFavoritesOnly
               ? _t(
@@ -597,7 +658,11 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         ),
         const SizedBox(height: 12),
         _catalogAccordion(
-          eyebrow: _t(ru: 'ФИЛЬТРЫ И СОРТИРОВКА', en: 'FILTERS & SORTING', kk: 'СҮЗГІЛЕР ЖӘНЕ СҰРЫПТАУ'),
+          eyebrow: _t(
+            ru: 'ФИЛЬТРЫ И СОРТИРОВКА',
+            en: 'FILTERS & SORTING',
+            kk: 'СҮЗГІЛЕР ЖӘНЕ СҰРЫПТАУ',
+          ),
           title: sectionLabel,
           summary: filtersSummary,
           expanded: _catalogFiltersExpanded,
@@ -616,7 +681,11 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                   setState(_resetCatalogFilters);
                 },
                 child: Text(
-                  _t(ru: 'Очистить выбор', en: 'Clear filters', kk: 'Таңдауды тазарту'),
+                  _t(
+                    ru: 'Очистить выбор',
+                    en: 'Clear filters',
+                    kk: 'Таңдауды тазарту',
+                  ),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     decoration: TextDecoration.underline,
                   ),
@@ -685,7 +754,11 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _t(ru: 'НЕТ СОВПАДЕНИЙ', en: 'NO MATCHES', kk: 'СӘЙКЕСТІК ЖОҚ'),
+                  _t(
+                    ru: 'НЕТ СОВПАДЕНИЙ',
+                    en: 'NO MATCHES',
+                    kk: 'СӘЙКЕСТІК ЖОҚ',
+                  ),
                   style: AppTypography.eyebrow,
                 ),
                 const SizedBox(height: 10),
@@ -874,7 +947,13 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _sectionLabel(_t(ru: 'ИСТОРИЯ ЗАКАЗОВ', en: 'ORDER HISTORY', kk: 'ТАПСЫРЫСТАР МҰРАҒАТЫ')),
+        _sectionLabel(
+          _t(
+            ru: 'ИСТОРИЯ ЗАКАЗОВ',
+            en: 'ORDER HISTORY',
+            kk: 'ТАПСЫРЫСТАР МҰРАҒАТЫ',
+          ),
+        ),
         const SizedBox(height: 12),
         if (orders.isEmpty)
           _surfaceCard(
@@ -922,7 +1001,11 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                _t(ru: 'КЛИЕНТСКИЙ ПРОФИЛЬ', en: 'CLIENT PROFILE', kk: 'КЛИЕНТ ПРОФИЛІ'),
+                _t(
+                  ru: 'КЛИЕНТСКИЙ ПРОФИЛЬ',
+                  en: 'CLIENT PROFILE',
+                  kk: 'КЛИЕНТ ПРОФИЛІ',
+                ),
                 style: AppTypography.eyebrow,
               ),
               const SizedBox(height: 12),
@@ -977,7 +1060,11 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                _t(ru: 'ПРОГРАММА ЛОЯЛЬНОСТИ', en: 'LOYALTY PROGRAM', kk: 'ЛОЯЛЬДІЛІК БАҒДАРЛАМАСЫ'),
+                _t(
+                  ru: 'ПРОГРАММА ЛОЯЛЬНОСТИ',
+                  en: 'LOYALTY PROGRAM',
+                  kk: 'ЛОЯЛЬДІЛІК БАҒДАРЛАМАСЫ',
+                ),
                 style: AppTypography.eyebrow,
               ),
               const SizedBox(height: 12),
@@ -1009,7 +1096,11 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             children: [
               Expanded(
                 child: Text(
-                  _t(ru: 'Любимые модели', en: 'Favorite Models', kk: 'Таңдаулы модельдер'),
+                  _t(
+                    ru: 'Любимые модели',
+                    en: 'Favorite Models',
+                    kk: 'Таңдаулы модельдер',
+                  ),
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
@@ -1062,7 +1153,11 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         ),
         const SizedBox(height: 16),
         AvishuButton(
-          text: _t(ru: 'ВЫЙТИ ИЗ АККАУНТА', en: 'SIGN OUT', kk: 'АККАУНТТАН ШЫҒУ'),
+          text: _t(
+            ru: 'ВЫЙТИ ИЗ АККАУНТА',
+            en: 'SIGN OUT',
+            kk: 'АККАУНТТАН ШЫҒУ',
+          ),
           expanded: true,
           variant: AvishuButtonVariant.outline,
           icon: Icons.logout,
@@ -1127,7 +1222,11 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         ),
         const SizedBox(height: 12),
         OrderInfoCard(
-          title: _t(ru: 'ИНФОРМАЦИЯ О ТОВАРЕ', en: 'PRODUCT INFO', kk: 'ТАУАР ТУРАЛЫ АҚПАРАТ'),
+          title: _t(
+            ru: 'ИНФОРМАЦИЯ О ТОВАРЕ',
+            en: 'PRODUCT INFO',
+            kk: 'ТАУАР ТУРАЛЫ АҚПАРАТ',
+          ),
           rows: [
             OrderInfoRowData(
               label: _t(ru: 'Артикул', en: 'SKU', kk: 'Артикул'),
@@ -1201,7 +1300,11 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                     const Icon(Icons.straighten, size: 18),
                     const SizedBox(width: 8),
                     Text(
-                      _t(ru: 'Размерная сетка', en: 'Size Guide', kk: 'Өлшемдер кестесі'),
+                      _t(
+                        ru: 'Размерная сетка',
+                        en: 'Size Guide',
+                        kk: 'Өлшемдер кестесі',
+                      ),
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ],
@@ -1210,7 +1313,11 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               if (product.preorder) ...[
                 const SizedBox(height: 16),
                 Text(
-                  _t(ru: 'ДАТА ГОТОВНОСТИ', en: 'READY DATE', kk: 'ДАЙЫН БОЛАТЫН КҮНІ'),
+                  _t(
+                    ru: 'ДАТА ГОТОВНОСТИ',
+                    en: 'READY DATE',
+                    kk: 'ДАЙЫН БОЛАТЫН КҮНІ',
+                  ),
                   style: AppTypography.eyebrow,
                 ),
                 const SizedBox(height: 8),
@@ -1233,7 +1340,11 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               Text(
                 product.inStock
                     ? _t(ru: 'В наличии', en: 'In Stock', kk: 'Қоймада бар')
-                    : _t(ru: 'Нет в наличии', en: 'Out of Stock', kk: 'Қоймада жоқ'),
+                    : _t(
+                        ru: 'Нет в наличии',
+                        en: 'Out of Stock',
+                        kk: 'Қоймада жоқ',
+                      ),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: product.inStock ? AppColors.black : AppColors.error,
                   fontWeight: FontWeight.w700,
@@ -1252,8 +1363,16 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                   Expanded(
                     child: AvishuButton(
                       text: isFavorite
-                          ? _t(ru: 'В ИЗБРАННОМ', en: 'IN FAVORITES', kk: 'ТАҢДАУЛЫДА')
-                          : _t(ru: 'В ИЗБРАННОЕ', en: 'ADD TO FAVORITES', kk: 'ТАҢДАУЛЫҒА ҚОСУ'),
+                          ? _t(
+                              ru: 'В ИЗБРАННОМ',
+                              en: 'IN FAVORITES',
+                              kk: 'ТАҢДАУЛЫДА',
+                            )
+                          : _t(
+                              ru: 'В ИЗБРАННОЕ',
+                              en: 'ADD TO FAVORITES',
+                              kk: 'ТАҢДАУЛЫҒА ҚОСУ',
+                            ),
                       expanded: true,
                       variant: AvishuButtonVariant.outline,
                       icon: isFavorite
@@ -1273,8 +1392,16 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               const SizedBox(height: 16),
               AvishuButton(
                 text: product.preorder
-                    ? _t(ru: 'ПРОДОЛЖИТЬ ПРЕДЗАКАЗ', en: 'CONTINUE PREORDER', kk: 'АЛДЫН АЛА ТАПСЫРЫСТЫ ЖАЛҒАСТЫРУ')
-                    : _t(ru: 'ОФОРМИТЬ ЗАКАЗ', en: 'PLACE ORDER', kk: 'ТАПСЫРЫС БЕРУ'),
+                    ? _t(
+                        ru: 'ПРОДОЛЖИТЬ ПРЕДЗАКАЗ',
+                        en: 'CONTINUE PREORDER',
+                        kk: 'АЛДЫН АЛА ТАПСЫРЫСТЫ ЖАЛҒАСТЫРУ',
+                      )
+                    : _t(
+                        ru: 'ОФОРМИТЬ ЗАКАЗ',
+                        en: 'PLACE ORDER',
+                        kk: 'ТАПСЫРЫС БЕРУ',
+                      ),
                 expanded: true,
                 variant: AvishuButtonVariant.filled,
                 onPressed: () {
@@ -1301,7 +1428,11 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         ),
         const SizedBox(height: 12),
         _productAccordion(
-          title: _t(ru: 'ХАРАКТЕРИСТИКИ', en: 'SPECIFICATIONS', kk: 'СИПАТТАМАЛАР'),
+          title: _t(
+            ru: 'ХАРАКТЕРИСТИКИ',
+            en: 'SPECIFICATIONS',
+            kk: 'СИПАТТАМАЛАР',
+          ),
           expanded: _specificationsExpanded,
           onToggle: () {
             setState(() => _specificationsExpanded = !_specificationsExpanded);
@@ -1371,7 +1502,11 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         OrderInfoCard(
-          title: _t(ru: 'СОСТАВ ЗАКАЗА', en: 'ORDER SUMMARY', kk: 'ТАПСЫРЫС ҚҰРАМЫ'),
+          title: _t(
+            ru: 'СОСТАВ ЗАКАЗА',
+            en: 'ORDER SUMMARY',
+            kk: 'ТАПСЫРЫС ҚҰРАМЫ',
+          ),
           rows: [
             OrderInfoRowData(
               label: _t(ru: 'Изделие', en: 'Product', kk: 'Бұйым'),
@@ -1390,7 +1525,11 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               value: '$_quantity',
             ),
             OrderInfoRowData(
-              label: _t(ru: 'Стоимость позиции', en: 'Unit Price', kk: 'Бірлік бағасы'),
+              label: _t(
+                ru: 'Стоимость позиции',
+                en: 'Unit Price',
+                kk: 'Бірлік бағасы',
+              ),
               value: formatCurrency(product.price),
             ),
           ],
@@ -1462,7 +1601,13 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
           builder: (context, _) => _buildCheckoutDeliveryMapCard(product),
         ),
         const SizedBox(height: 12),
-        _sectionLabel(_t(ru: 'СПОСОБ ПОЛУЧЕНИЯ', en: 'FULFILLMENT METHOD', kk: 'АЛУ ТӘСІЛІ')),
+        _sectionLabel(
+          _t(
+            ru: 'СПОСОБ ПОЛУЧЕНИЯ',
+            en: 'FULFILLMENT METHOD',
+            kk: 'АЛУ ТӘСІЛІ',
+          ),
+        ),
         const SizedBox(height: 12),
         Row(
           children: [
@@ -1492,7 +1637,11 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         ),
         const SizedBox(height: 18),
         AvishuButton(
-          text: _t(ru: 'ПЕРЕЙТИ К ОПЛАТЕ', en: 'GO TO PAYMENT', kk: 'ТӨЛЕМГЕ ӨТУ'),
+          text: _t(
+            ru: 'ПЕРЕЙТИ К ОПЛАТЕ',
+            en: 'GO TO PAYMENT',
+            kk: 'ТӨЛЕМГЕ ӨТУ',
+          ),
           expanded: true,
           variant: AvishuButtonVariant.filled,
           onPressed: () {
@@ -1516,14 +1665,22 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                _t(ru: 'ОПЛАТА КАРТОЙ', en: 'CARD PAYMENT', kk: 'КАРТАМЕН ТӨЛЕУ'),
+                _t(
+                  ru: 'ОПЛАТА КАРТОЙ',
+                  en: 'CARD PAYMENT',
+                  kk: 'КАРТАМЕН ТӨЛЕУ',
+                ),
                 style: AppTypography.eyebrow,
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: _cardController,
                 decoration: InputDecoration(
-                  labelText: _t(ru: 'Номер карты', en: 'Card Number', kk: 'Карта нөмірі'),
+                  labelText: _t(
+                    ru: 'Номер карты',
+                    en: 'Card Number',
+                    kk: 'Карта нөмірі',
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -1549,7 +1706,11 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         ),
         const SizedBox(height: 12),
         OrderInfoCard(
-          title: _t(ru: 'ДЕТАЛИ ОПЛАТЫ', en: 'PAYMENT DETAILS', kk: 'ТӨЛЕМ МӘЛІМЕТТЕРІ'),
+          title: _t(
+            ru: 'ДЕТАЛИ ОПЛАТЫ',
+            en: 'PAYMENT DETAILS',
+            kk: 'ТӨЛЕМ МӘЛІМЕТТЕРІ',
+          ),
           rows: _checkoutRows(product),
         ),
         const SizedBox(height: 18),
@@ -1617,13 +1778,21 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         _buildTrackingDeliveryMapCard(order),
         const SizedBox(height: 12),
         OrderInfoCard(
-          title: _t(ru: 'ДЕТАЛИ ЗАКАЗА', en: 'ORDER DETAILS', kk: 'ТАПСЫРЫС МӘЛІМЕТТЕРІ'),
+          title: _t(
+            ru: 'ДЕТАЛИ ЗАКАЗА',
+            en: 'ORDER DETAILS',
+            kk: 'ТАПСЫРЫС МӘЛІМЕТТЕРІ',
+          ),
           rows: OrderSummaryRows.forOrder(order, language: _language),
         ),
         if (order.clientNote.trim().isNotEmpty) ...[
           const SizedBox(height: 12),
           OrderInfoCard(
-            title: _t(ru: 'КОММЕНТАРИЙ КЛИЕНТА', en: 'CLIENT COMMENT', kk: 'КЛИЕНТ ПІКІРІ'),
+            title: _t(
+              ru: 'КОММЕНТАРИЙ КЛИЕНТА',
+              en: 'CLIENT COMMENT',
+              kk: 'КЛИЕНТ ПІКІРІ',
+            ),
             rows: [
               OrderInfoRowData(
                 label: _t(ru: 'Комментарий', en: 'Comment', kk: 'Пікір'),
@@ -1635,7 +1804,11 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         if (order.franchiseeNote.trim().isNotEmpty) ...[
           const SizedBox(height: 12),
           OrderInfoCard(
-            title: _t(ru: 'ПОМЕТКА ФРАНЧАЙЗИ', en: 'FRANCHISE NOTE', kk: 'ФРАНЧАЙЗИ БЕЛГІСІ'),
+            title: _t(
+              ru: 'ПОМЕТКА ФРАНЧАЙЗИ',
+              en: 'FRANCHISE NOTE',
+              kk: 'ФРАНЧАЙЗИ БЕЛГІСІ',
+            ),
             rows: [
               OrderInfoRowData(
                 label: _t(ru: 'Статус', en: 'Status', kk: 'Мәртебе'),
@@ -1647,7 +1820,11 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         if (order.productionNote.trim().isNotEmpty) ...[
           const SizedBox(height: 12),
           OrderInfoCard(
-            title: _t(ru: 'ПОМЕТКА ПРОИЗВОДСТВА', en: 'FACTORY NOTE', kk: 'ӨНДІРІС БЕЛГІСІ'),
+            title: _t(
+              ru: 'ПОМЕТКА ПРОИЗВОДСТВА',
+              en: 'FACTORY NOTE',
+              kk: 'ӨНДІРІС БЕЛГІСІ',
+            ),
             rows: [
               OrderInfoRowData(
                 label: _t(ru: 'Производство', en: 'Factory', kk: 'Өндіріс'),
@@ -1956,6 +2133,12 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     final apartment = _apartmentController.text.trim();
     final hasDestination = city.isNotEmpty && address.isNotEmpty;
     final isPickup = _deliveryMethod == DeliveryMethod.pickup;
+    final routeLocations = OrderMapLocationResolver.resolveRoute(
+      deliveryMethod: _deliveryMethod,
+      city: city,
+      address: address,
+      apartment: apartment,
+    );
 
     final statusValue = hasDestination
         ? isPickup
@@ -2016,11 +2199,31 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       live: false,
       pickup: isPickup,
       completed: false,
+      origin: _latLngFromGeoPoint(routeLocations.originLocation),
+      destination: _latLngFromGeoPoint(routeLocations.destinationLocation),
+      courier: isPickup
+          ? null
+          : _latLngFromGeoPoint(routeLocations.originLocation),
     );
   }
 
   Widget _buildTrackingDeliveryMapCard(OrderModel order) {
     final isPickup = order.deliveryMethod == DeliveryMethod.pickup;
+    final routeLocations =
+        order.originLocation != null && order.destinationLocation != null
+        ? OrderRouteLocations(
+            originLocation: order.originLocation!,
+            destinationLocation: order.destinationLocation!,
+          )
+        : OrderMapLocationResolver.resolveRoute(
+            deliveryMethod: order.deliveryMethod,
+            city: order.deliveryCity,
+            address: order.deliveryAddress,
+            apartment: order.apartment,
+          );
+    final liveCourierLocation = !isPickup
+        ? order.courierLocation ?? routeLocations.originLocation
+        : null;
 
     return OrderDeliveryMapCard(
       eyebrow: isPickup
@@ -2059,6 +2262,12 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       live: !isPickup && order.status == OrderStatus.ready,
       pickup: isPickup,
       completed: order.status == OrderStatus.completed,
+      origin: _latLngFromGeoPoint(routeLocations.originLocation),
+      destination: _latLngFromGeoPoint(routeLocations.destinationLocation),
+      courier: liveCourierLocation == null
+          ? null
+          : _latLngFromGeoPoint(liveCourierLocation),
+      updatedAt: order.courierLocationUpdatedAt,
     );
   }
 
@@ -2084,6 +2293,23 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
   }
 
   double _trackingRouteProgress(OrderModel order) {
+    if (order.deliveryMethod == DeliveryMethod.courier &&
+        order.originLocation != null &&
+        order.destinationLocation != null &&
+        order.courierLocation != null) {
+      final fullDistance = _distanceBetweenGeoPoints(
+        order.originLocation!,
+        order.destinationLocation!,
+      );
+      if (fullDistance > 0) {
+        final completedDistance = _distanceBetweenGeoPoints(
+          order.originLocation!,
+          order.courierLocation!,
+        );
+        return (completedDistance / fullDistance).clamp(0.0, 1.0);
+      }
+    }
+
     switch (order.status) {
       case OrderStatus.newOrder:
         return 0.14;
@@ -2113,6 +2339,19 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       return order.readyBy ??
           order.estimatedReadyAt ??
           order.lastStatusChangedAt.add(const Duration(minutes: 45));
+    }
+
+    if (order.status == OrderStatus.ready &&
+        order.courierLocation != null &&
+        order.destinationLocation != null) {
+      final remainingKm = _distanceBetweenGeoPoints(
+        order.courierLocation!,
+        order.destinationLocation!,
+      );
+      final etaMinutes = (remainingKm / 0.45).round().clamp(6, 120);
+      final baseline =
+          order.courierLocationUpdatedAt ?? order.lastStatusChangedAt;
+      return baseline.add(Duration(minutes: etaMinutes));
     }
 
     switch (order.status) {
@@ -2213,6 +2452,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     if (order.deliveryMethod == DeliveryMethod.pickup) {
       return _t(ru: 'MAP / PICKUP STATUS', en: 'MAP / PICKUP STATUS');
     }
+    if (order.courierLocationUpdatedAt != null) {
+      return 'LIVE / ${_clockLabel(order.courierLocationUpdatedAt!)}';
+    }
     return _t(ru: 'MAP / COURIER STATUS', en: 'MAP / COURIER STATUS');
   }
 
@@ -2263,6 +2505,19 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     final hour = value.hour.toString().padLeft(2, '0');
     final minute = value.minute.toString().padLeft(2, '0');
     return '$hour:$minute';
+  }
+
+  LatLng _latLngFromGeoPoint(GeoPoint point) {
+    return LatLng(point.latitude, point.longitude);
+  }
+
+  double _distanceBetweenGeoPoints(GeoPoint start, GeoPoint end) {
+    const distance = Distance();
+    return distance.as(
+      LengthUnit.Kilometer,
+      _latLngFromGeoPoint(start),
+      _latLngFromGeoPoint(end),
+    );
   }
 
   Widget _heroCard({
@@ -3062,7 +3317,11 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          _t(ru: 'РАЗДЕЛЫ КАТАЛОГА', en: 'CATALOG SECTIONS', kk: 'КАТАЛОГ БӨЛІМДЕРІ'),
+                          _t(
+                            ru: 'РАЗДЕЛЫ КАТАЛОГА',
+                            en: 'CATALOG SECTIONS',
+                            kk: 'КАТАЛОГ БӨЛІМДЕРІ',
+                          ),
                           style: AppTypography.eyebrow,
                         ),
                         const SizedBox(height: 8),

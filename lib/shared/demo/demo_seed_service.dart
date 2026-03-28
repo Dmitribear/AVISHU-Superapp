@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../features/auth/domain/user_role.dart';
 import '../../features/orders/data/order_repository.dart';
 import '../../features/orders/domain/enums/delivery_method.dart';
+import '../../features/orders/domain/services/order_map_location_resolver.dart';
 import '../../features/products/data/product_repository.dart';
 import '../../features/products/domain/enums/product_status.dart';
 import '../../features/products/domain/models/product_model.dart';
@@ -107,6 +108,55 @@ class DemoSeedService {
       note: 'Factory started tailoring',
       changedByUserId: users.factoryWorker.userId,
     );
+
+    final liveCourierOrderId = await _orders.createOrder(
+      clientId: users.client.userId,
+      productId: products[3].id,
+      productName: products[3].name,
+      sizeLabel: 'M',
+      quantity: 1,
+      unitPrice: products[3].price,
+      imageUrl: products[3].coverImage,
+      amount: products[3].price + DeliveryMethod.courier.fee,
+      isPreorder: false,
+      deliveryMethod: DeliveryMethod.courier,
+      deliveryCity: 'Almaty',
+      deliveryAddress: 'Mega Alma-Ata',
+      apartment: '1',
+      paymentLast4: '3535',
+      clientNote: 'Live courier map demo',
+    );
+    await _orders.acceptOrder(
+      liveCourierOrderId,
+      note: 'Accepted by demo franchisee',
+      changedByUserId: users.franchisee.userId,
+      franchiseeId: users.franchisee.userId,
+    );
+    await _orders.startProduction(
+      liveCourierOrderId,
+      note: 'Factory started tailoring',
+      changedByUserId: users.factoryWorker.userId,
+    );
+    await _orders.completeOrder(
+      liveCourierOrderId,
+      note: 'Order is packed and handed to courier',
+      changedByUserId: users.factoryWorker.userId,
+    );
+    final liveCourierRoute = OrderMapLocationResolver.resolveRoute(
+      deliveryMethod: DeliveryMethod.courier,
+      city: 'Almaty',
+      address: 'Mega Alma-Ata',
+      apartment: '1',
+    );
+    await _orders.updateCourierLocation(
+      liveCourierOrderId,
+      courierLocation: OrderMapLocationResolver.interpolate(
+        liveCourierRoute.originLocation,
+        liveCourierRoute.destinationLocation,
+        0.38,
+      ),
+      note: 'Courier left the atelier',
+    );
     await _orders.completeOrder(
       readyOrderId,
       note: 'Factory finished the order',
@@ -123,7 +173,12 @@ class DemoSeedService {
         users.admin,
       ],
       productIds: products.map((product) => product.id).toList(),
-      orderIds: <String>[newOrderId, inProductionOrderId, readyOrderId],
+      orderIds: <String>[
+        newOrderId,
+        inProductionOrderId,
+        readyOrderId,
+        liveCourierOrderId,
+      ],
     );
   }
 
@@ -261,7 +316,8 @@ class DemoSeedService {
         category: 'skirts',
         material: 'Эко-кожа / подкладка — вискоза',
         silhouette: 'A-line midi',
-        atelierNote: 'Индивидуальный пошив 3-4 рабочих дня. Размерная сетка — AVISHU standard.',
+        atelierNote:
+            'Индивидуальный пошив 3-4 рабочих дня. Размерная сетка — AVISHU standard.',
         sections: const <String>['Новинки', 'Юбки'],
         colors: const <String>['Кофе', 'Черный', 'Экрю'],
         sizes: const <String>['XS', 'S', 'M', 'L'],
@@ -305,7 +361,8 @@ class DemoSeedService {
         category: 'suits',
         material: 'Шерсть / полиэстер — тонкая подкладка',
         silhouette: 'Oversized structured',
-        atelierNote: 'Комплект: жакет + брюки. Пошив по предзаказу 5 рабочих дней.',
+        atelierNote:
+            'Комплект: жакет + брюки. Пошив по предзаказу 5 рабочих дней.',
         sections: const <String>['Костюмы', 'Новинки'],
         colors: const <String>['Черный', 'Молочный'],
         sizes: const <String>['XS', 'S', 'M', 'L', 'XL'],
@@ -345,7 +402,8 @@ class DemoSeedService {
         description:
             'Мягкий кардиган из хлопко-кашемировой смеси для сезонного layering. '
             'Прямой крой, удлинённый силуэт, базовая модель капсулы AVISHU.',
-        shortDescription: 'Кардиган прямого кроя, хлопок-кашемир, базовая капсула.',
+        shortDescription:
+            'Кардиган прямого кроя, хлопок-кашемир, базовая капсула.',
         category: 'cardigans',
         material: 'Хлопок 70% / кашемир 30%',
         silhouette: 'Straight relaxed',
@@ -388,11 +446,13 @@ class DemoSeedService {
         description:
             'Брюки wide-leg с высокой посадкой premium-качества. Драпируются естественно, '
             'создавая архитектурный объём снизу. Базовая позиция AVISHU.',
-        shortDescription: 'Брюки wide-leg, высокая посадка, архитектурный объём.',
+        shortDescription:
+            'Брюки wide-leg, высокая посадка, архитектурный объём.',
         category: 'trousers',
         material: 'Вискоза / лён — лёгкая смесь',
         silhouette: 'Wide-leg high-rise',
-        atelierNote: 'В наличии. Можно заказать по индивидуальным меркам — +3 дня.',
+        atelierNote:
+            'В наличии. Можно заказать по индивидуальным меркам — +3 дня.',
         sections: const <String>['Брюки', 'Базовые'],
         colors: const <String>['Черный', 'Бежевый', 'Хаки'],
         sizes: const <String>['XS', 'S', 'M', 'L'],
@@ -435,7 +495,8 @@ class DemoSeedService {
         category: 'outerwear',
         material: 'Шерсть 80% / полиамид 20%',
         silhouette: 'Longline straight',
-        atelierNote: 'Пошив по предзаказу 6 рабочих дней. Доступна подгонка по фигуре.',
+        atelierNote:
+            'Пошив по предзаказу 6 рабочих дней. Доступна подгонка по фигуре.',
         sections: const <String>['Новинки', 'Верхняя одежда'],
         colors: const <String>['Черный', 'Серый меланж', 'Кемел'],
         sizes: const <String>['S', 'M', 'L', 'XL'],

@@ -43,6 +43,10 @@ class OrderModel {
   final String deliveryCity;
   final String deliveryAddress;
   final String apartment;
+  final GeoPoint? originLocation;
+  final GeoPoint? destinationLocation;
+  final GeoPoint? courierLocation;
+  final DateTime? courierLocationUpdatedAt;
   final String paymentMethod;
   final String paymentLast4;
   final String clientNote;
@@ -61,6 +65,10 @@ class OrderModel {
     required this.deliveryCity,
     required this.deliveryAddress,
     required this.apartment,
+    this.originLocation,
+    this.destinationLocation,
+    this.courierLocation,
+    this.courierLocationUpdatedAt,
     required this.paymentMethod,
     required this.paymentLast4,
     required List<OrderTimelineEntry> timeline,
@@ -211,6 +219,14 @@ class OrderModel {
       deliveryCity: stringFromFirestoreValue(data['deliveryCity']),
       deliveryAddress: stringFromFirestoreValue(data['deliveryAddress']),
       apartment: stringFromFirestoreValue(data['apartment']),
+      originLocation: geoPointFromFirestoreValue(data['originLocation']),
+      destinationLocation: geoPointFromFirestoreValue(
+        data['destinationLocation'],
+      ),
+      courierLocation: geoPointFromFirestoreValue(data['courierLocation']),
+      courierLocationUpdatedAt: dateTimeFromFirestoreValue(
+        data['courierLocationUpdatedAt'],
+      ),
       paymentMethod: stringFromFirestoreValue(
         data['paymentMethod'],
         fallback: 'card',
@@ -257,6 +273,10 @@ class OrderModel {
       'deliveryCity': deliveryCity,
       'deliveryAddress': deliveryAddress,
       'apartment': apartment,
+      'originLocation': originLocation,
+      'destinationLocation': destinationLocation,
+      'courierLocation': courierLocation,
+      'courierLocationUpdatedAt': timestampFromDate(courierLocationUpdatedAt),
       'paymentMethod': paymentMethod,
       'paymentLast4': paymentLast4,
       'clientNote': clientNote,
@@ -286,6 +306,10 @@ class OrderModel {
     List<OrderTimelineEntry>? timeline,
     List<OrderHistoryEntry>? history,
     List<OrderItemModel>? orderItems,
+    GeoPoint? originLocation,
+    GeoPoint? destinationLocation,
+    GeoPoint? courierLocation,
+    DateTime? courierLocationUpdatedAt,
     DateTime? updatedAt,
     DateTime? acceptedAt,
     DateTime? sentToFactoryAt,
@@ -325,6 +349,11 @@ class OrderModel {
       deliveryCity: deliveryCity,
       deliveryAddress: deliveryAddress,
       apartment: apartment,
+      originLocation: originLocation ?? this.originLocation,
+      destinationLocation: destinationLocation ?? this.destinationLocation,
+      courierLocation: courierLocation ?? this.courierLocation,
+      courierLocationUpdatedAt:
+          courierLocationUpdatedAt ?? this.courierLocationUpdatedAt,
       paymentMethod: paymentMethod,
       paymentLast4: paymentLast4,
       clientNote: clientNote,

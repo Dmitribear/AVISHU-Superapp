@@ -11,6 +11,7 @@ import '../domain/enums/payment_status.dart';
 import '../domain/models/order_history_entry.dart';
 import '../domain/models/order_item_model.dart';
 import '../domain/models/order_model.dart';
+import '../domain/services/order_map_location_resolver.dart';
 import '../domain/services/order_status_transition_service.dart';
 
 final orderRepositoryProvider = Provider<OrderRepository>(
@@ -118,6 +119,21 @@ class OrderRepository {
     );
   }
 
+  Future<void> updateCourierLocation(
+    String orderId, {
+    required GeoPoint courierLocation,
+    String note = '',
+    DateTime? updatedAt,
+  }) async {
+    final now = updatedAt ?? DateTime.now();
+    await _orders.doc(orderId).update(<String, dynamic>{
+      'courierLocation': courierLocation,
+      'courierLocationUpdatedAt': Timestamp.fromDate(now),
+      'updatedAt': Timestamp.fromDate(now),
+      if (note.isNotEmpty) 'franchiseeNote': note,
+    });
+  }
+
   Future<void> cancelOrder(
     String orderId, {
     String note = '',
@@ -212,6 +228,12 @@ class OrderRepository {
       isPreorder: resolvedIsPreorder,
       product: product,
     );
+    final routeLocations = OrderMapLocationResolver.resolveRoute(
+      deliveryMethod: deliveryMethod,
+      city: deliveryCity,
+      address: deliveryAddress,
+      apartment: apartment,
+    );
     final priority = _resolvePriority(
       isPreorder: resolvedIsPreorder,
       comment: clientNote,
@@ -274,6 +296,14 @@ class OrderRepository {
       deliveryCity: deliveryCity,
       deliveryAddress: deliveryAddress,
       apartment: apartment,
+      originLocation: routeLocations.originLocation,
+      destinationLocation: routeLocations.destinationLocation,
+      courierLocation: deliveryMethod == DeliveryMethod.courier
+          ? routeLocations.originLocation
+          : null,
+      courierLocationUpdatedAt: deliveryMethod == DeliveryMethod.courier
+          ? now
+          : null,
       paymentMethod: paymentMethod,
       paymentLast4: paymentLast4,
       clientNote: clientNote,
@@ -340,6 +370,14 @@ class OrderRepository {
       if (changedByRole == UserRole.production && note.isNotEmpty)
         'productionNote': note,
     };
+
+    if (newStatus == OrderStatus.ready &&
+        order.deliveryMethod == DeliveryMethod.courier &&
+        order.courierLocation == null &&
+        order.originLocation != null) {
+      updates['courierLocation'] = order.originLocation;
+      updates['courierLocationUpdatedAt'] = Timestamp.fromDate(now);
+    }
 
     final batch = _firestore.batch();
     batch.update(_orders.doc(orderId), updates);

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/typography.dart';
 
-class OrderDeliveryMapCard extends StatelessWidget {
+class OrderDeliveryMapCard extends StatefulWidget {
   final String eyebrow;
   final String badge;
   final String statusLabel;
@@ -24,6 +26,10 @@ class OrderDeliveryMapCard extends StatelessWidget {
   final bool live;
   final bool pickup;
   final bool completed;
+  final LatLng origin;
+  final LatLng destination;
+  final LatLng? courier;
+  final DateTime? updatedAt;
 
   const OrderDeliveryMapCard({
     super.key,
@@ -47,11 +53,75 @@ class OrderDeliveryMapCard extends StatelessWidget {
     required this.live,
     required this.pickup,
     required this.completed,
+    required this.origin,
+    required this.destination,
+    this.courier,
+    this.updatedAt,
   });
 
   @override
+  State<OrderDeliveryMapCard> createState() => _OrderDeliveryMapCardState();
+}
+
+class _OrderDeliveryMapCardState extends State<OrderDeliveryMapCard> {
+  static const Color _mapBackground = Color(0xFF080B10);
+  static const Color _routeBase = Color(0x40FFFFFF);
+  static const Color _routeGlow = Color(0xFF74D8C9);
+  static const Color _destinationAccent = Color(0xFFF4C46B);
+
+  final MapController _mapController = MapController();
+  bool _mapReady = false;
+
+  List<LatLng> get _cameraPoints => <LatLng>[
+    widget.origin,
+    widget.destination,
+    if (widget.courier != null) widget.courier!,
+  ];
+
+  LatLng? get _activeCourier {
+    if (widget.pickup) {
+      return null;
+    }
+    return widget.courier ?? widget.origin;
+  }
+
+  @override
+  void didUpdateWidget(covariant OrderDeliveryMapCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_signature(oldWidget) != _signature(widget)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _fitCamera());
+    }
+  }
+
+  String _signature(OrderDeliveryMapCard card) {
+    return [
+      card.origin.latitude,
+      card.origin.longitude,
+      card.destination.latitude,
+      card.destination.longitude,
+      card.courier?.latitude ?? -999,
+      card.courier?.longitude ?? -999,
+    ].join('|');
+  }
+
+  void _fitCamera() {
+    if (!_mapReady) {
+      return;
+    }
+
+    _mapController.fitCamera(
+      CameraFit.coordinates(
+        coordinates: _cameraPoints,
+        padding: const EdgeInsets.fromLTRB(54, 54, 54, 54),
+        maxZoom: 15.6,
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final clampedProgress = progress.clamp(0.0, 1.0);
+    final routeProgress = widget.progress.clamp(0.0, 1.0);
+    final liveSync = widget.live && widget.updatedAt != null;
 
     return Container(
       width: double.infinity,
@@ -66,7 +136,9 @@ class OrderDeliveryMapCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: Text(eyebrow, style: AppTypography.eyebrow)),
+              Expanded(
+                child: Text(widget.eyebrow, style: AppTypography.eyebrow),
+              ),
               const SizedBox(width: 12),
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -74,15 +146,17 @@ class OrderDeliveryMapCard extends StatelessWidget {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: live ? AppColors.black : AppColors.surfaceHigh,
+                  color: widget.live ? AppColors.black : AppColors.surfaceHigh,
                   border: Border.all(
-                    color: live ? AppColors.black : AppColors.outlineVariant,
+                    color: widget.live
+                        ? AppColors.black
+                        : AppColors.outlineVariant,
                   ),
                 ),
                 child: Text(
-                  badge,
+                  widget.badge,
                   style: AppTypography.eyebrow.copyWith(
-                    color: live ? AppColors.white : AppColors.black,
+                    color: widget.live ? AppColors.white : AppColors.black,
                   ),
                 ),
               ),
@@ -91,103 +165,132 @@ class OrderDeliveryMapCard extends StatelessWidget {
           const SizedBox(height: 14),
           AspectRatio(
             aspectRatio: 1.08,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final size = constraints.biggest;
-                final courierOffset = _routeOffset(size, clampedProgress);
-                final startOffset = _routeOffset(size, 0);
-                final destinationOffset = _routeOffset(size, 1);
-
-                return Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceLow,
-                    border: Border.all(color: AppColors.black),
+            child: Container(
+              decoration: BoxDecoration(
+                color: _mapBackground,
+                border: Border.all(color: AppColors.black),
+              ),
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: ClipRect(
+                      child: FlutterMap(
+                        mapController: _mapController,
+                        options: MapOptions(
+                          initialCenter: widget.destination,
+                          initialZoom: 13.2,
+                          onMapReady: () {
+                            _mapReady = true;
+                            _fitCamera();
+                          },
+                        ),
+                        children: [
+                          TileLayer(
+                            urlTemplate:
+                                'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                            userAgentPackageName: 'com.avishu.avishu',
+                            tileBuilder: darkModeTileBuilder,
+                          ),
+                          PolylineLayer(
+                            polylines: [
+                              Polyline(
+                                points: <LatLng>[
+                                  widget.origin,
+                                  widget.destination,
+                                ],
+                                strokeWidth: 6,
+                                color: _routeBase,
+                              ),
+                              if (_activeCourier != null)
+                                Polyline(
+                                  points: <LatLng>[
+                                    widget.origin,
+                                    _activeCourier!,
+                                  ],
+                                  strokeWidth: 6,
+                                  color: _routeGlow,
+                                ),
+                            ],
+                          ),
+                          MarkerLayer(markers: _markers()),
+                        ],
+                      ),
+                    ),
                   ),
-                  child: Stack(
-                    children: [
-                      Positioned.fill(
-                        child: CustomPaint(
-                          painter: _OrderDeliveryMapPainter(
-                            progress: clampedProgress,
-                            muted: !live && !completed,
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: <Color>[
+                              Colors.black.withValues(alpha: 0.34),
+                              Colors.transparent,
+                              Colors.black.withValues(alpha: 0.4),
+                            ],
                           ),
                         ),
                       ),
-                      Positioned(
-                        top: 12,
-                        left: 12,
-                        child: _MapTag(label: modeTag, filled: true),
-                      ),
-                      Positioned(
-                        top: 46,
-                        left: 12,
-                        child: _MapTag(label: cityTag),
-                      ),
-                      Positioned(
-                        bottom: 12,
-                        left: 12,
-                        child: _MapTag(label: originLabel),
-                      ),
-                      Positioned(
-                        top: 12,
-                        right: 12,
-                        child: _MapTag(label: destinationLabel),
-                      ),
-                      Positioned(
-                        left: startOffset.dx - 8,
-                        top: startOffset.dy - 8,
-                        child: Container(
-                          width: 16,
-                          height: 16,
-                          decoration: const BoxDecoration(
-                            color: AppColors.black,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: destinationOffset.dx - 14,
-                        top: destinationOffset.dy - 28,
-                        child: Icon(
-                          pickup ? Icons.storefront : Icons.location_on,
-                          size: 30,
-                          color: AppColors.black,
-                        ),
-                      ),
-                      if (!pickup || completed)
-                        Positioned(
-                          left: courierOffset.dx - 15,
-                          top: courierOffset.dy - 15,
-                          child: _CourierPulse(
-                            muted: !live && !completed,
-                            completed: completed,
-                          ),
-                        ),
-                      Positioned(
-                        right: 12,
-                        bottom: 12,
-                        child: Text(
-                          footer,
-                          style: AppTypography.code.copyWith(fontSize: 10),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                );
-              },
+                  Positioned(
+                    top: 12,
+                    left: 12,
+                    child: _MapTag(label: widget.modeTag, filled: true),
+                  ),
+                  Positioned(
+                    top: 12,
+                    right: 12,
+                    child: _MapTag(label: widget.cityTag),
+                  ),
+                  Positioned(
+                    bottom: 12,
+                    left: 12,
+                    child: _MapTag(label: widget.originLabel),
+                  ),
+                  Positioned(
+                    bottom: 12,
+                    right: 12,
+                    child: _MapTag(label: widget.destinationLabel),
+                  ),
+                  if (liveSync)
+                    Positioned(
+                      top: 48,
+                      left: 12,
+                      child: _MapTag(
+                        label: 'LIVE ${_timeLabel(widget.updatedAt!)}',
+                      ),
+                    ),
+                  Positioned(
+                    right: 12,
+                    bottom: 46,
+                    child: _MapAttribution(label: '${widget.footer} / OSM'),
+                  ),
+                  Positioned(
+                    left: 12,
+                    right: 12,
+                    bottom: 46,
+                    child: _MapProgressBar(progress: routeProgress),
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 14),
-          _MapMetricRow(label: statusLabel, value: statusValue),
+          _MapMetricRow(label: widget.statusLabel, value: widget.statusValue),
           const SizedBox(height: 10),
-          _MapMetricRow(label: etaLabel, value: etaValue),
+          _MapMetricRow(label: widget.etaLabel, value: widget.etaValue),
           const SizedBox(height: 10),
-          _MapMetricRow(label: locationLabel, value: locationValue),
+          _MapMetricRow(
+            label: widget.locationLabel,
+            value: widget.locationValue,
+          ),
           const SizedBox(height: 10),
-          _MapMetricRow(label: amountLabel, value: amountValue),
+          _MapMetricRow(label: widget.amountLabel, value: widget.amountValue),
           const SizedBox(height: 12),
           Text(
-            note,
+            widget.note,
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(color: AppColors.secondary),
@@ -195,6 +298,51 @@ class OrderDeliveryMapCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  List<Marker> _markers() {
+    final markers = <Marker>[
+      Marker(
+        point: widget.origin,
+        width: 88,
+        height: 56,
+        child: _MapMarkerChip(
+          label: widget.originLabel,
+          icon: widget.pickup ? Icons.storefront : Icons.home_work_outlined,
+          accent: AppColors.white,
+        ),
+      ),
+      Marker(
+        point: widget.destination,
+        width: 96,
+        height: 64,
+        child: _MapMarkerChip(
+          label: widget.destinationLabel,
+          icon: widget.pickup ? Icons.inventory_2_outlined : Icons.location_on,
+          accent: _destinationAccent,
+          emphasis: true,
+        ),
+      ),
+    ];
+
+    if (_activeCourier != null) {
+      markers.add(
+        Marker(
+          point: _activeCourier!,
+          width: 86,
+          height: 86,
+          child: _CourierMarker(completed: widget.completed),
+        ),
+      );
+    }
+
+    return markers;
+  }
+
+  String _timeLabel(DateTime value) {
+    final hour = value.hour.toString().padLeft(2, '0');
+    final minute = value.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
   }
 }
 
@@ -236,143 +384,156 @@ class _MapTag extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: filled ? AppColors.black : AppColors.surfaceLowest,
-        border: Border.all(color: AppColors.black),
+        color: filled ? AppColors.black : Colors.black.withValues(alpha: 0.55),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
       ),
       child: Text(
         label,
-        style: AppTypography.eyebrow.copyWith(
-          color: filled ? AppColors.white : AppColors.black,
+        style: AppTypography.eyebrow.copyWith(color: AppColors.white),
+      ),
+    );
+  }
+}
+
+class _MapProgressBar extends StatelessWidget {
+  final double progress;
+
+  const _MapProgressBar({required this.progress});
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.center,
+      child: Container(
+        height: 6,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.16),
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: FractionallySizedBox(
+          widthFactor: progress.clamp(0.0, 1.0),
+          alignment: Alignment.centerLeft,
+          child: Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFF74D8C9),
+              borderRadius: BorderRadius.circular(999),
+            ),
+          ),
         ),
       ),
     );
   }
 }
 
-class _CourierPulse extends StatelessWidget {
-  final bool muted;
-  final bool completed;
+class _MapMarkerChip extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color accent;
+  final bool emphasis;
 
-  const _CourierPulse({required this.muted, required this.completed});
+  const _MapMarkerChip({
+    required this.label,
+    required this.icon,
+    required this.accent,
+    this.emphasis = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final coreColor = completed ? AppColors.black : AppColors.black;
-    final haloColor = muted ? AppColors.outlineVariant : AppColors.surfaceDim;
-
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        Container(
-          width: 30,
-          height: 30,
-          decoration: BoxDecoration(color: haloColor, shape: BoxShape.circle),
+    return Align(
+      alignment: Alignment.topCenter,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: emphasis ? 0.84 : 0.66),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: accent.withValues(alpha: 0.55)),
         ),
-        Container(
-          width: 14,
-          height: 14,
-          decoration: BoxDecoration(
-            color: coreColor,
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColors.surfaceLowest, width: 3),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 15, color: accent),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: AppTypography.eyebrow.copyWith(color: AppColors.white),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CourierMarker extends StatelessWidget {
+  final bool completed;
+
+  const _CourierMarker({required this.completed});
+
+  @override
+  Widget build(BuildContext context) {
+    final haloColor = completed
+        ? const Color(0x40F4C46B)
+        : const Color(0x3374D8C9);
+    final coreColor = completed
+        ? const Color(0xFFF4C46B)
+        : const Color(0xFF74D8C9);
+
+    return Center(
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(color: haloColor, shape: BoxShape.circle),
+          ),
+          Container(
+            width: 20,
+            height: 20,
+            decoration: BoxDecoration(
+              color: coreColor,
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColors.white, width: 3),
+            ),
+          ),
+          Positioned(
+            top: 4,
+            child: Icon(
+              Icons.local_shipping_rounded,
+              size: 14,
+              color: AppColors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MapAttribution extends StatelessWidget {
+  final String label;
+
+  const _MapAttribution({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+        child: Text(
+          label,
+          style: AppTypography.code.copyWith(
+            color: AppColors.white.withValues(alpha: 0.86),
+            fontSize: 9,
           ),
         ),
-      ],
+      ),
     );
   }
-}
-
-class _OrderDeliveryMapPainter extends CustomPainter {
-  final double progress;
-  final bool muted;
-
-  const _OrderDeliveryMapPainter({required this.progress, required this.muted});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final background = Paint()
-      ..shader = const LinearGradient(
-        colors: [AppColors.surfaceHighest, AppColors.surfaceLow],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ).createShader(Offset.zero & size);
-    canvas.drawRect(Offset.zero & size, background);
-
-    final gridPaint = Paint()
-      ..color = AppColors.outlineVariant.withValues(alpha: 0.55)
-      ..strokeWidth = 1;
-    const gridSize = 34.0;
-    for (double x = 0; x <= size.width; x += gridSize) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), gridPaint);
-    }
-    for (double y = 0; y <= size.height; y += gridSize) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), gridPaint);
-    }
-
-    final blockPaint = Paint()
-      ..color = AppColors.surface.withValues(alpha: 0.95);
-    final borderPaint = Paint()
-      ..color = AppColors.outlineVariant
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
-    for (final rect in _streetBlocks(size)) {
-      final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(8));
-      canvas.drawRRect(rrect, blockPaint);
-      canvas.drawRRect(rrect, borderPaint);
-    }
-
-    final routePath = _routePath(size);
-    final routeMetric = routePath.computeMetrics().first;
-    final routeBasePaint = Paint()
-      ..color = AppColors.outline.withValues(alpha: 0.4)
-      ..strokeWidth = 10
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-    canvas.drawPath(routePath, routeBasePaint);
-
-    final activePath = routeMetric.extractPath(
-      0,
-      routeMetric.length * progress.clamp(0.0, 1.0),
-    );
-    final activePaint = Paint()
-      ..color = muted ? AppColors.secondary : AppColors.black
-      ..strokeWidth = 8
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-    canvas.drawPath(activePath, activePaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _OrderDeliveryMapPainter oldDelegate) {
-    return oldDelegate.progress != progress || oldDelegate.muted != muted;
-  }
-}
-
-Path _routePath(Size size) {
-  return Path()
-    ..moveTo(size.width * 0.14, size.height * 0.8)
-    ..lineTo(size.width * 0.26, size.height * 0.66)
-    ..lineTo(size.width * 0.48, size.height * 0.58)
-    ..lineTo(size.width * 0.66, size.height * 0.46)
-    ..lineTo(size.width * 0.8, size.height * 0.26);
-}
-
-Offset _routeOffset(Size size, double progress) {
-  final metric = _routePath(size).computeMetrics().first;
-  final tangent = metric.getTangentForOffset(
-    metric.length * progress.clamp(0.0, 1.0),
-  );
-  return tangent?.position ?? Offset(size.width * 0.8, size.height * 0.26);
-}
-
-List<Rect> _streetBlocks(Size size) {
-  return [
-    Rect.fromLTWH(size.width * 0.08, size.height * 0.12, 72, 54),
-    Rect.fromLTWH(size.width * 0.58, size.height * 0.1, 88, 52),
-    Rect.fromLTWH(size.width * 0.16, size.height * 0.42, 92, 64),
-    Rect.fromLTWH(size.width * 0.58, size.height * 0.54, 104, 72),
-    Rect.fromLTWH(size.width * 0.28, size.height * 0.72, 90, 44),
-  ];
 }

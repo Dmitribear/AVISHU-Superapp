@@ -23,6 +23,23 @@ Timestamp? timestampFromDate(DateTime? value) {
   return Timestamp.fromDate(value);
 }
 
+GeoPoint? geoPointFromFirestoreValue(dynamic value) {
+  if (value == null) {
+    return null;
+  }
+  if (value is GeoPoint) {
+    return value;
+  }
+  if (value is Map) {
+    final latitude = value['latitude'] ?? value['lat'];
+    final longitude = value['longitude'] ?? value['lng'];
+    if (latitude is num && longitude is num) {
+      return GeoPoint(latitude.toDouble(), longitude.toDouble());
+    }
+  }
+  return null;
+}
+
 double doubleFromFirestoreValue(dynamic value, {double fallback = 0}) {
   if (value is num) {
     return value.toDouble();

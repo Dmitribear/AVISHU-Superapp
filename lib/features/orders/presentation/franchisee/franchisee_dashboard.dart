@@ -13,8 +13,10 @@ import '../../../../shared/widgets/avishu_mobile_frame.dart';
 import '../../../auth/data/auth_repository.dart';
 import '../../../auth/domain/user_role.dart';
 import '../../../orders/data/order_repository.dart';
+import '../../../orders/domain/enums/delivery_method.dart';
 import '../../../orders/domain/enums/order_status.dart';
 import '../../../orders/domain/models/order_model.dart';
+import '../../../orders/domain/services/order_map_location_resolver.dart';
 import '../shared/order_digital_twin_card.dart';
 import '../shared/order_panels.dart';
 
@@ -41,6 +43,7 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
   FranchiseeTab _tab = FranchiseeTab.dashboard;
   OrderModel? _selectedOrder;
   bool _isSubmitting = false;
+  bool _isCourierSyncing = false;
   bool _hasReadyBadge = false;
   final _noteController = TextEditingController();
 
@@ -84,8 +87,16 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
     return AvishuMobileFrame(
       title: 'AVISHU',
       metaLabel: _selectedOrder == null
-          ? _t(ru: 'ФРАНЧАЙЗИ / ЗАКАЗЫ', en: 'FRANCHISEE / ORDERS', kk: 'ФРАНЧАЙЗИ / ТАПСЫРЫСТАР')
-          : _t(ru: 'ФРАНЧАЙЗИ / КАРТОЧКА', en: 'FRANCHISEE / DETAIL', kk: 'ФРАНЧАЙЗИ / КАРТОЧКА'),
+          ? _t(
+              ru: 'ФРАНЧАЙЗИ / ЗАКАЗЫ',
+              en: 'FRANCHISEE / ORDERS',
+              kk: 'ФРАНЧАЙЗИ / ТАПСЫРЫСТАР',
+            )
+          : _t(
+              ru: 'ФРАНЧАЙЗИ / КАРТОЧКА',
+              en: 'FRANCHISEE / DETAIL',
+              kk: 'ФРАНЧАЙЗИ / КАРТОЧКА',
+            ),
       leadingIcon: _selectedOrder == null ? Icons.menu : Icons.arrow_back,
       actionIcon: null,
       currentIndex: _tab.index,
@@ -108,9 +119,7 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
       body: ordersAsync.when(
         data: (orders) {
           // Show badge when there are ready orders the user hasn't seen yet
-          final hasReady = orders.any(
-            (o) => o.status == OrderStatus.ready,
-          );
+          final hasReady = orders.any((o) => o.status == OrderStatus.ready);
           if (hasReady && _tab != FranchiseeTab.ready && !_hasReadyBadge) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted) setState(() => _hasReadyBadge = true);
@@ -122,7 +131,9 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
           }
           final selectedOrder = _resolveSelectedOrder(orders);
           return SingleChildScrollView(
-            key: PageStorageKey('franchisee-${_tab.index}-${_selectedOrder?.id ?? 'none'}'),
+            key: PageStorageKey(
+              'franchisee-${_tab.index}-${_selectedOrder?.id ?? 'none'}',
+            ),
             padding: const EdgeInsets.fromLTRB(18, 18, 18, 22),
             child: _selectedOrder != null
                 ? _detailView(selectedOrder ?? _selectedOrder!)
@@ -157,7 +168,11 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _hero(
-            title: _t(ru: 'ПАНЕЛЬ ЗАКАЗОВ', en: 'ORDER DASHBOARD', kk: 'ТАПСЫРЫСТАР ПАНЕЛІ'),
+            title: _t(
+              ru: 'ПАНЕЛЬ ЗАКАЗОВ',
+              en: 'ORDER DASHBOARD',
+              kk: 'ТАПСЫРЫСТАР ПАНЕЛІ',
+            ),
             subtitle: _t(
               ru: 'Новые заказы появляются сразу после оплаты и могут быть переданы в производство без перезагрузки.',
               en: 'New orders appear right after payment and can be moved to production without reload.',
@@ -206,7 +221,9 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
       FranchiseeTab.queue => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionLabel(_t(ru: 'НОВЫЕ ЗАКАЗЫ', en: 'NEW ORDERS', kk: 'ЖАҢА ТАПСЫРЫСТАР')),
+          _sectionLabel(
+            _t(ru: 'НОВЫЕ ЗАКАЗЫ', en: 'NEW ORDERS', kk: 'ЖАҢА ТАПСЫРЫСТАР'),
+          ),
           const SizedBox(height: 12),
           if (newOrders.isEmpty)
             _emptyCard(
@@ -223,7 +240,13 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
             ),
           ),
           const SizedBox(height: 4),
-          _sectionLabel(_t(ru: 'ПЕРЕДАНО В ЦЕХ', en: 'SENT TO FACTORY', kk: 'ЦЕХКЕ ЖІБЕРІЛДІ')),
+          _sectionLabel(
+            _t(
+              ru: 'ПЕРЕДАНО В ЦЕХ',
+              en: 'SENT TO FACTORY',
+              kk: 'ЦЕХКЕ ЖІБЕРІЛДІ',
+            ),
+          ),
           const SizedBox(height: 12),
           if (queuedOrders.isEmpty)
             _emptyCard(
@@ -244,7 +267,13 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
       FranchiseeTab.ready => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionLabel(_t(ru: 'ГОТОВО К ВЫДАЧЕ', en: 'READY FOR HANDOFF', kk: 'БЕРУГЕ ДАЙЫН')),
+          _sectionLabel(
+            _t(
+              ru: 'ГОТОВО К ВЫДАЧЕ',
+              en: 'READY FOR HANDOFF',
+              kk: 'БЕРУГЕ ДАЙЫН',
+            ),
+          ),
           const SizedBox(height: 12),
           if (readyOrders.isEmpty)
             _emptyCard(
@@ -275,12 +304,20 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                _t(ru: 'КАБИНЕТ ФРАНЧАЙЗИ', en: 'FRANCHISEE DESK', kk: 'ФРАНЧАЙЗИ КАБИНЕТІ'),
+                _t(
+                  ru: 'КАБИНЕТ ФРАНЧАЙЗИ',
+                  en: 'FRANCHISEE DESK',
+                  kk: 'ФРАНЧАЙЗИ КАБИНЕТІ',
+                ),
                 style: AppTypography.eyebrow,
               ),
               const SizedBox(height: 12),
               Text(
-                _t(ru: 'Управление заказами', en: 'Order Operations', kk: 'Тапсырыстарды басқару'),
+                _t(
+                  ru: 'Управление заказами',
+                  en: 'Order Operations',
+                  kk: 'Тапсырыстарды басқару',
+                ),
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 10),
@@ -336,7 +373,11 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
         ),
         const SizedBox(height: 12),
         AvishuButton(
-          text: _t(ru: 'ВЫЙТИ ИЗ АККАУНТА', en: 'SIGN OUT', kk: 'АККАУНТТАН ШЫҒУ'),
+          text: _t(
+            ru: 'ВЫЙТИ ИЗ АККАУНТА',
+            en: 'SIGN OUT',
+            kk: 'АККАУНТТАН ШЫҒУ',
+          ),
           expanded: true,
           variant: AvishuButtonVariant.outline,
           icon: Icons.logout,
@@ -387,13 +428,21 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
           ),
         const SizedBox(height: 12),
         OrderInfoCard(
-          title: _t(ru: 'ДЕТАЛИ ЗАКАЗА', en: 'ORDER DETAILS', kk: 'ТАПСЫРЫС МӘЛІМЕТТЕРІ'),
+          title: _t(
+            ru: 'ДЕТАЛИ ЗАКАЗА',
+            en: 'ORDER DETAILS',
+            kk: 'ТАПСЫРЫС МӘЛІМЕТТЕРІ',
+          ),
           rows: OrderSummaryRows.forOrder(order, language: _language),
         ),
         if (order.clientNote.trim().isNotEmpty) ...[
           const SizedBox(height: 12),
           OrderInfoCard(
-            title: _t(ru: 'КОММЕНТАРИЙ КЛИЕНТА', en: 'CLIENT COMMENT', kk: 'КЛИЕНТ ПІКІРІ'),
+            title: _t(
+              ru: 'КОММЕНТАРИЙ КЛИЕНТА',
+              en: 'CLIENT COMMENT',
+              kk: 'КЛИЕНТ ПІКІРІ',
+            ),
             rows: [
               OrderInfoRowData(
                 label: _t(ru: 'Комментарий', en: 'Comment', kk: 'Пікір'),
@@ -401,6 +450,11 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
               ),
             ],
           ),
+        ],
+        if (order.status == OrderStatus.ready &&
+            order.deliveryMethod == DeliveryMethod.courier) ...[
+          const SizedBox(height: 12),
+          _liveCourierControl(order),
         ],
         const SizedBox(height: 12),
         _surfaceCard(
@@ -452,7 +506,11 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
           ),
         if (order.status == OrderStatus.ready)
           AvishuButton(
-            text: _t(ru: 'ЗАВЕРШИТЬ ВЫДАЧУ', en: 'CONFIRM HANDOFF', kk: 'БЕРУДІ АЯҚТАУ'),
+            text: _t(
+              ru: 'ЗАВЕРШИТЬ ВЫДАЧУ',
+              en: 'CONFIRM HANDOFF',
+              kk: 'БЕРУДІ АЯҚТАУ',
+            ),
             expanded: true,
             variant: AvishuButtonVariant.filled,
             onPressed: _isSubmitting
@@ -485,13 +543,100 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
                 const Icon(Icons.hourglass_top_rounded, size: 16),
                 const SizedBox(width: 10),
                 Text(
-                  _t(ru: 'ПЕРЕДАНО В ПРОИЗВОДСТВО', en: 'IN FACTORY QUEUE', kk: 'ӨНДІРІСКЕ ЖІБЕРІЛДІ'),
+                  _t(
+                    ru: 'ПЕРЕДАНО В ПРОИЗВОДСТВО',
+                    en: 'IN FACTORY QUEUE',
+                    kk: 'ӨНДІРІСКЕ ЖІБЕРІЛДІ',
+                  ),
                   style: AppTypography.code,
                 ),
               ],
             ),
           ),
       ],
+    );
+  }
+
+  Widget _liveCourierControl(OrderModel order) {
+    final routeReady =
+        order.originLocation != null && order.destinationLocation != null;
+
+    return _surfaceCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            _t(
+              ru: 'LIVE COURIER CONTROL',
+              en: 'LIVE COURIER CONTROL',
+              kk: 'LIVE COURIER CONTROL',
+            ),
+            style: AppTypography.eyebrow,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            _t(
+              ru: 'Обновления пишутся прямо в Firestore и сразу попадают на клиентскую карту.',
+              en: 'Updates are written straight to Firestore and show up on the client map instantly.',
+              kk: 'Жаңартулар Firestore-ға бірден жазылып, клиент картасына дереу түседі.',
+            ),
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            order.courierLocationUpdatedAt == null
+                ? _t(
+                    ru: 'Последний sync: еще не отправляли',
+                    en: 'Last sync: not sent yet',
+                    kk: 'Соңғы sync: әлі жіберілген жоқ',
+                  )
+                : _t(
+                    ru: 'Последний sync: ${_formatDateTime(order.courierLocationUpdatedAt!)}',
+                    en: 'Last sync: ${_formatDateTime(order.courierLocationUpdatedAt!)}',
+                    kk: 'Соңғы sync: ${_formatDateTime(order.courierLocationUpdatedAt!)}',
+                  ),
+            style: AppTypography.code,
+          ),
+          const SizedBox(height: 12),
+          if (!routeReady)
+            Text(
+              _t(
+                ru: 'Маршрут еще не инициализирован для этого заказа.',
+                en: 'The route has not been initialised for this order yet.',
+                kk: 'Бұл тапсырыс үшін маршрут әлі инициализацияланбаған.',
+              ),
+              style: Theme.of(context).textTheme.bodySmall,
+            )
+          else
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children:
+                  <MapEntry<String, double>>[
+                    MapEntry(_t(ru: 'СТАРТ', en: 'START', kk: 'БАСТАУ'), 0.05),
+                    const MapEntry('25%', 0.25),
+                    const MapEntry('50%', 0.5),
+                    const MapEntry('75%', 0.75),
+                    MapEntry(
+                      _t(ru: 'У ДВЕРИ', en: 'AT DOOR', kk: 'ЕСІК АЛДЫНДА'),
+                      0.96,
+                    ),
+                  ].map((entry) {
+                    return AvishuButton(
+                      text: entry.key,
+                      variant: AvishuButtonVariant.outline,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                      onPressed: _isCourierSyncing
+                          ? null
+                          : () => _syncCourierLocation(order, entry.value),
+                    );
+                  }).toList(),
+            ),
+        ],
+      ),
     );
   }
 
@@ -626,5 +771,45 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
   void _openOrder(OrderModel order) {
     _noteController.text = order.franchiseeNote;
     setState(() => _selectedOrder = order);
+  }
+
+  Future<void> _syncCourierLocation(OrderModel order, double progress) async {
+    final origin = order.originLocation;
+    final destination = order.destinationLocation;
+    if (origin == null || destination == null) {
+      return;
+    }
+
+    if (_isCourierSyncing) {
+      return;
+    }
+
+    setState(() => _isCourierSyncing = true);
+    try {
+      final courierLocation = OrderMapLocationResolver.interpolate(
+        origin,
+        destination,
+        progress,
+      );
+      await ref
+          .read(orderRepositoryProvider)
+          .updateCourierLocation(
+            order.id,
+            courierLocation: courierLocation,
+            note: _noteController.text.trim(),
+          );
+    } finally {
+      if (mounted) {
+        setState(() => _isCourierSyncing = false);
+      }
+    }
+  }
+
+  String _formatDateTime(DateTime value) {
+    final day = value.day.toString().padLeft(2, '0');
+    final month = value.month.toString().padLeft(2, '0');
+    final hour = value.hour.toString().padLeft(2, '0');
+    final minute = value.minute.toString().padLeft(2, '0');
+    return '$day.$month.${value.year} $hour:$minute';
   }
 }
