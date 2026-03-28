@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/typography.dart';
@@ -35,6 +34,7 @@ class ProductionDashboard extends ConsumerStatefulWidget {
 class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
   ProductionTab _tab = ProductionTab.dashboard;
   OrderModel? _selectedOrder;
+  bool _isSubmitting = false;
   final _noteController = TextEditingController();
 
   @override
@@ -100,6 +100,7 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
         data: (orders) {
           final selectedOrder = _resolveSelectedOrder(orders);
           return SingleChildScrollView(
+            key: PageStorageKey('production-${_tab.index}-${_selectedOrder?.id ?? 'none'}'),
             padding: const EdgeInsets.fromLTRB(18, 18, 18, 22),
             child: _selectedOrder != null
                 ? _detailView(selectedOrder ?? _selectedOrder!)
@@ -392,46 +393,72 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
             text: _t(ru: 'ВЗЯТЬ В ПОШИВ', en: 'START PRODUCTION'),
             expanded: true,
             variant: AvishuButtonVariant.filled,
-            onPressed: () async {
-              final currentUserId =
-                  ref.read(currentUserProvider).value?.uid ?? '';
-              await ref
-                  .read(orderRepositoryProvider)
-                  .startProduction(
-                    order.id,
-                    note: _noteController.text.trim(),
-                    changedByUserId: currentUserId,
-                  );
-              if (mounted) {
-                setState(() => _selectedOrder = null);
-              }
-            },
+            onPressed: _isSubmitting
+                ? null
+                : () async {
+                    if (_isSubmitting) return;
+                    setState(() => _isSubmitting = true);
+                    try {
+                      final currentUserId =
+                          ref.read(currentUserProvider).value?.uid ?? '';
+                      await ref
+                          .read(orderRepositoryProvider)
+                          .startProduction(
+                            order.id,
+                            note: _noteController.text.trim(),
+                            changedByUserId: currentUserId,
+                          );
+                      if (mounted) {
+                        setState(() => _selectedOrder = null);
+                      }
+                    } finally {
+                      if (mounted) setState(() => _isSubmitting = false);
+                    }
+                  },
           ),
         if (isInProduction)
           AvishuButton(
-            text: _t(ru: 'ЗАВЕРШИТЬ ЗАКАЗ', en: 'COMPLETE ORDER'),
+            text: _t(ru: 'ЗАВЕРШИТЬ ПОШИВ', en: 'FINISH PRODUCTION'),
             expanded: true,
             variant: AvishuButtonVariant.filled,
-            onPressed: () async {
-              final currentUserId =
-                  ref.read(currentUserProvider).value?.uid ?? '';
-              await ref
-                  .read(orderRepositoryProvider)
-                  .completeOrder(
-                    order.id,
-                    note: _noteController.text.trim(),
-                    changedByUserId: currentUserId,
-                  );
-              if (mounted) {
-                setState(() => _selectedOrder = null);
-              }
-            },
+            onPressed: _isSubmitting
+                ? null
+                : () async {
+                    if (_isSubmitting) return;
+                    setState(() => _isSubmitting = true);
+                    try {
+                      final currentUserId =
+                          ref.read(currentUserProvider).value?.uid ?? '';
+                      await ref
+                          .read(orderRepositoryProvider)
+                          .completeOrder(
+                            order.id,
+                            note: _noteController.text.trim(),
+                            changedByUserId: currentUserId,
+                          );
+                      if (mounted) {
+                        setState(() => _selectedOrder = null);
+                      }
+                    } finally {
+                      if (mounted) setState(() => _isSubmitting = false);
+                    }
+                  },
           ),
         if (order.status == OrderStatus.ready)
-          AvishuButton(
-            text: _t(ru: 'ОТКРЫТЬ КЛИЕНТА', en: 'OPEN CLIENT'),
-            expanded: true,
-            onPressed: () => context.go('/client'),
+          _surfaceCard(
+            child: Row(
+              children: [
+                const Icon(Icons.check_circle_outline, size: 16),
+                const SizedBox(width: 10),
+                Text(
+                  _t(
+                    ru: 'ГОТОВО. ОЖИДАЕТ ВЫДАЧИ ФРАНЧАЙЗИ.',
+                    en: 'READY. AWAITING FRANCHISEE HANDOFF.',
+                  ),
+                  style: AppTypography.code,
+                ),
+              ],
+            ),
           ),
       ],
     );

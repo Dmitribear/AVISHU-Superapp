@@ -6,8 +6,13 @@ import '../../core/theme/typography.dart';
 class AvishuNavItem {
   final String label;
   final IconData icon;
+  final bool badge;
 
-  const AvishuNavItem({required this.label, required this.icon});
+  const AvishuNavItem({
+    required this.label,
+    required this.icon,
+    this.badge = false,
+  });
 }
 
 class AvishuMobileFrame extends StatelessWidget {
@@ -123,12 +128,30 @@ class AvishuMobileFrame extends StatelessWidget {
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(
-                                      item.icon,
-                                      size: 20,
-                                      color: isActive
-                                          ? AppColors.white
-                                          : AppColors.black,
+                                    Stack(
+                                      clipBehavior: Clip.none,
+                                      children: [
+                                        Icon(
+                                          item.icon,
+                                          size: 20,
+                                          color: isActive
+                                              ? AppColors.white
+                                              : AppColors.black,
+                                        ),
+                                        if (item.badge)
+                                          Positioned(
+                                            top: -3,
+                                            right: -4,
+                                            child: Container(
+                                              width: 8,
+                                              height: 8,
+                                              decoration: const BoxDecoration(
+                                                color: Color(0xFFE53935),
+                                                shape: BoxShape.circle,
+                                              ),
+                                            ),
+                                          ),
+                                      ],
                                     ),
                                     const SizedBox(height: 6),
                                     Text(

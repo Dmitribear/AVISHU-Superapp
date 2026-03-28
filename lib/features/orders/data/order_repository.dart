@@ -328,8 +328,10 @@ class OrderRepository {
       'status': newStatus.value,
       'updatedAt': Timestamp.fromDate(now),
       'lastStatusChangedAt': Timestamp.fromDate(now),
-      if (newStatus == OrderStatus.accepted)
+      if (newStatus == OrderStatus.accepted) ...{
         'acceptedAt': Timestamp.fromDate(now),
+        'sentToFactoryAt': Timestamp.fromDate(now),
+      },
       if (newStatus == OrderStatus.completed)
         'completedAt': Timestamp.fromDate(now),
       if (franchiseeId.isNotEmpty) 'franchiseeId': franchiseeId,

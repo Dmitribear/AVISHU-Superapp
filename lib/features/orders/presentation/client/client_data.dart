@@ -532,25 +532,82 @@ List<CatalogProduct> catalogFromProducts(Iterable<ProductModel> products) {
 
 CatalogProduct catalogProductFromFirestore(ProductModel product) {
   final fallback = _catalogFallbackById(product.id);
-  final categoryLabel =
-      fallback?.category ?? _displayCategory(product.category);
-  final sections = fallback?.sections ?? _inferSections(categoryLabel);
-  final season = fallback?.season ?? _inferSeason(sections);
-  final colors = fallback?.colors ?? _defaultColors(categoryLabel);
-  final sizes = fallback?.sizes ?? _defaultSizes(categoryLabel);
+  final categoryLabel = product.category.isNotEmpty
+      ? _displayCategory(product.category)
+      : (fallback?.category ?? _displayCategory(product.category));
+
+  final sections = product.sections.isNotEmpty
+      ? product.sections
+      : (fallback?.sections ?? _inferSections(categoryLabel));
+  final season = _inferSeason(sections);
+
+  final colors = product.colors.isNotEmpty
+      ? product.colors
+      : (fallback?.colors ?? _defaultColors(categoryLabel));
+  final sizes = product.sizes.isNotEmpty
+      ? product.sizes
+      : (fallback?.sizes ?? _defaultSizes(categoryLabel));
+
   final imageUrls = product.gallery.isNotEmpty
       ? product.gallery
       : (product.coverImage.isNotEmpty
             ? <String>[product.coverImage]
             : (fallback?.imageUrls ?? const <String>[]));
+
   final description = product.description.isNotEmpty
       ? product.description
       : (fallback?.description ?? 'Премиальная модель из каталога AVISHU.');
-  final shortDescription =
-      fallback?.shortDescription ?? _shortDescription(description);
+
+  final shortDescription = product.shortDescription.isNotEmpty
+      ? product.shortDescription
+      : (fallback?.shortDescription ?? _shortDescription(description));
+
+  final material = product.material.isNotEmpty
+      ? product.material
+      : (fallback?.material ?? _defaultMaterial(categoryLabel));
+
+  final silhouette = product.silhouette.isNotEmpty
+      ? product.silhouette
+      : (fallback?.silhouette ?? _defaultSilhouette(categoryLabel));
+
+  final atelierNote = product.atelierNote.isNotEmpty
+      ? product.atelierNote
+      : (fallback?.atelierNote ??
+            'Модель подключена из Firestore и готова для demo-заказа в AVISHU.');
+
   final productionDays = product.defaultProductionDays > 0
       ? '${product.defaultProductionDays} дн.'
       : '2-4 дн.';
+
+  final specifications = product.specifications.isNotEmpty
+      ? product.specifications
+            .map((s) => ProductSpec(label: s.label, value: s.value))
+            .toList()
+      : (fallback?.specifications ??
+            <ProductSpec>[
+              ProductSpec(label: 'Категория', value: categoryLabel),
+              ProductSpec(label: 'Артикул', value: product.slug.toUpperCase()),
+              ProductSpec(
+                label: 'Пошив',
+                value: product.isPreorderAvailable ? productionDays : 'В наличии',
+              ),
+            ]);
+
+  final care = product.care.isNotEmpty
+      ? product.care
+      : (fallback?.care ??
+            const <String>[
+              'Деликатный уход согласно составу ткани.',
+              'Хранить изделие на мягкой вешалке или в чехле.',
+              'Избегать агрессивной машинной сушки.',
+            ]);
+
+  final defaultColor = product.defaultColor.isNotEmpty
+      ? product.defaultColor
+      : (fallback?.defaultColor ?? (colors.isNotEmpty ? colors.first : ''));
+  final defaultSize = product.defaultSize.isNotEmpty
+      ? product.defaultSize
+      : (fallback?.defaultSize ?? (sizes.isNotEmpty ? sizes.first : ''));
 
   return CatalogProduct(
     id: product.id,
@@ -558,43 +615,26 @@ CatalogProduct catalogProductFromFirestore(ProductModel product) {
     category: categoryLabel,
     sections: sections,
     season: season,
-    material: fallback?.material ?? _defaultMaterial(categoryLabel),
-    silhouette: fallback?.silhouette ?? _defaultSilhouette(categoryLabel),
-    sku: fallback?.sku ?? product.slug.toUpperCase(),
+    material: material,
+    silhouette: silhouette,
+    sku: product.slug.toUpperCase(),
     price: product.price,
     preorder: product.isPreorderAvailable,
     inStock: !product.isPreorderAvailable,
     shortDescription: shortDescription,
     description: description,
     colors: colors,
-    defaultColor: fallback?.defaultColor ?? colors.first,
+    defaultColor: defaultColor,
     sizes: sizes,
-    defaultSize: fallback?.defaultSize ?? sizes.first,
+    defaultSize: defaultSize,
     imageUrls: imageUrls.isNotEmpty
         ? imageUrls
         : const <String>[
             'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1200&q=80',
           ],
-    specifications:
-        fallback?.specifications ??
-        <ProductSpec>[
-          ProductSpec(label: 'Категория', value: categoryLabel),
-          ProductSpec(label: 'Артикул', value: product.slug.toUpperCase()),
-          ProductSpec(
-            label: 'Пошив',
-            value: product.isPreorderAvailable ? productionDays : 'В наличии',
-          ),
-        ],
-    care:
-        fallback?.care ??
-        const <String>[
-          'Деликатный уход согласно составу ткани.',
-          'Хранить изделие на мягкой вешалке или в чехле.',
-          'Избегать агрессивной машинной сушки.',
-        ],
-    atelierNote:
-        fallback?.atelierNote ??
-        'Модель подключена из Firestore и готова для demo-заказа в AVISHU.',
+    specifications: specifications,
+    care: care,
+    atelierNote: atelierNote,
   );
 }
 

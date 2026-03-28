@@ -24,6 +24,7 @@ class OrderModel {
   final OrderPriority priority;
   final DateTime? estimatedReadyAt;
   final DateTime? acceptedAt;
+  final DateTime? sentToFactoryAt;
   final DateTime? completedAt;
   final DateTime lastStatusChangedAt;
   final DateTime createdAt;
@@ -80,6 +81,7 @@ class OrderModel {
     this.priority = OrderPriority.normal,
     DateTime? estimatedReadyAt,
     this.acceptedAt,
+    this.sentToFactoryAt,
     this.completedAt,
     DateTime? lastStatusChangedAt,
     DateTime? updatedAt,
@@ -177,6 +179,7 @@ class OrderModel {
           dateTimeFromFirestoreValue(data['estimatedReadyAt']) ??
           dateTimeFromFirestoreValue(data['readyBy']),
       acceptedAt: dateTimeFromFirestoreValue(data['acceptedAt']),
+      sentToFactoryAt: dateTimeFromFirestoreValue(data['sentToFactoryAt']),
       completedAt: dateTimeFromFirestoreValue(data['completedAt']),
       lastStatusChangedAt:
           dateTimeFromFirestoreValue(data['lastStatusChangedAt']) ?? createdAt,
@@ -238,6 +241,7 @@ class OrderModel {
       'priority': priority.value,
       'estimatedReadyAt': timestampFromDate(estimatedReadyAt),
       'acceptedAt': timestampFromDate(acceptedAt),
+      'sentToFactoryAt': timestampFromDate(sentToFactoryAt),
       'completedAt': timestampFromDate(completedAt),
       'lastStatusChangedAt': Timestamp.fromDate(lastStatusChangedAt),
       'createdAt': Timestamp.fromDate(createdAt),
@@ -284,6 +288,7 @@ class OrderModel {
     List<OrderItemModel>? orderItems,
     DateTime? updatedAt,
     DateTime? acceptedAt,
+    DateTime? sentToFactoryAt,
     DateTime? completedAt,
     DateTime? lastStatusChangedAt,
     OrderPriority? priority,
@@ -303,6 +308,7 @@ class OrderModel {
       priority: priority ?? this.priority,
       estimatedReadyAt: estimatedReadyAt ?? this.estimatedReadyAt,
       acceptedAt: acceptedAt ?? this.acceptedAt,
+      sentToFactoryAt: sentToFactoryAt ?? this.sentToFactoryAt,
       completedAt: completedAt ?? this.completedAt,
       lastStatusChangedAt: lastStatusChangedAt ?? this.lastStatusChangedAt,
       createdAt: createdAt,

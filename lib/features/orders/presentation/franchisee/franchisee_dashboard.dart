@@ -40,6 +40,8 @@ class FranchiseeDashboard extends ConsumerStatefulWidget {
 class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
   FranchiseeTab _tab = FranchiseeTab.dashboard;
   OrderModel? _selectedOrder;
+  bool _isSubmitting = false;
+  bool _hasReadyBadge = false;
   final _noteController = TextEditingController();
 
   @override
@@ -66,6 +68,7 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
     AvishuNavItem(
       label: _t(ru: 'ГОТОВО', en: 'READY'),
       icon: Icons.inventory_2_outlined,
+      badge: _hasReadyBadge,
     ),
     AvishuNavItem(
       label: _t(ru: 'ПРОФИЛЬ', en: 'PROFILE'),
@@ -99,12 +102,27 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
         setState(() {
           _tab = FranchiseeTab.values[index];
           _selectedOrder = null;
+          if (_tab == FranchiseeTab.ready) _hasReadyBadge = false;
         });
       },
       body: ordersAsync.when(
         data: (orders) {
+          // Show badge when there are ready orders the user hasn't seen yet
+          final hasReady = orders.any(
+            (o) => o.status == OrderStatus.ready,
+          );
+          if (hasReady && _tab != FranchiseeTab.ready && !_hasReadyBadge) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) setState(() => _hasReadyBadge = true);
+            });
+          } else if (!hasReady && _hasReadyBadge) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) setState(() => _hasReadyBadge = false);
+            });
+          }
           final selectedOrder = _resolveSelectedOrder(orders);
           return SingleChildScrollView(
+            key: PageStorageKey('franchisee-${_tab.index}-${_selectedOrder?.id ?? 'none'}'),
             padding: const EdgeInsets.fromLTRB(18, 18, 18, 22),
             child: _selectedOrder != null
                 ? _detailView(selectedOrder ?? _selectedOrder!)
@@ -326,9 +344,6 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
 
   Widget _detailView(OrderModel order) {
     final isNew = order.status == OrderStatus.newOrder;
-    final canOpenProduction =
-        order.status == OrderStatus.accepted ||
-        order.status == OrderStatus.inProduction;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -403,31 +418,70 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
             ),
             expanded: true,
             variant: AvishuButtonVariant.filled,
-            onPressed: () async {
-              final currentUserId =
-                  ref.read(currentUserProvider).value?.uid ?? '';
-              await ref
-                  .read(orderRepositoryProvider)
-                  .acceptOrder(
-                    order.id,
-                    note: _noteController.text.trim(),
-                    changedByUserId: currentUserId,
-                    franchiseeId: currentUserId,
-                  );
-              if (mounted) {
-                setState(() => _selectedOrder = null);
-              }
-            },
+            onPressed: _isSubmitting
+                ? null
+                : () async {
+                    if (_isSubmitting) return;
+                    setState(() => _isSubmitting = true);
+                    try {
+                      final currentUserId =
+                          ref.read(currentUserProvider).value?.uid ?? '';
+                      await ref
+                          .read(orderRepositoryProvider)
+                          .acceptOrder(
+                            order.id,
+                            note: _noteController.text.trim(),
+                            changedByUserId: currentUserId,
+                            franchiseeId: currentUserId,
+                          );
+                      if (mounted) {
+                        setState(() => _selectedOrder = null);
+                      }
+                    } finally {
+                      if (mounted) setState(() => _isSubmitting = false);
+                    }
+                  },
           ),
-        if (!isNew)
+        if (order.status == OrderStatus.ready)
           AvishuButton(
-            text: canOpenProduction
-                ? _t(ru: 'ОТКРЫТЬ ПРОИЗВОДСТВО', en: 'OPEN FACTORY')
-                : _t(ru: 'ЗАКАЗ ЗАВЕРШЕН', en: 'ORDER COMPLETED'),
+            text: _t(ru: 'ЗАВЕРШИТЬ ВЫДАЧУ', en: 'CONFIRM HANDOFF'),
             expanded: true,
-            onPressed: canOpenProduction
-                ? () => context.go('/production')
-                : null,
+            variant: AvishuButtonVariant.filled,
+            onPressed: _isSubmitting
+                ? null
+                : () async {
+                    if (_isSubmitting) return;
+                    setState(() => _isSubmitting = true);
+                    try {
+                      final currentUserId =
+                          ref.read(currentUserProvider).value?.uid ?? '';
+                      await ref
+                          .read(orderRepositoryProvider)
+                          .finalizeOrder(
+                            order.id,
+                            note: _noteController.text.trim(),
+                            changedByUserId: currentUserId,
+                          );
+                      if (mounted) {
+                        setState(() => _selectedOrder = null);
+                      }
+                    } finally {
+                      if (mounted) setState(() => _isSubmitting = false);
+                    }
+                  },
+          ),
+        if (!isNew && order.status != OrderStatus.ready)
+          _surfaceCard(
+            child: Row(
+              children: [
+                const Icon(Icons.hourglass_top_rounded, size: 16),
+                const SizedBox(width: 10),
+                Text(
+                  _t(ru: 'ПЕРЕДАНО В ПРОИЗВОДСТВО', en: 'IN FACTORY QUEUE'),
+                  style: AppTypography.code,
+                ),
+              ],
+            ),
           ),
       ],
     );

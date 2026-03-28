@@ -70,7 +70,7 @@ class AvishuShell extends StatelessWidget {
                       ],
                     ),
                   ),
-                  if (trailing != null) trailing!,
+                  ?trailing,
                 ],
               ),
             ),

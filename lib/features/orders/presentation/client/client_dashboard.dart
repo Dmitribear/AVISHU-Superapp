@@ -10,6 +10,7 @@ import '../../../../shared/providers/global_state.dart';
 import '../../../../shared/widgets/app_settings_sheet.dart';
 import '../../../../shared/widgets/avishu_button.dart';
 import '../../../../shared/widgets/avishu_mobile_frame.dart';
+import '../../../../shared/widgets/avishu_order_tracker.dart';
 import '../../../auth/domain/user_role.dart';
 import '../../../orders/data/order_repository.dart';
 import '../../../orders/domain/enums/delivery_method.dart';
@@ -91,6 +92,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
   bool _specificationsExpanded = false;
   bool _careExpanded = false;
   bool _showFavoritesOnly = false;
+  bool _isSubmitting = false;
+  bool _hasStatusBadge = false;
+  OrderStatus? _lastKnownOrderStatus;
   List<CatalogProduct> _catalogProducts = catalog;
 
   final Set<String> _favoriteProductIds = <String>{};
@@ -101,11 +105,13 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
   final _expiryController = TextEditingController(text: '01 / 28');
   final _cvvController = TextEditingController();
   final _noteController = TextEditingController();
+  late PageController _pageController;
 
   @override
   void initState() {
     super.initState();
     _priceRange = RangeValues(_catalogMinPrice, _catalogMaxPrice);
+    _pageController = PageController();
   }
 
   @override
@@ -117,6 +123,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     _expiryController.dispose();
     _cvvController.dispose();
     _noteController.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
@@ -153,6 +160,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     AvishuNavItem(
       label: _t(ru: 'ПРОФИЛЬ', en: 'PROFILE'),
       icon: Icons.person_outline,
+      badge: _hasStatusBadge,
     ),
   ];
 
@@ -280,19 +288,40 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         setState(() {
           _tab = ClientTab.values[index];
           _view = ClientView.root;
+          if (_tab == ClientTab.profile) _hasStatusBadge = false;
         });
       },
       body: ordersAsync.when(
-        data: (orders) => SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(18, 18, 18, 22),
-          child: _buildScreen(
-            context,
-            orders,
-            user.uid,
-            user.role,
-            trackedOrder,
-          ),
-        ),
+        data: (orders) {
+          // Track status changes and show badge on Profile tab
+          final tracked = resolveTrackedOrder(orders, _latestOrderId);
+          if (tracked != null) {
+            final status = tracked.status;
+            if (_lastKnownOrderStatus != null &&
+                _lastKnownOrderStatus != status &&
+                _tab != ClientTab.profile) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) setState(() => _hasStatusBadge = true);
+              });
+            }
+            if (_lastKnownOrderStatus != status) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) setState(() => _lastKnownOrderStatus = status);
+              });
+            }
+          }
+          return SingleChildScrollView(
+            key: PageStorageKey('client-$_tab-$_view'),
+            padding: const EdgeInsets.fromLTRB(18, 18, 18, 22),
+            child: _buildScreen(
+              context,
+              orders,
+              user.uid,
+              user.role,
+              trackedOrder,
+            ),
+          );
+        },
         loading: () =>
             const Center(child: CircularProgressIndicator(color: Colors.black)),
         error: (err, _) => Center(
@@ -1261,17 +1290,21 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
+                          flex: 1,
                           child: Text(
                             spec.label,
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ),
                         const SizedBox(width: 12),
-                        Flexible(
+                        Expanded(
+                          flex: 2,
                           child: Text(
                             spec.value,
                             textAlign: TextAlign.right,
-                            style: Theme.of(context).textTheme.bodyMedium,
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ],
@@ -1475,7 +1508,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
           text: _t(ru: 'ОПЛАТИТЬ', en: 'PAY'),
           expanded: true,
           variant: AvishuButtonVariant.filled,
-          onPressed: () => _submitOrder(clientId),
+          onPressed: _isSubmitting ? null : () => _submitOrder(clientId),
         ),
       ],
     );
@@ -1502,35 +1535,34 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
           clientDisplayName: clientDisplayName,
         ),
         const SizedBox(height: 12),
-        if (order.id.isEmpty)
-          _surfaceCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${_t(ru: 'ЗАКАЗ', en: 'ORDER')} #${order.shortId}',
-                  style: AppTypography.eyebrow,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  order.productName,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  order.status.roleDescriptionFor(_language),
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 12),
-                LinearProgressIndicator(value: order.status.progressValue),
-                const SizedBox(height: 10),
-                Text(
-                  '${_t(ru: 'СТАТУС', en: 'STATUS')} / ${order.status.clientLabelFor(_language)}',
-                  style: AppTypography.code,
-                ),
-              ],
-            ),
+        _surfaceCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${_t(ru: 'ЗАКАЗ', en: 'ORDER')} #${order.shortId}',
+                style: AppTypography.eyebrow,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                order.productName,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                order.status.roleDescriptionFor(_language),
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 16),
+              AvishuOrderTracker(status: order.status),
+              const SizedBox(height: 10),
+              Text(
+                '${_t(ru: 'СТАТУС', en: 'STATUS')} / ${order.status.clientLabelFor(_language)}',
+                style: AppTypography.code,
+              ),
+            ],
           ),
+        ),
         const SizedBox(height: 12),
         OrderInfoCard(
           title: _t(ru: 'ДЕТАЛИ ЗАКАЗА', en: 'ORDER DETAILS'),
@@ -1606,43 +1638,46 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
   }
 
   Future<void> _submitOrder(String clientId) async {
+    if (_isSubmitting) return;
     final product = _selectedProduct!;
     if (!_validateCheckoutFields() || !_validatePaymentFields()) {
       return;
     }
 
-    final orderId = await ref
-        .read(orderRepositoryProvider)
-        .createOrder(
-          clientId: clientId,
-          productId: product.id,
-          productName:
-              '${product.title} / ${_selectedColor ?? product.defaultColor}',
-          sizeLabel: _selectedSize ?? product.defaultSize,
-          quantity: _quantity,
-          unitPrice: product.price,
-          imageUrl: product.imageUrls.first,
-          currency: 'KZT',
-          amount: _totalPrice(product),
-          isPreorder: product.preorder,
-          readyBy: product.preorder ? _selectedDate : null,
-          deliveryMethod: _deliveryMethod,
-          deliveryCity: _cityController.text.trim(),
-          deliveryAddress: _addressController.text.trim(),
-          apartment: _apartmentController.text.trim(),
-          paymentLast4: _cardLast4,
-          clientNote: _composeOrderNote(product),
-        );
+    setState(() => _isSubmitting = true);
+    try {
+      final orderId = await ref
+          .read(orderRepositoryProvider)
+          .createOrder(
+            clientId: clientId,
+            productId: product.id,
+            productName:
+                '${product.title} / ${_selectedColor ?? product.defaultColor}',
+            sizeLabel: _selectedSize ?? product.defaultSize,
+            quantity: _quantity,
+            unitPrice: product.price,
+            imageUrl: product.imageUrls.first,
+            currency: 'KZT',
+            amount: _totalPrice(product),
+            isPreorder: product.preorder,
+            readyBy: product.preorder ? _selectedDate : null,
+            deliveryMethod: _deliveryMethod,
+            deliveryCity: _cityController.text.trim(),
+            deliveryAddress: _addressController.text.trim(),
+            apartment: _apartmentController.text.trim(),
+            paymentLast4: _cardLast4,
+            clientNote: _composeOrderNote(product),
+          );
 
-    if (!mounted) {
-      return;
+      if (!mounted) return;
+      setState(() {
+        _latestOrderId = orderId;
+        _tab = ClientTab.dashboard;
+        _view = ClientView.tracking;
+      });
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
-
-    setState(() {
-      _latestOrderId = orderId;
-      _tab = ClientTab.dashboard;
-      _view = ClientView.tracking;
-    });
   }
 
   bool _validateCheckoutFields() {
@@ -1712,12 +1747,11 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       _selectedDate = product.preorder ? dateOptions[1] : null;
       _selectedColor = product.defaultColor;
       _selectedSize = product.defaultSize;
-      _selectedImageIndex = 0;
-      _quantity = 1;
-      _descriptionExpanded = true;
-      _specificationsExpanded = false;
-      _careExpanded = false;
       _view = ClientView.product;
+      _selectedImageIndex = 0;
+      if (_pageController.hasClients) {
+        _pageController.jumpToPage(0);
+      }
     });
   }
 
@@ -2097,18 +2131,24 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
   }
 
   Widget _metaChip(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceLow,
-        border: Border.all(color: AppColors.outlineVariant),
+    return SizedBox(
+      height: 30,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: AppColors.surfaceLow,
+          border: Border.all(color: AppColors.outlineVariant),
+        ),
+        child: Text(
+          label.toUpperCase(),
+          style: AppTypography.code.copyWith(fontSize: 9),
+        ),
       ),
-      child: Text(label.toUpperCase(), style: AppTypography.code),
     );
   }
 
   Widget _productGallery(CatalogProduct product) {
-    final imageUrl = product.imageUrls[_selectedImageIndex];
     final isFavorite = _favoriteProductIds.contains(product.id);
 
     return Column(
@@ -2117,7 +2157,18 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
           aspectRatio: 0.8,
           child: Stack(
             children: [
-              Positioned.fill(child: _networkProductImage(imageUrl)),
+              Positioned.fill(
+                child: PageView.builder(
+                  controller: _pageController,
+                  itemCount: product.imageUrls.length,
+                  onPageChanged: (index) {
+                    setState(() => _selectedImageIndex = index);
+                  },
+                  itemBuilder: (context, index) {
+                    return _networkProductImage(product.imageUrls[index]);
+                  },
+                ),
+              ),
               Positioned(
                 top: 12,
                 left: 12,
@@ -2148,6 +2199,26 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                   ),
                 ),
               ),
+              // Счётчик страниц (точки или текст) в стиле брутализма
+              if (product.imageUrls.length > 1)
+                Positioned(
+                  bottom: 12,
+                  left: 12,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    color: AppColors.black,
+                    child: Text(
+                      '${_selectedImageIndex + 1} / ${product.imageUrls.length}',
+                      style: AppTypography.code.copyWith(
+                        color: AppColors.white,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
@@ -2161,7 +2232,14 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             itemBuilder: (context, index) {
               final selected = index == _selectedImageIndex;
               return InkWell(
-                onTap: () => setState(() => _selectedImageIndex = index),
+                onTap: () {
+                  setState(() => _selectedImageIndex = index);
+                  _pageController.animateToPage(
+                    index,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                },
                 child: Container(
                   width: 74,
                   decoration: BoxDecoration(

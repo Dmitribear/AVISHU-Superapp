@@ -41,6 +41,7 @@ class OrderInfoCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
+                    flex: 1,
                     child: Text(
                       row.label,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -49,11 +50,14 @@ class OrderInfoCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  Flexible(
+                  Expanded(
+                    flex: 2,
                     child: Text(
                       row.value,
                       textAlign: TextAlign.right,
-                      style: Theme.of(context).textTheme.bodyMedium,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
