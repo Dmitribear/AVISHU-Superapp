@@ -64,6 +64,8 @@ class AuthRepository {
       'avatarUrl': '',
       'city': '',
       'loyaltyPoints': 0,
+      'loyaltyTotalSpent': 0,
+      'loyaltyBonusBalance': 0,
       'isActive': true,
       'createdAt': Timestamp.fromDate(now),
       'updatedAt': Timestamp.fromDate(now),

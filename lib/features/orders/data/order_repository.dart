@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../shared/utils/firestore_parsing.dart';
 import '../../auth/domain/user_role.dart';
 import '../../products/domain/models/product_model.dart';
 import '../domain/enums/delivery_method.dart';
@@ -13,6 +14,7 @@ import '../domain/models/order_item_model.dart';
 import '../domain/models/order_model.dart';
 import '../domain/services/order_map_location_resolver.dart';
 import '../domain/services/order_status_transition_service.dart';
+import '../../users/domain/services/loyalty_program.dart';
 
 final orderRepositoryProvider = Provider<OrderRepository>(
   (ref) =>
@@ -211,10 +213,12 @@ class OrderRepository {
     int quantity = 1,
     double? unitPrice,
     String currency = 'KZT',
+    double loyaltyBonusRedeemed = 0,
   }) async {
     final doc = _orders.doc();
     final itemDoc = _orderItems(doc.id).doc();
     final historyDoc = _orderHistory(doc.id).doc();
+    final userDoc = _firestore.collection('users').doc(clientId);
     final now = DateTime.now();
     final safeQuantity = quantity < 1 ? 1 : quantity;
     final product = await _loadProduct(productId);
@@ -237,6 +241,21 @@ class OrderRepository {
     final priority = _resolvePriority(
       isPreorder: resolvedIsPreorder,
       comment: clientNote,
+    );
+    final userSnapshot = await userDoc.get();
+    final userData = userSnapshot.data() ?? <String, dynamic>{};
+    final totalSpentBefore = doubleFromFirestoreValue(
+      userData['loyaltyTotalSpent'],
+    );
+    final bonusBalanceBefore = doubleFromFirestoreValue(
+      userData['loyaltyBonusBalance'],
+      fallback: intFromFirestoreValue(userData['loyaltyPoints']).toDouble(),
+    );
+    final loyaltyPurchase = LoyaltyProgram.applyPurchase(
+      totalSpent: totalSpentBefore,
+      bonusBalance: bonusBalanceBefore,
+      paidAmount: amount,
+      redeemedBonus: loyaltyBonusRedeemed,
     );
     final orderNumber = _buildOrderNumber(now, doc.id);
     final item = OrderItemModel(
@@ -314,6 +333,12 @@ class OrderRepository {
     batch.set(doc, order.toMap());
     batch.set(itemDoc, item.toMap());
     batch.set(historyDoc, historyEntry.toMap());
+    batch.set(userDoc, <String, dynamic>{
+      'loyaltyTotalSpent': loyaltyPurchase.updatedTotalSpent,
+      'loyaltyBonusBalance': loyaltyPurchase.updatedBonusBalance,
+      'loyaltyPoints': loyaltyPurchase.updatedBonusBalance.round(),
+      'updatedAt': Timestamp.fromDate(now),
+    }, SetOptions(merge: true));
     await batch.commit();
     return doc.id;
   }

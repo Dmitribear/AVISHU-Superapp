@@ -94,8 +94,15 @@ class OrderMapLocationResolver {
     final normalizedApartment = _normalize(apartment);
 
     if (deliveryMethod == DeliveryMethod.pickup) {
-      if (normalizedAddress.contains('esentai')) {
+      if (normalizedAddress.contains('esentai') ||
+          normalizedAddress.contains('esentai mall')) {
         return const GeoPoint(43.2185, 76.9277);
+      }
+      if (normalizedAddress.contains('mega') ||
+          normalizedAddress.contains('rozybakieva') ||
+          normalizedAddress.contains('247a') ||
+          normalizedAddress.contains('247а')) {
+        return const GeoPoint(43.201669, 76.892785);
       }
       return _offsetFromSeed(
         baseCity,
@@ -116,7 +123,10 @@ class OrderMapLocationResolver {
     if (normalizedAddress.contains('esentai')) {
       return const GeoPoint(43.2185, 76.9277);
     }
-    if (normalizedAddress.contains('mega')) {
+    if (normalizedAddress.contains('mega') ||
+        normalizedAddress.contains('rozybakieva') ||
+        normalizedAddress.contains('247a') ||
+        normalizedAddress.contains('247а')) {
       return const GeoPoint(43.201669, 76.892785);
     }
 

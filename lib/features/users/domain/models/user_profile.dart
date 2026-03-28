@@ -12,6 +12,8 @@ class UserProfile {
   final String avatarUrl;
   final String city;
   final int loyaltyPoints;
+  final double loyaltyTotalSpent;
+  final double loyaltyBonusBalance;
   final bool isActive;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -25,6 +27,8 @@ class UserProfile {
     required this.avatarUrl,
     required this.city,
     required this.loyaltyPoints,
+    required this.loyaltyTotalSpent,
+    required this.loyaltyBonusBalance,
     required this.isActive,
     required this.createdAt,
     required this.updatedAt,
@@ -53,6 +57,11 @@ class UserProfile {
       avatarUrl: stringFromFirestoreValue(data['avatarUrl']),
       city: stringFromFirestoreValue(data['city']),
       loyaltyPoints: intFromFirestoreValue(data['loyaltyPoints']),
+      loyaltyTotalSpent: doubleFromFirestoreValue(data['loyaltyTotalSpent']),
+      loyaltyBonusBalance: doubleFromFirestoreValue(
+        data['loyaltyBonusBalance'],
+        fallback: intFromFirestoreValue(data['loyaltyPoints']).toDouble(),
+      ),
       isActive: boolFromFirestoreValue(data['isActive'], fallback: true),
       createdAt: createdAt,
       updatedAt: updatedAt,
@@ -69,6 +78,8 @@ class UserProfile {
       'avatarUrl': avatarUrl,
       'city': city,
       'loyaltyPoints': loyaltyPoints,
+      'loyaltyTotalSpent': loyaltyTotalSpent,
+      'loyaltyBonusBalance': loyaltyBonusBalance,
       'isActive': isActive,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.fromDate(updatedAt),

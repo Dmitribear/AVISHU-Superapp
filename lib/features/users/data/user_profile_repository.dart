@@ -43,6 +43,8 @@ class UserProfileRepository {
     String avatarUrl = '',
     String city = '',
     int loyaltyPoints = 0,
+    double loyaltyTotalSpent = 0,
+    double loyaltyBonusBalance = 0,
     bool isActive = true,
   }) async {
     final existing = await fetchById(userId);
@@ -56,6 +58,8 @@ class UserProfileRepository {
       avatarUrl: avatarUrl,
       city: city,
       loyaltyPoints: loyaltyPoints,
+      loyaltyTotalSpent: loyaltyTotalSpent,
+      loyaltyBonusBalance: loyaltyBonusBalance,
       isActive: isActive,
       createdAt: existing?.createdAt ?? now,
       updatedAt: now,

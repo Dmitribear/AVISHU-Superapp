@@ -21,6 +21,9 @@ import '../../../orders/domain/enums/order_status.dart';
 import '../../../orders/domain/models/order_model.dart';
 import '../../../orders/domain/services/order_map_location_resolver.dart';
 import '../../../products/data/product_repository.dart';
+import '../../../users/data/user_profile_repository.dart';
+import '../../../users/domain/models/user_profile.dart';
+import '../../../users/domain/services/loyalty_program.dart';
 import '../shared/order_digital_twin_card.dart';
 import '../shared/order_delivery_map_card.dart';
 import '../shared/order_formatters.dart';
@@ -67,6 +70,14 @@ final catalogProductsProvider = StreamProvider<List<CatalogProduct>>((ref) {
       .map(catalogFromProducts);
 });
 
+final currentUserProfileProvider = StreamProvider<UserProfile?>((ref) {
+  final currentUser = ref.watch(currentUserProvider).value;
+  if (currentUser == null) {
+    return Stream.value(null);
+  }
+  return ref.watch(userProfileRepositoryProvider).watchById(currentUser.uid);
+});
+
 class ClientDashboard extends ConsumerStatefulWidget {
   const ClientDashboard({super.key});
 
@@ -99,6 +110,8 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
   bool _showFavoritesOnly = false;
   bool _isSubmitting = false;
   bool _hasStatusBadge = false;
+  bool _applyLoyaltyDiscount = true;
+  bool _useBonusBalance = false;
   OrderStatus? _lastKnownOrderStatus;
   List<CatalogProduct> _catalogProducts = catalog;
 
@@ -991,7 +1004,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     OrderModel? trackedOrder,
   ) {
     final user = ref.watch(currentUserProvider).value;
+    final profile = ref.watch(currentUserProfileProvider).value;
     final favoriteProducts = _favoriteProducts;
+    final loyalty = _loyaltySnapshot(profile, orders);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1068,13 +1083,63 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                 style: AppTypography.eyebrow,
               ),
               const SizedBox(height: 12),
-              LinearProgressIndicator(value: ((orders.length % 4) + 1) / 4),
+              Text(
+                loyalty.currentTier.titleFor(_language),
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 8),
+              LinearProgressIndicator(value: loyalty.progressToNextTier),
               const SizedBox(height: 10),
               Text(
+                loyalty.currentTier.perksFor(_language),
+                style: AppTypography.code,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        _surfaceCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: _metricCard(
+                      label: _t(ru: 'ПОТРАЧЕНО', en: 'SPENT', kk: 'ЖҰМСАЛДЫ'),
+                      value: formatCurrency(loyalty.totalSpent),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _metricCard(
+                      label: _t(ru: 'БОНУСЫ', en: 'BONUSES', kk: 'БОНУСТАР'),
+                      value: formatCurrency(loyalty.bonusBalance),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                loyalty.nextTier == null
+                    ? _t(
+                        ru: 'Максимальный уровень уже открыт.',
+                        en: 'Top tier already unlocked.',
+                        kk: 'Ең жоғары деңгей ашылған.',
+                      )
+                    : _t(
+                        ru: 'До уровня ${loyalty.nextTier!.titleFor(_language)} осталось ${formatCurrency(loyalty.amountToNextTier)}.',
+                        en: '${formatCurrency(loyalty.amountToNextTier)} left to reach ${loyalty.nextTier!.titleFor(_language)}.',
+                        kk: '${loyalty.nextTier!.titleFor(_language)} деңгейіне дейін ${formatCurrency(loyalty.amountToNextTier)} қалды.',
+                      ),
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 8),
+              Text(
                 _t(
-                  ru: 'ЗАКАЗОВ: ${orders.length} / СЛЕДУЮЩИЙ УРОВЕНЬ: ПРИОРИТЕТ',
-                  en: 'ORDERS: ${orders.length} / NEXT LEVEL: PRIORITY',
-                  kk: 'ТАПСЫРЫСТАР: ${orders.length} / КЕЛЕСІ ДЕҢГЕЙ: ПРИОРИТЕТ',
+                  ru: 'Порог считается по сумме оплаченных покупок, а не по количеству заказов.',
+                  en: 'Tiers are based on total paid spend, not on order count.',
+                  kk: 'Деңгейлер тапсырыс санына емес, төленген сатып алу сомасына байланысты.',
                 ),
                 style: AppTypography.code,
               ),
@@ -1497,6 +1562,14 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
 
   Widget _buildCheckoutScreen() {
     final product = _selectedProduct!;
+    final profile = ref.watch(currentUserProfileProvider).value;
+    final currentUserId = ref.watch(currentUserProvider).value?.uid ?? '';
+    final orders = currentUserId.isEmpty
+        ? const <OrderModel>[]
+        : (ref.watch(clientOrdersProvider(currentUserId)).value ??
+              const <OrderModel>[]);
+    final loyalty = _loyaltySnapshot(profile, orders);
+    final pricing = _checkoutPricing(product, profile: profile, orders: orders);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1601,6 +1674,72 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
           builder: (context, _) => _buildCheckoutDeliveryMapCard(product),
         ),
         const SizedBox(height: 12),
+        _surfaceCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _t(
+                  ru: 'ПРЕИМУЩЕСТВА ЛОЯЛЬНОСТИ',
+                  en: 'LOYALTY BENEFITS',
+                  kk: 'АДАЛДЫҚ АРТЫҚШЫЛЫҚТАРЫ',
+                ),
+                style: AppTypography.eyebrow,
+              ),
+              const SizedBox(height: 10),
+              Text(
+                '${loyalty.currentTier.titleFor(_language)} / ${loyalty.currentTier.perksFor(_language)}',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 12),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                value:
+                    _applyLoyaltyDiscount &&
+                    loyalty.currentTier.discountRate > 0,
+                onChanged: loyalty.currentTier.discountRate == 0
+                    ? null
+                    : (value) => setState(() => _applyLoyaltyDiscount = value),
+                title: Text(
+                  _t(
+                    ru: 'Применить скидку уровня',
+                    en: 'Apply tier discount',
+                    kk: 'Деңгей жеңілдігін қолдану',
+                  ),
+                ),
+                subtitle: Text(
+                  _t(
+                    ru: 'Сейчас доступно ${_discountLabel(loyalty.currentTier.discountRate)} на этот заказ.',
+                    en: '${_discountLabel(loyalty.currentTier.discountRate)} is available for this order.',
+                    kk: 'Бұл тапсырысқа ${_discountLabel(loyalty.currentTier.discountRate)} қолжетімді.',
+                  ),
+                ),
+              ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                value: _useBonusBalance && loyalty.bonusBalance > 0,
+                onChanged: loyalty.bonusBalance <= 0
+                    ? null
+                    : (value) => setState(() => _useBonusBalance = value),
+                title: Text(
+                  _t(
+                    ru: 'Списать бонусный баланс',
+                    en: 'Use bonus balance',
+                    kk: 'Бонус балансын пайдалану',
+                  ),
+                ),
+                subtitle: Text(
+                  _t(
+                    ru: 'Доступно ${formatCurrency(loyalty.bonusBalance)} для оплаты.',
+                    en: '${formatCurrency(loyalty.bonusBalance)} can be applied to the payment.',
+                    kk: 'Төлемге ${formatCurrency(loyalty.bonusBalance)} қолдануға болады.',
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
         _sectionLabel(
           _t(
             ru: 'СПОСОБ ПОЛУЧЕНИЯ',
@@ -1633,7 +1772,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         const SizedBox(height: 12),
         OrderInfoCard(
           title: _t(ru: 'ИТОГО', en: 'TOTAL', kk: 'ЖИЫНЫ'),
-          rows: _checkoutRows(product),
+          rows: _checkoutRows(product, pricing: pricing, loyalty: loyalty),
         ),
         const SizedBox(height: 18),
         AvishuButton(
@@ -1656,6 +1795,11 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
 
   Widget _buildPaymentScreen(String clientId) {
     final product = _selectedProduct!;
+    final profile = ref.watch(currentUserProfileProvider).value;
+    final orders =
+        ref.watch(clientOrdersProvider(clientId)).value ?? const <OrderModel>[];
+    final loyalty = _loyaltySnapshot(profile, orders);
+    final pricing = _checkoutPricing(product, profile: profile, orders: orders);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1711,7 +1855,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             en: 'PAYMENT DETAILS',
             kk: 'ТӨЛЕМ МӘЛІМЕТТЕРІ',
           ),
-          rows: _checkoutRows(product),
+          rows: _checkoutRows(product, pricing: pricing, loyalty: loyalty),
         ),
         const SizedBox(height: 18),
         AvishuButton(
@@ -1869,6 +2013,10 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
   Future<void> _submitOrder(String clientId) async {
     if (_isSubmitting) return;
     final product = _selectedProduct!;
+    final profile = ref.read(currentUserProfileProvider).value;
+    final orders =
+        ref.read(clientOrdersProvider(clientId)).value ?? const <OrderModel>[];
+    final pricing = _checkoutPricing(product, profile: profile, orders: orders);
     if (!_validateCheckoutFields() || !_validatePaymentFields()) {
       return;
     }
@@ -1887,7 +2035,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             unitPrice: product.price,
             imageUrl: product.imageUrls.first,
             currency: 'KZT',
-            amount: _totalPrice(product),
+            amount: pricing.total,
             isPreorder: product.preorder,
             readyBy: product.preorder ? _selectedDate : null,
             deliveryMethod: _deliveryMethod,
@@ -1896,6 +2044,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             apartment: _apartmentController.text.trim(),
             paymentLast4: _cardLast4,
             clientNote: _composeOrderNote(product),
+            loyaltyBonusRedeemed: pricing.bonusRedeemed,
           );
 
       if (!mounted) return;
@@ -2016,22 +2165,88 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     return digits.length <= 4 ? digits : digits.substring(digits.length - 4);
   }
 
+  LoyaltyProfileSnapshot _loyaltySnapshot(
+    UserProfile? profile,
+    List<OrderModel> orders,
+  ) {
+    final totalSpent =
+        profile?.loyaltyTotalSpent ?? _fallbackLoyaltySpend(orders);
+    final bonusBalance =
+        profile?.loyaltyBonusBalance ??
+        (profile?.loyaltyPoints.toDouble() ?? 0.0);
+    return LoyaltyProgram.profileSnapshot(
+      totalSpent: totalSpent,
+      bonusBalance: bonusBalance,
+    );
+  }
+
+  LoyaltyCheckoutPricing _checkoutPricing(
+    CatalogProduct product, {
+    UserProfile? profile,
+    List<OrderModel> orders = const <OrderModel>[],
+  }) {
+    final loyalty = _loyaltySnapshot(profile, orders);
+    return LoyaltyProgram.pricing(
+      subtotal: product.price * _quantity,
+      deliveryMethod: _deliveryMethod,
+      totalSpent: loyalty.totalSpent,
+      bonusBalance: loyalty.bonusBalance,
+      applyTierDiscount: _applyLoyaltyDiscount,
+      useBonusBalance: _useBonusBalance,
+    );
+  }
+
+  double _fallbackLoyaltySpend(List<OrderModel> orders) {
+    return orders.fold<double>(0, (total, order) => total + order.totalAmount);
+  }
+
   double _totalPrice(CatalogProduct product) {
-    return product.price * _quantity + _deliveryMethod.fee;
+    final profile = ref.read(currentUserProfileProvider).value;
+    final orders =
+        ref
+            .read(
+              clientOrdersProvider(
+                ref.read(currentUserProvider).value?.uid ?? '',
+              ),
+            )
+            .value ??
+        const <OrderModel>[];
+    return _checkoutPricing(product, profile: profile, orders: orders).total;
+  }
+
+  String _discountLabel(double rate) {
+    return '${(rate * 100).round()}%';
   }
 
   String _composeOrderNote(CatalogProduct product) {
     final customerNote = _noteController.text.trim();
+    final profile = ref.read(currentUserProfileProvider).value;
+    final currentUserId = ref.read(currentUserProvider).value?.uid ?? '';
+    final orders = currentUserId.isEmpty
+        ? const <OrderModel>[]
+        : (ref.read(clientOrdersProvider(currentUserId)).value ??
+              const <OrderModel>[]);
+    final pricing = _checkoutPricing(product, profile: profile, orders: orders);
     final lines = <String>[
       '${_t(ru: 'Цвет', en: 'Color')}: ${_selectedColor ?? product.defaultColor}',
       '${_t(ru: 'Количество', en: 'Quantity')}: $_quantity',
+      if (pricing.discountAmount > 0)
+        '${_t(ru: 'Скидка лояльности', en: 'Loyalty discount', kk: 'Адалдық жеңілдігі')}: ${formatCurrency(pricing.discountAmount)}',
+      if (pricing.bonusRedeemed > 0)
+        '${_t(ru: 'Списано бонусов', en: 'Bonuses used', kk: 'Пайдаланылған бонус')}: ${formatCurrency(pricing.bonusRedeemed)}',
+      if (pricing.earnedBonus > 0)
+        '${_t(ru: 'Начислится бонусами', en: 'Bonuses to earn', kk: 'Түсетін бонус')}: ${formatCurrency(pricing.earnedBonus)}',
       if (customerNote.isNotEmpty)
         '${_t(ru: 'Комментарий клиента', en: 'Client Comment', kk: 'Клиент пікірі')}: $customerNote',
     ];
     return lines.join('\n');
   }
 
-  List<OrderInfoRowData> _checkoutRows(CatalogProduct product) {
+  List<OrderInfoRowData> _checkoutRows(
+    CatalogProduct product, {
+    required LoyaltyCheckoutPricing pricing,
+    required LoyaltyProfileSnapshot loyalty,
+  }) {
     return [
       OrderInfoRowData(
         label: _t(ru: 'Изделие', en: 'Product'),
@@ -2051,21 +2266,57 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       ),
       OrderInfoRowData(
         label: _t(ru: 'Стоимость', en: 'Subtotal'),
-        value: formatCurrency(product.price * _quantity),
+        value: formatCurrency(pricing.subtotal),
       ),
       OrderInfoRowData(
         label: _t(ru: 'Доставка', en: 'Delivery'),
         value:
-            '${_deliveryMethod.labelFor(_language)} / ${formatCurrency(_deliveryMethod.fee)}',
+            '${_deliveryMethod.labelFor(_language)} / ${formatCurrency(pricing.deliveryFee)}',
       ),
+      if (pricing.courierSavings > 0)
+        OrderInfoRowData(
+          label: _t(
+            ru: 'Экономия на доставке',
+            en: 'Courier savings',
+            kk: 'Жеткізу үнемі',
+          ),
+          value: '- ${formatCurrency(pricing.courierSavings)}',
+        ),
+      if (pricing.discountAmount > 0)
+        OrderInfoRowData(
+          label: _t(
+            ru: 'Скидка уровня',
+            en: 'Tier discount',
+            kk: 'Деңгей жеңілдігі',
+          ),
+          value: '- ${formatCurrency(pricing.discountAmount)}',
+        ),
+      if (pricing.bonusRedeemed > 0)
+        OrderInfoRowData(
+          label: _t(
+            ru: 'Списано бонусов',
+            en: 'Bonuses used',
+            kk: 'Пайдаланылған бонус',
+          ),
+          value: '- ${formatCurrency(pricing.bonusRedeemed)}',
+        ),
       if (product.preorder && _selectedDate != null)
         OrderInfoRowData(
           label: _t(ru: 'Дата готовности', en: 'Ready Date'),
           value: formatDate(_selectedDate!),
         ),
+      if (pricing.earnedBonus > 0)
+        OrderInfoRowData(
+          label: _t(
+            ru: 'Вернется бонусами',
+            en: 'Bonuses to earn',
+            kk: 'Бонуспен қайтады',
+          ),
+          value: formatCurrency(pricing.earnedBonus),
+        ),
       OrderInfoRowData(
         label: _t(ru: 'Итого', en: 'Total', kk: 'Жиыны'),
-        value: formatCurrency(_totalPrice(product)),
+        value: formatCurrency(pricing.total),
       ),
     ];
   }
@@ -2075,6 +2326,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         _DeliveryAddressPreset(
           labelRu: 'Дом / Достык',
           labelEn: 'Home / Dostyk',
+          labelKk: 'Үй / Достық',
           city: 'Алматы',
           address: 'пр. Достык, 25',
           apartment: '12',
@@ -2082,6 +2334,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         _DeliveryAddressPreset(
           labelRu: 'Esentai',
           labelEn: 'Esentai',
+          labelKk: 'Esentai',
           city: 'Алматы',
           address: 'Esentai Mall',
           apartment: 'Boutique',
@@ -2089,6 +2342,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         _DeliveryAddressPreset(
           labelRu: 'Mega Alma-Ata',
           labelEn: 'Mega Alma-Ata',
+          labelKk: 'Mega Alma-Ata',
           city: 'Алматы',
           address: 'ул. Розыбакиева, 247А',
           apartment: '1',
@@ -2110,7 +2364,11 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
           border: Border.all(color: AppColors.black),
         ),
         child: Text(
-          _language == AppLanguage.russian ? preset.labelRu : preset.labelEn,
+          _language == AppLanguage.russian
+              ? preset.labelRu
+              : _language == AppLanguage.kazakh
+              ? preset.labelKk
+              : preset.labelEn,
           style: AppTypography.eyebrow.copyWith(
             color: isActive ? AppColors.white : AppColors.black,
           ),
@@ -3533,6 +3791,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
 class _DeliveryAddressPreset {
   final String labelRu;
   final String labelEn;
+  final String labelKk;
   final String city;
   final String address;
   final String apartment;
@@ -3540,6 +3799,7 @@ class _DeliveryAddressPreset {
   const _DeliveryAddressPreset({
     required this.labelRu,
     required this.labelEn,
+    required this.labelKk,
     required this.city,
     required this.address,
     required this.apartment,

@@ -21,7 +21,12 @@ extension DeliveryMethodX on DeliveryMethod {
   String labelFor(AppLanguage language) {
     switch (this) {
       case DeliveryMethod.courier:
-        return tr(language, ru: 'Курьер', en: 'Courier', kk: 'Курьер');
+        return tr(
+          language,
+          ru: 'Курьер',
+          en: 'Courier',
+          kk: 'Курьерлік жеткізу',
+        );
       case DeliveryMethod.pickup:
         return tr(language, ru: 'Самовывоз', en: 'Pickup', kk: 'Өзі алып кету');
     }
