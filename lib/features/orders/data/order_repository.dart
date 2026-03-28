@@ -12,25 +12,30 @@ import '../domain/enums/payment_status.dart';
 import '../domain/models/order_history_entry.dart';
 import '../domain/models/order_item_model.dart';
 import '../domain/models/order_model.dart';
-import '../domain/services/order_map_location_resolver.dart';
+import '../domain/services/order_geocoding_service.dart';
 import '../domain/services/order_status_transition_service.dart';
 import '../../users/domain/services/loyalty_program.dart';
 
 final orderRepositoryProvider = Provider<OrderRepository>(
-  (ref) =>
-      OrderRepository(statusTransitionService: OrderStatusTransitionService()),
+  (ref) => OrderRepository(
+    statusTransitionService: OrderStatusTransitionService(),
+    geocodingService: ref.watch(orderGeocodingServiceProvider),
+  ),
 );
 
 class OrderRepository {
   final FirebaseFirestore _firestore;
   final OrderStatusTransitionService _statusTransitionService;
+  final OrderGeocodingService _geocodingService;
 
   OrderRepository({
     FirebaseFirestore? firestore,
     OrderStatusTransitionService? statusTransitionService,
+    OrderGeocodingService? geocodingService,
   }) : _firestore = firestore ?? FirebaseFirestore.instance,
        _statusTransitionService =
-           statusTransitionService ?? OrderStatusTransitionService();
+           statusTransitionService ?? OrderStatusTransitionService(),
+       _geocodingService = geocodingService ?? const OrderGeocodingService();
 
   CollectionReference<Map<String, dynamic>> get _orders =>
       _firestore.collection('orders');
@@ -232,7 +237,7 @@ class OrderRepository {
       isPreorder: resolvedIsPreorder,
       product: product,
     );
-    final routeLocations = OrderMapLocationResolver.resolveRoute(
+    final routeLocations = await _geocodingService.resolveRoute(
       deliveryMethod: deliveryMethod,
       city: deliveryCity,
       address: deliveryAddress,

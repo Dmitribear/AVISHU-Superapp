@@ -8,6 +8,10 @@ final userProfileRepositoryProvider = Provider<UserProfileRepository>(
   (ref) => UserProfileRepository(),
 );
 
+final allUserProfilesProvider = StreamProvider<Map<String, UserProfile>>((ref) {
+  return ref.watch(userProfileRepositoryProvider).watchAll();
+});
+
 class UserProfileRepository {
   final FirebaseFirestore _firestore;
 
@@ -31,6 +35,17 @@ class UserProfileRepository {
         return null;
       }
       return UserProfile.fromFirestore(snapshot);
+    });
+  }
+
+  Stream<Map<String, UserProfile>> watchAll() {
+    return _users.snapshots().map((snapshot) {
+      final profiles = <String, UserProfile>{};
+      for (final doc in snapshot.docs) {
+        final profile = UserProfile.fromFirestore(doc);
+        profiles[profile.id] = profile;
+      }
+      return profiles;
     });
   }
 

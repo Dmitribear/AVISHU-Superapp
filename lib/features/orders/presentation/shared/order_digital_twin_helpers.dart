@@ -27,17 +27,17 @@ String formatOrderStatus(
 }) {
   switch (status) {
     case OrderStatus.newOrder:
-      return tr(language, ru: 'НОВЫЙ', en: 'NEW');
+      return tr(language, ru: 'НОВЫЙ', en: 'NEW', kk: 'ЖАҢА');
     case OrderStatus.accepted:
-      return tr(language, ru: 'ПРИНЯТ', en: 'ACCEPTED');
+      return tr(language, ru: 'ПРИНЯТ', en: 'ACCEPTED', kk: 'ҚАБЫЛДАНДЫ');
     case OrderStatus.inProduction:
-      return tr(language, ru: 'В ПРОИЗВОДСТВЕ', en: 'IN PRODUCTION');
+      return tr(language, ru: 'В ПОШИВЕ', en: 'IN PRODUCTION', kk: 'ТІГІЛУДЕ');
     case OrderStatus.ready:
-      return tr(language, ru: 'ГОТОВ', en: 'READY');
+      return tr(language, ru: 'ГОТОВ', en: 'READY', kk: 'ДАЙЫН');
     case OrderStatus.completed:
-      return tr(language, ru: 'ЗАВЕРШЕН', en: 'COMPLETED');
+      return tr(language, ru: 'ЗАВЕРШЁН', en: 'COMPLETED', kk: 'АЯҚТАЛДЫ');
     case OrderStatus.cancelled:
-      return tr(language, ru: 'ОТМЕНЕН', en: 'CANCELLED');
+      return tr(language, ru: 'ОТМЕНЁН', en: 'CANCELLED', kk: 'БАС ТАРТЫЛДЫ');
   }
 }
 
@@ -47,9 +47,9 @@ String formatOrderPriority(
 }) {
   switch (priority) {
     case OrderPriority.high:
-      return tr(language, ru: 'ВЫСОКИЙ', en: 'HIGH');
+      return tr(language, ru: 'ВЫСОКИЙ', en: 'HIGH', kk: 'ЖОҒАРЫ');
     case OrderPriority.normal:
-      return tr(language, ru: 'ОБЫЧНЫЙ', en: 'NORMAL');
+      return tr(language, ru: 'ОБЫЧНЫЙ', en: 'NORMAL', kk: 'ҚАЛЫПТЫ');
   }
 }
 
@@ -59,9 +59,9 @@ String formatFulfillmentTypeLabel(
 }) {
   switch (type) {
     case FulfillmentType.inStock:
-      return tr(language, ru: 'ИЗ НАЛИЧИЯ', en: 'IN STOCK');
+      return tr(language, ru: 'В НАЛИЧИИ', en: 'IN STOCK', kk: 'ДАЙЫН БАР');
     case FulfillmentType.preorder:
-      return tr(language, ru: 'ПРЕДЗАКАЗ', en: 'PREORDER');
+      return tr(language, ru: 'ПРЕДЗАКАЗ', en: 'PREORDER', kk: 'АЛДЫН АЛА');
   }
 }
 
@@ -70,7 +70,7 @@ String formatOrderEta(
   AppLanguage language = AppLanguage.english,
 }) {
   if (eta == null) {
-    return tr(language, ru: 'УТОЧНЯЕТСЯ', en: 'TBD');
+    return tr(language, ru: 'Уточняется', en: 'TBD', kk: 'Нақтылануда');
   }
   return _formatDateTime(eta, language);
 }
@@ -124,17 +124,22 @@ String getResponsibleLabel(
 
   switch (order.status) {
     case OrderStatus.newOrder:
-      return tr(language, ru: 'КЛИЕНТ', en: 'CLIENT');
+      return tr(language, ru: 'КЛИЕНТ', en: 'CLIENT', kk: 'КЛИЕНТ');
     case OrderStatus.accepted:
-      return tr(language, ru: 'ФРАНЧАЙЗ ДЕСК', en: 'FRANCHISE DESK');
+      return tr(
+        language,
+        ru: 'ФРАНЧАЙЗИ',
+        en: 'FRANCHISE DESK',
+        kk: 'ФРАНЧАЙЗИ',
+      );
     case OrderStatus.inProduction:
-      return tr(language, ru: 'ЛИНИЯ ЦЕХА', en: 'FACTORY LINE');
+      return tr(language, ru: 'ЦЕХ', en: 'FACTORY LINE', kk: 'ЦЕХ');
     case OrderStatus.ready:
-      return tr(language, ru: 'ВЫДАЧА ФРАНЧАЙЗИ', en: 'FRANCHISE HANDOFF');
+      return tr(language, ru: 'ВЫДАЧА', en: 'HANDOFF', kk: 'БЕРУ');
     case OrderStatus.completed:
-      return tr(language, ru: 'СИСТЕМНАЯ ПЕРЕДАЧА', en: 'SYSTEM HANDOFF');
+      return tr(language, ru: 'ЗАВЕРШЕНО', en: 'COMPLETED', kk: 'АЯҚТАЛДЫ');
     case OrderStatus.cancelled:
-      return tr(language, ru: 'ОПЕРАЦИОННЫЙ ОТДЕЛ', en: 'OPERATIONS DESK');
+      return tr(language, ru: 'ОПЕРАЦИИ', en: 'OPERATIONS', kk: 'ОПЕРАЦИЯЛАР');
   }
 }
 
@@ -150,13 +155,18 @@ String getClientDisplayLabel(
 
   final normalizedId = order.clientId.trim();
   if (normalizedId.isEmpty) {
-    return tr(language, ru: 'ID КЛИЕНТА УТОЧНЯЕТСЯ', en: 'CLIENT ID TBD');
+    return tr(
+      language,
+      ru: 'ИМЯ КЛИЕНТА УТОЧНЯЕТСЯ',
+      en: 'CLIENT NAME PENDING',
+      kk: 'КЛИЕНТ АТЫ НАҚТЫЛАНЫП ЖАТЫР',
+    );
   }
 
   final shortId = normalizedId.length > 8
       ? normalizedId.substring(0, 8).toUpperCase()
       : normalizedId.toUpperCase();
-  return tr(language, ru: 'ID $shortId', en: 'ID $shortId');
+  return tr(language, ru: 'ID $shortId', en: 'ID $shortId', kk: 'ID $shortId');
 }
 
 List<OrderTwinTimelineStep> mapOrderHistoryToTimeline(
@@ -190,7 +200,7 @@ List<OrderTwinTimelineStep> mapOrderHistoryToTimeline(
     steps.add(
       OrderTwinTimelineStep(
         status: OrderStatus.cancelled,
-        label: tr(language, ru: 'ОТМЕНЕН', en: 'CANCELLED'),
+        label: tr(language, ru: 'ОТМЕНЁН', en: 'CANCELLED', kk: 'БАС ТАРТЫЛДЫ'),
         timestamp:
             _timestampForStatus(order, OrderStatus.cancelled) ??
             order.lastStatusChangedAt,
@@ -238,44 +248,57 @@ OrderHistoryEntry? _latestHistoryForStatus(
 String _timelineLabel(OrderStatus status, AppLanguage language) {
   switch (status) {
     case OrderStatus.newOrder:
-      return tr(language, ru: 'СОЗДАН', en: 'CREATED');
+      return tr(language, ru: 'СОЗДАН', en: 'CREATED', kk: 'ҚҰРЫЛДЫ');
     case OrderStatus.accepted:
-      return tr(language, ru: 'ПРИНЯТ', en: 'ACCEPTED');
+      return tr(language, ru: 'ПРИНЯТ', en: 'ACCEPTED', kk: 'ҚАБЫЛДАНДЫ');
     case OrderStatus.inProduction:
-      return tr(language, ru: 'В ПРОИЗВОДСТВЕ', en: 'IN PRODUCTION');
+      return tr(language, ru: 'В ПОШИВЕ', en: 'IN PRODUCTION', kk: 'ТІГІЛУДЕ');
     case OrderStatus.ready:
-      return tr(language, ru: 'ГОТОВ', en: 'READY');
+      return tr(language, ru: 'ГОТОВ', en: 'READY', kk: 'ДАЙЫН');
     case OrderStatus.completed:
-      return tr(language, ru: 'ЗАВЕРШЕН', en: 'COMPLETED');
+      return tr(language, ru: 'ЗАВЕРШЁН', en: 'COMPLETED', kk: 'АЯҚТАЛДЫ');
     case OrderStatus.cancelled:
-      return tr(language, ru: 'ОТМЕНЕН', en: 'CANCELLED');
+      return tr(language, ru: 'ОТМЕНЁН', en: 'CANCELLED', kk: 'БАС ТАРТЫЛДЫ');
   }
 }
 
 String _formatElapsed(Duration difference, AppLanguage language) {
   if (difference.inMinutes <= 0) {
-    return tr(language, ru: 'ТОЛЬКО ЧТО', en: 'JUST NOW');
+    return tr(language, ru: 'Только что', en: 'JUST NOW', kk: 'ДӘЛ ҚАЗІР');
   }
   if (difference.inHours < 1) {
-    return language == AppLanguage.russian
-        ? '${difference.inMinutes} МИН'
-        : '${difference.inMinutes} MIN';
+    return tr(
+      language,
+      ru: '${difference.inMinutes} мин',
+      en: '${difference.inMinutes} MIN',
+      kk: '${difference.inMinutes} мин',
+    );
   }
   if (difference.inDays < 1) {
     final hours = difference.inHours;
     final minutes = difference.inMinutes.remainder(60);
-    if (language == AppLanguage.russian) {
-      return minutes == 0 ? '$hours Ч' : '$hours Ч $minutes МИН';
+    if (minutes == 0) {
+      return tr(language, ru: '$hours ч', en: '$hours H', kk: '$hours сағ');
     }
-    return minutes == 0 ? '$hours H' : '$hours H $minutes MIN';
+    return tr(
+      language,
+      ru: '$hours ч $minutes мин',
+      en: '$hours H $minutes MIN',
+      kk: '$hours сағ $minutes мин',
+    );
   }
 
   final days = difference.inDays;
   final hours = difference.inHours.remainder(24);
-  if (language == AppLanguage.russian) {
-    return hours == 0 ? '$days ДН' : '$days ДН $hours Ч';
+  if (hours == 0) {
+    return tr(language, ru: '$days дн', en: '$days D', kk: '$days күн');
   }
-  return hours == 0 ? '$days D' : '$days D $hours H';
+  return tr(
+    language,
+    ru: '$days дн $hours ч',
+    en: '$days D $hours H',
+    kk: '$days күн $hours сағ',
+  );
 }
 
 String _formatDateTime(DateTime value, AppLanguage language) {

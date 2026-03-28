@@ -16,8 +16,12 @@ import '../../../orders/data/order_repository.dart';
 import '../../../orders/domain/enums/delivery_method.dart';
 import '../../../orders/domain/enums/order_status.dart';
 import '../../../orders/domain/models/order_model.dart';
+import '../../../orders/domain/services/order_analytics_service.dart';
 import '../../../orders/domain/services/order_map_location_resolver.dart';
+import '../../../users/data/user_profile_repository.dart';
+import '../../../users/domain/models/user_profile.dart';
 import '../shared/order_digital_twin_card.dart';
+import '../shared/order_formatters.dart';
 import '../shared/order_panels.dart';
 
 final franchiseeOrdersProvider = StreamProvider<List<OrderModel>>((ref) {
@@ -27,6 +31,12 @@ final franchiseeOrdersProvider = StreamProvider<List<OrderModel>>((ref) {
     OrderStatus.inProduction,
     OrderStatus.ready,
   ]);
+});
+
+final franchiseeAnalyticsOrdersProvider = StreamProvider<List<OrderModel>>((
+  ref,
+) {
+  return ref.watch(orderRepositoryProvider).franchiseeOrders();
 });
 
 enum FranchiseeTab { dashboard, queue, ready, profile }
@@ -83,6 +93,15 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
   Widget build(BuildContext context) {
     ref.watch(appSettingsProvider);
     final ordersAsync = ref.watch(franchiseeOrdersProvider);
+    final analyticsOrders =
+        ref.watch(franchiseeAnalyticsOrdersProvider).value ??
+        const <OrderModel>[];
+    final profiles =
+        ref.watch(allUserProfilesProvider).value ??
+        const <String, UserProfile>{};
+    final analytics = ref
+        .watch(orderAnalyticsServiceProvider)
+        .buildFranchiseeSnapshot(analyticsOrders);
 
     return AvishuMobileFrame(
       title: 'AVISHU',
@@ -136,8 +155,11 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
             ),
             padding: const EdgeInsets.fromLTRB(18, 18, 18, 22),
             child: _selectedOrder != null
-                ? _detailView(selectedOrder ?? _selectedOrder!)
-                : _rootView(orders),
+                ? _detailView(
+                    selectedOrder ?? _selectedOrder!,
+                    profiles: profiles,
+                  )
+                : _rootView(orders, profiles: profiles, analytics: analytics),
           );
         },
         loading: () =>
@@ -151,7 +173,11 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
     );
   }
 
-  Widget _rootView(List<OrderModel> orders) {
+  Widget _rootView(
+    List<OrderModel> orders, {
+    required Map<String, UserProfile> profiles,
+    required FranchiseeAnalyticsSnapshot analytics,
+  }) {
     final newOrders = orders
         .where((order) => order.status == OrderStatus.newOrder)
         .toList();
@@ -190,7 +216,7 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
               Expanded(
                 child: _metricCard(
                   _t(ru: 'Оборот', en: 'Revenue', kk: 'Айналым'),
-                  revenue.toStringAsFixed(0),
+                  formatCurrency(revenue),
                 ),
               ),
               const SizedBox(width: 8),
@@ -210,10 +236,15 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
             ],
           ),
           const SizedBox(height: 12),
+          _analyticsCard(analytics),
+          const SizedBox(height: 12),
           ...[...newOrders.take(2), ...queuedOrders.take(1)].map(
             (order) => Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: _orderCard(order),
+              child: _orderCard(
+                order,
+                clientDisplayName: _clientDisplayName(profiles, order),
+              ),
             ),
           ),
         ],
@@ -236,7 +267,10 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
           ...newOrders.map(
             (order) => Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: _orderCard(order),
+              child: _orderCard(
+                order,
+                clientDisplayName: _clientDisplayName(profiles, order),
+              ),
             ),
           ),
           const SizedBox(height: 4),
@@ -259,7 +293,10 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
           ...queuedOrders.map(
             (order) => Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: _orderCard(order),
+              child: _orderCard(
+                order,
+                clientDisplayName: _clientDisplayName(profiles, order),
+              ),
             ),
           ),
         ],
@@ -286,7 +323,10 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
           ...readyOrders.map(
             (order) => Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: _orderCard(order),
+              child: _orderCard(
+                order,
+                clientDisplayName: _clientDisplayName(profiles, order),
+              ),
             ),
           ),
         ],
@@ -389,13 +429,19 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
     );
   }
 
-  Widget _detailView(OrderModel order) {
+  Widget _detailView(
+    OrderModel order, {
+    required Map<String, UserProfile> profiles,
+  }) {
     final isNew = order.status == OrderStatus.newOrder;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        OrderDigitalTwinCard(order: order),
+        OrderDigitalTwinCard(
+          order: order,
+          clientDisplayName: _clientDisplayName(profiles, order),
+        ),
         const SizedBox(height: 12),
         if (order.id.isEmpty)
           _surfaceCard(
@@ -688,7 +734,121 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
     );
   }
 
-  Widget _orderCard(OrderModel order) {
+  Widget _analyticsCard(FranchiseeAnalyticsSnapshot analytics) {
+    return _surfaceCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            _t(
+              ru: 'КАК ИДУТ ЗАКАЗЫ',
+              en: 'ORDER SNAPSHOT',
+              kk: 'ТАПСЫРЫСТАР ҚАЛАЙ ЖҮРІП ЖАТЫР',
+            ),
+            style: AppTypography.eyebrow,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            _t(
+              ru: 'Короткая сводка без лишних деталей: кто покупает, как быстро подтверждаем и сколько в среднем занимает доставка.',
+              en: 'A quick overview of who is buying, how fast orders are confirmed, and how long delivery usually takes.',
+              kk: 'Артық мәтінсіз қысқа шолу: кім тапсырыс береді, қаншалықты жылдам растаймыз және жеткізу орташа қанша уақыт алады.',
+            ),
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 14),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final itemWidth = (constraints.maxWidth - 12) / 2;
+              return Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  SizedBox(
+                    width: itemWidth,
+                    child: _analyticsMetricCell(
+                      _t(
+                        ru: 'Средний чек',
+                        en: 'Average order',
+                        kk: 'Орташа тапсырыс',
+                      ),
+                      formatCurrency(analytics.averageOrderValue),
+                    ),
+                  ),
+                  SizedBox(
+                    width: itemWidth,
+                    child: _analyticsMetricCell(
+                      _t(ru: 'Клиентов', en: 'Clients', kk: 'Клиенттер'),
+                      '${analytics.uniqueClients}',
+                    ),
+                  ),
+                  SizedBox(
+                    width: itemWidth,
+                    child: _analyticsMetricCell(
+                      _t(
+                        ru: 'Подтверждаем за',
+                        en: 'Confirm in',
+                        kk: 'Растау уақыты',
+                      ),
+                      _formatAnalyticsDuration(analytics.averageAcceptanceTime),
+                    ),
+                  ),
+                  SizedBox(
+                    width: itemWidth,
+                    child: _analyticsMetricCell(
+                      _t(
+                        ru: 'Доставка в среднем',
+                        en: 'Delivery takes',
+                        kk: 'Жеткізу уақыты',
+                      ),
+                      _formatAnalyticsDuration(
+                        analytics.averageCourierDeliveryTime,
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: 14),
+          Text(
+            analytics.topProductName == null
+                ? _t(
+                    ru: 'Как только накопится история заказов, здесь появится самая популярная модель.',
+                    en: 'The most requested product will appear here as soon as the order history grows.',
+                    kk: 'Тапсырыс тарихы көбейген сайын мұнда ең сұранысқа ие модель көрінеді.',
+                  )
+                : _t(
+                    ru: 'Чаще всего заказывают ${analytics.topProductName}. Повторно возвращаются ${analytics.repeatClients} клиентов, завершено ${analytics.completedOrders} заказов.',
+                    en: '${analytics.topProductName} is ordered most often. ${analytics.repeatClients} clients returned for another order and ${analytics.completedOrders} orders are already completed.',
+                    kk: 'Ең жиі ${analytics.topProductName} тапсырыс беріледі. ${analytics.repeatClients} клиент қайта оралды, ${analytics.completedOrders} тапсырыс аяқталды.',
+                  ),
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _analyticsMetricCell(String label, String value) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceLow,
+        border: Border.all(color: AppColors.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: AppTypography.eyebrow),
+          const SizedBox(height: 8),
+          Text(value, style: Theme.of(context).textTheme.titleMedium),
+        ],
+      ),
+    );
+  }
+
+  Widget _orderCard(OrderModel order, {required String clientDisplayName}) {
     return _surfaceCard(
       onTap: () => _openOrder(order),
       child: Column(
@@ -714,6 +874,11 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 8),
+          Text(
+            '${_t(ru: 'Клиент', en: 'Client', kk: 'Клиент')}: $clientDisplayName',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 6),
           Text(
             order.formattedAddress,
             style: Theme.of(context).textTheme.bodyMedium,
@@ -752,6 +917,58 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
 
   Widget _sectionLabel(String label) {
     return Text(label, style: AppTypography.eyebrow.copyWith(letterSpacing: 3));
+  }
+
+  String _clientDisplayName(
+    Map<String, UserProfile> profiles,
+    OrderModel order,
+  ) {
+    final profile = profiles[order.clientId];
+    final fullName = profile?.fullName.trim() ?? '';
+    if (fullName.isNotEmpty) {
+      return fullName;
+    }
+    return _t(
+      ru: 'Имя уточняется',
+      en: 'Name pending',
+      kk: 'Аты нақтыланып жатыр',
+    );
+  }
+
+  String _formatAnalyticsDuration(Duration duration) {
+    if (duration == Duration.zero) {
+      return '—';
+    }
+    if (duration.inHours < 1) {
+      return _t(
+        ru: '${duration.inMinutes} мин',
+        en: '${duration.inMinutes} min',
+        kk: '${duration.inMinutes} мин',
+      );
+    }
+    if (duration.inDays < 1) {
+      final hours = duration.inHours;
+      final minutes = duration.inMinutes.remainder(60);
+      if (minutes == 0) {
+        return _t(ru: '$hours ч', en: '$hours h', kk: '$hours сағ');
+      }
+      return _t(
+        ru: '$hours ч $minutes мин',
+        en: '$hours h $minutes min',
+        kk: '$hours сағ $minutes мин',
+      );
+    }
+
+    final days = duration.inDays;
+    final hours = duration.inHours.remainder(24);
+    if (hours == 0) {
+      return _t(ru: '$days дн', en: '$days d', kk: '$days күн');
+    }
+    return _t(
+      ru: '$days дн $hours ч',
+      en: '$days d $hours h',
+      kk: '$days күн $hours сағ',
+    );
   }
 
   OrderModel? _resolveSelectedOrder(List<OrderModel> orders) {
