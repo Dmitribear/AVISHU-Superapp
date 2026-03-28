@@ -19,6 +19,7 @@ import '../../../orders/domain/enums/order_status.dart';
 import '../../../orders/domain/models/order_model.dart';
 import '../../../products/data/product_repository.dart';
 import '../shared/order_digital_twin_card.dart';
+import '../shared/order_delivery_map_card.dart';
 import '../shared/order_formatters.dart';
 import '../shared/order_panels.dart';
 import 'client_data.dart';
@@ -1326,9 +1327,8 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                           child: Text(
                             spec.value,
                             textAlign: TextAlign.right,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(fontWeight: FontWeight.w600),
                           ),
                         ),
                       ],
@@ -1398,7 +1398,21 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         const SizedBox(height: 12),
         _surfaceCard(
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Text(
+                _t(ru: 'АДРЕС ДОСТАВКИ', en: 'DELIVERY ADDRESS'),
+                style: AppTypography.eyebrow,
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _deliveryAddressPresets
+                    .map((preset) => _addressPresetChip(preset))
+                    .toList(),
+              ),
+              const SizedBox(height: 12),
               TextField(
                 controller: _cityController,
                 decoration: InputDecoration(
@@ -1437,6 +1451,15 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               ),
             ],
           ),
+        ),
+        const SizedBox(height: 12),
+        AnimatedBuilder(
+          animation: Listenable.merge([
+            _cityController,
+            _addressController,
+            _apartmentController,
+          ]),
+          builder: (context, _) => _buildCheckoutDeliveryMapCard(product),
         ),
         const SizedBox(height: 12),
         _sectionLabel(_t(ru: 'СПОСОБ ПОЛУЧЕНИЯ', en: 'FULFILLMENT METHOD', kk: 'АЛУ ТӘСІЛІ')),
@@ -1590,6 +1613,8 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             ],
           ),
         ),
+        const SizedBox(height: 12),
+        _buildTrackingDeliveryMapCard(order),
         const SizedBox(height: 12),
         OrderInfoCard(
           title: _t(ru: 'ДЕТАЛИ ЗАКАЗА', en: 'ORDER DETAILS', kk: 'ТАПСЫРЫС МӘЛІМЕТТЕРІ'),
@@ -1866,6 +1891,378 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         value: formatCurrency(_totalPrice(product)),
       ),
     ];
+  }
+
+  List<_DeliveryAddressPreset> get _deliveryAddressPresets =>
+      const <_DeliveryAddressPreset>[
+        _DeliveryAddressPreset(
+          labelRu: 'Дом / Достык',
+          labelEn: 'Home / Dostyk',
+          city: 'Алматы',
+          address: 'пр. Достык, 25',
+          apartment: '12',
+        ),
+        _DeliveryAddressPreset(
+          labelRu: 'Esentai',
+          labelEn: 'Esentai',
+          city: 'Алматы',
+          address: 'Esentai Mall',
+          apartment: 'Boutique',
+        ),
+        _DeliveryAddressPreset(
+          labelRu: 'Mega Alma-Ata',
+          labelEn: 'Mega Alma-Ata',
+          city: 'Алматы',
+          address: 'ул. Розыбакиева, 247А',
+          apartment: '1',
+        ),
+      ];
+
+  Widget _addressPresetChip(_DeliveryAddressPreset preset) {
+    final isActive =
+        _cityController.text.trim() == preset.city &&
+        _addressController.text.trim() == preset.address &&
+        _apartmentController.text.trim() == preset.apartment;
+
+    return InkWell(
+      onTap: () => _applyAddressPreset(preset),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: isActive ? AppColors.black : AppColors.surfaceLowest,
+          border: Border.all(color: AppColors.black),
+        ),
+        child: Text(
+          _language == AppLanguage.russian ? preset.labelRu : preset.labelEn,
+          style: AppTypography.eyebrow.copyWith(
+            color: isActive ? AppColors.white : AppColors.black,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _applyAddressPreset(_DeliveryAddressPreset preset) {
+    setState(() {
+      _cityController.text = preset.city;
+      _addressController.text = preset.address;
+      _apartmentController.text = preset.apartment;
+    });
+  }
+
+  Widget _buildCheckoutDeliveryMapCard(CatalogProduct product) {
+    final city = _cityController.text.trim();
+    final address = _addressController.text.trim();
+    final apartment = _apartmentController.text.trim();
+    final hasDestination = city.isNotEmpty && address.isNotEmpty;
+    final isPickup = _deliveryMethod == DeliveryMethod.pickup;
+
+    final statusValue = hasDestination
+        ? isPickup
+              ? _t(ru: 'Точка выдачи закреплена', en: 'Pickup point pinned')
+              : _t(ru: 'Адрес доставки закреплён', en: 'Destination pinned')
+        : _t(ru: 'Добавьте адрес', en: 'Add destination');
+
+    final etaValue = product.preorder && _selectedDate != null
+        ? formatDate(_selectedDate!)
+        : isPickup
+        ? _t(ru: '20 МИН', en: '20 MIN')
+        : _t(ru: '45 МИН', en: '45 MIN');
+
+    final note = hasDestination
+        ? isPickup
+              ? _t(
+                  ru: 'Карта показывает закреплённую точку самовывоза. При изменении адреса превью обновится сразу.',
+                  en: 'The map shows the selected pickup point. Update the address fields and the preview will refresh instantly.',
+                )
+              : _t(
+                  ru: 'Маршрут построен на основе введённого города и адреса. Вы можете изменить поля вручную в любой момент.',
+                  en: 'The route is built from the current city and address fields. You can still type your own destination at any time.',
+                )
+        : _t(
+            ru: 'Введите город и адрес доставки, чтобы карта сразу показала точку назначения.',
+            en: 'Enter the city and delivery address to pin the destination on the map.',
+          );
+
+    return OrderDeliveryMapCard(
+      eyebrow: _t(ru: 'КАРТА ДОСТАВКИ', en: 'DELIVERY MAP'),
+      badge: hasDestination
+          ? _t(ru: 'ПРЕВЬЮ АКТИВНО', en: 'PREVIEW ACTIVE')
+          : _t(ru: 'ОЖИДАЕТ АДРЕС', en: 'WAITING FOR ADDRESS'),
+      statusLabel: _t(ru: 'СТАТУС', en: 'STATUS'),
+      statusValue: statusValue,
+      etaLabel: product.preorder && _selectedDate != null
+          ? _t(ru: 'ДАТА ГОТОВНОСТИ', en: 'READY DATE')
+          : _t(ru: 'ОЖИДАЕМОЕ ВРЕМЯ', en: 'EXPECTED TIME'),
+      etaValue: etaValue,
+      locationLabel: _t(ru: 'ЛОКАЦИЯ', en: 'LOCATION'),
+      locationValue: _composeDeliveryLocation(city, address, apartment),
+      amountLabel: _t(ru: 'ИТОГО', en: 'TOTAL'),
+      amountValue: formatCurrency(_totalPrice(product)),
+      note: note,
+      footer: isPickup
+          ? _t(ru: 'MAP / PICKUP SNAPSHOT', en: 'MAP / PICKUP SNAPSHOT')
+          : _t(ru: 'MAP / ADDRESS SNAPSHOT', en: 'MAP / ADDRESS SNAPSHOT'),
+      modeTag: isPickup
+          ? _t(ru: 'PICKUP MODE', en: 'PICKUP MODE')
+          : _t(ru: 'ROUTE PREVIEW', en: 'ROUTE PREVIEW'),
+      cityTag: (city.isEmpty ? _t(ru: 'ГОРОД', en: 'CITY') : city)
+          .toUpperCase(),
+      originLabel: _t(ru: 'ATELIER', en: 'ATELIER'),
+      destinationLabel: isPickup
+          ? _t(ru: 'PICKUP', en: 'PICKUP')
+          : _t(ru: 'DROP', en: 'DROP'),
+      progress: isPickup ? 0.56 : 0.22,
+      live: false,
+      pickup: isPickup,
+      completed: false,
+    );
+  }
+
+  Widget _buildTrackingDeliveryMapCard(OrderModel order) {
+    final isPickup = order.deliveryMethod == DeliveryMethod.pickup;
+
+    return OrderDeliveryMapCard(
+      eyebrow: isPickup
+          ? _t(ru: 'КАРТА ВЫДАЧИ', en: 'PICKUP MAP')
+          : _t(ru: 'КАРТА ДОСТАВКИ', en: 'DELIVERY MAP'),
+      badge: _trackingMapBadge(order),
+      statusLabel: _t(ru: 'СТАТУС', en: 'STATUS'),
+      statusValue: _trackingMapStatus(order),
+      etaLabel: _trackingEtaLabel(order),
+      etaValue: _trackingEtaValue(order),
+      locationLabel: isPickup
+          ? _t(ru: 'ТОЧКА ВЫДАЧИ', en: 'PICKUP POINT')
+          : _t(ru: 'ЛОКАЦИЯ', en: 'LOCATION'),
+      locationValue: _composeDeliveryLocation(
+        order.deliveryCity,
+        order.deliveryAddress,
+        order.apartment,
+      ),
+      amountLabel: _t(ru: 'СУММА', en: 'TOTAL'),
+      amountValue: formatCurrency(order.totalAmount),
+      note: _trackingMapNote(order),
+      footer: _trackingMapFooter(order),
+      modeTag: _trackingModeTag(order),
+      cityTag:
+          (order.deliveryCity.isEmpty
+                  ? _t(ru: 'ГОРОД', en: 'CITY')
+                  : order.deliveryCity)
+              .toUpperCase(),
+      originLabel: isPickup
+          ? _t(ru: 'AVISHU', en: 'AVISHU')
+          : _t(ru: 'ATELIER', en: 'ATELIER'),
+      destinationLabel: isPickup
+          ? _t(ru: 'PICKUP', en: 'PICKUP')
+          : _t(ru: 'CLIENT', en: 'CLIENT'),
+      progress: _trackingRouteProgress(order),
+      live: !isPickup && order.status == OrderStatus.ready,
+      pickup: isPickup,
+      completed: order.status == OrderStatus.completed,
+    );
+  }
+
+  String _composeDeliveryLocation(
+    String city,
+    String address,
+    String apartment,
+  ) {
+    if (city.isEmpty && address.isEmpty) {
+      return _t(
+        ru: 'Точка назначения появится после ввода адреса.',
+        en: 'The destination will appear once the address is entered.',
+      );
+    }
+    if (apartment.isEmpty) {
+      return [city, address].where((value) => value.isNotEmpty).join(', ');
+    }
+    return [
+      city,
+      address,
+      apartment,
+    ].where((value) => value.isNotEmpty).join(', ');
+  }
+
+  double _trackingRouteProgress(OrderModel order) {
+    switch (order.status) {
+      case OrderStatus.newOrder:
+        return 0.14;
+      case OrderStatus.accepted:
+        return order.deliveryMethod == DeliveryMethod.pickup ? 0.34 : 0.28;
+      case OrderStatus.inProduction:
+        return order.deliveryMethod == DeliveryMethod.pickup ? 0.58 : 0.52;
+      case OrderStatus.ready:
+        return order.deliveryMethod == DeliveryMethod.pickup ? 0.88 : 0.82;
+      case OrderStatus.completed:
+        return 1;
+      case OrderStatus.cancelled:
+        return 0.08;
+    }
+  }
+
+  DateTime? _trackingEta(OrderModel order) {
+    if (order.status == OrderStatus.cancelled) {
+      return null;
+    }
+
+    if (order.status == OrderStatus.completed) {
+      return order.completedAt ?? order.lastStatusChangedAt;
+    }
+
+    if (order.deliveryMethod == DeliveryMethod.pickup) {
+      return order.readyBy ??
+          order.estimatedReadyAt ??
+          order.lastStatusChangedAt.add(const Duration(minutes: 45));
+    }
+
+    switch (order.status) {
+      case OrderStatus.newOrder:
+        return order.createdAt.add(const Duration(minutes: 95));
+      case OrderStatus.accepted:
+        return order.lastStatusChangedAt.add(const Duration(minutes: 70));
+      case OrderStatus.inProduction:
+        return order.lastStatusChangedAt.add(const Duration(minutes: 45));
+      case OrderStatus.ready:
+        return order.lastStatusChangedAt.add(const Duration(minutes: 22));
+      case OrderStatus.completed:
+        return order.completedAt ?? order.lastStatusChangedAt;
+      case OrderStatus.cancelled:
+        return null;
+    }
+  }
+
+  String _trackingEtaLabel(OrderModel order) {
+    if (order.status == OrderStatus.completed) {
+      return _t(ru: 'ЗАВЕРШЕНО В', en: 'COMPLETED AT');
+    }
+    if (order.status == OrderStatus.cancelled) {
+      return _t(ru: 'ОБНОВЛЕНИЕ', en: 'UPDATE');
+    }
+    if (order.deliveryMethod == DeliveryMethod.pickup) {
+      return _t(ru: 'ОКНО ВЫДАЧИ', en: 'PICKUP WINDOW');
+    }
+    return _t(ru: 'ОЖИДАЕМОЕ ВРЕМЯ', en: 'EXPECTED TIME');
+  }
+
+  String _trackingEtaValue(OrderModel order) {
+    if (order.status == OrderStatus.cancelled) {
+      return _t(ru: 'ОТМЕНЁН', en: 'CANCELLED');
+    }
+
+    final eta = _trackingEta(order);
+    if (eta == null) {
+      return _t(ru: 'УТОЧНЯЕТСЯ', en: 'UPDATING');
+    }
+    return _formatEtaStamp(eta);
+  }
+
+  String _trackingMapStatus(OrderModel order) {
+    switch (order.status) {
+      case OrderStatus.newOrder:
+        return _t(ru: 'Маршрут формируется', en: 'Route is forming');
+      case OrderStatus.accepted:
+        return order.deliveryMethod == DeliveryMethod.pickup
+            ? _t(ru: 'Подготовка к выдаче', en: 'Preparing pickup')
+            : _t(ru: 'Назначаем курьера', en: 'Assigning courier');
+      case OrderStatus.inProduction:
+        return order.deliveryMethod == DeliveryMethod.pickup
+            ? _t(ru: 'Сборка заказа', en: 'Preparing the order')
+            : _t(ru: 'Упаковка перед выездом', en: 'Packing before dispatch');
+      case OrderStatus.ready:
+        return order.deliveryMethod == DeliveryMethod.pickup
+            ? _t(ru: 'Готов к самовывозу', en: 'Ready for pickup')
+            : _t(ru: 'Курьер в пути', en: 'Courier en route');
+      case OrderStatus.completed:
+        return order.deliveryMethod == DeliveryMethod.pickup
+            ? _t(ru: 'Выдано клиенту', en: 'Picked up')
+            : _t(ru: 'Доставлено', en: 'Delivered');
+      case OrderStatus.cancelled:
+        return _t(ru: 'Заказ отменён', en: 'Order cancelled');
+    }
+  }
+
+  String _trackingMapBadge(OrderModel order) {
+    if (order.status == OrderStatus.completed) {
+      return _t(ru: 'ЗАВЕРШЁН', en: 'COMPLETE');
+    }
+    if (order.status == OrderStatus.cancelled) {
+      return _t(ru: 'АРХИВ', en: 'ARCHIVED');
+    }
+    if (order.deliveryMethod == DeliveryMethod.pickup &&
+        order.status == OrderStatus.ready) {
+      return _t(ru: 'ВЫДАЧА ОТКРЫТА', en: 'PICKUP OPEN');
+    }
+    if (order.deliveryMethod == DeliveryMethod.courier &&
+        order.status == OrderStatus.ready) {
+      return _t(ru: 'LIVE UPDATE', en: 'LIVE UPDATE');
+    }
+    return _t(ru: 'СИНХРОНИЗАЦИЯ', en: 'SYNCED');
+  }
+
+  String _trackingModeTag(OrderModel order) {
+    if (order.deliveryMethod == DeliveryMethod.pickup) {
+      return _t(ru: 'PICKUP DESK', en: 'PICKUP DESK');
+    }
+    if (order.status == OrderStatus.ready) {
+      return _t(ru: 'LIVE COURIER', en: 'LIVE COURIER');
+    }
+    return _t(ru: 'ROUTE CONTROL', en: 'ROUTE CONTROL');
+  }
+
+  String _trackingMapFooter(OrderModel order) {
+    if (order.deliveryMethod == DeliveryMethod.pickup) {
+      return _t(ru: 'MAP / PICKUP STATUS', en: 'MAP / PICKUP STATUS');
+    }
+    return _t(ru: 'MAP / COURIER STATUS', en: 'MAP / COURIER STATUS');
+  }
+
+  String _trackingMapNote(OrderModel order) {
+    if (order.status == OrderStatus.completed) {
+      return _t(
+        ru: 'Доставка завершена. На карте сохранён финальный маршрут и итоговая сумма заказа в тенге.',
+        en: 'The delivery is complete. The map keeps the final route and the total order amount in tenge.',
+      );
+    }
+    if (order.status == OrderStatus.cancelled) {
+      return _t(
+        ru: 'Заказ отменён, поэтому live-маршрут больше не обновляется.',
+        en: 'The order was cancelled, so the live route is no longer updating.',
+      );
+    }
+    if (order.deliveryMethod == DeliveryMethod.pickup) {
+      return _t(
+        ru: 'Точка выдачи закреплена в заказе. Как только изделие будет готово, окно самовывоза останется здесь.',
+        en: 'The pickup point is fixed in the order. Once the garment is ready, the pickup window will stay visible here.',
+      );
+    }
+    if (order.status == OrderStatus.ready) {
+      return _t(
+        ru: 'Курьер уже на маршруте. ETA обновляется от последней передачи заказа в доставку.',
+        en: 'The courier is already on the route. ETA updates from the latest handoff to delivery.',
+      );
+    }
+    return _t(
+      ru: 'Маршрут подготовлен заранее: как только заказ перейдёт в доставку, карта автоматически станет live.',
+      en: 'The route is prepared in advance. As soon as the order enters delivery, the map will switch to live mode.',
+    );
+  }
+
+  String _formatEtaStamp(DateTime value) {
+    final now = DateTime.now();
+    final isSameDay =
+        value.year == now.year &&
+        value.month == now.month &&
+        value.day == now.day;
+    if (isSameDay) {
+      return _clockLabel(value);
+    }
+    return '${formatDate(value)} / ${_clockLabel(value)}';
+  }
+
+  String _clockLabel(DateTime value) {
+    final hour = value.hour.toString().padLeft(2, '0');
+    final minute = value.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
   }
 
   Widget _heroCard({
@@ -2872,4 +3269,20 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       ),
     );
   }
+}
+
+class _DeliveryAddressPreset {
+  final String labelRu;
+  final String labelEn;
+  final String city;
+  final String address;
+  final String apartment;
+
+  const _DeliveryAddressPreset({
+    required this.labelRu,
+    required this.labelEn,
+    required this.city,
+    required this.address,
+    required this.apartment,
+  });
 }

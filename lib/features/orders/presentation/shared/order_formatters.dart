@@ -10,7 +10,7 @@ String formatCurrency(double value) {
     }
   }
 
-  return '${buffer.toString()} \u20B8';
+  return '${buffer.toString()} ₸';
 }
 
 String formatTimelineDate(DateTime value) {
