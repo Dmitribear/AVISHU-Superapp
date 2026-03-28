@@ -15,11 +15,20 @@ import '../../../auth/domain/user_role.dart';
 import '../../../orders/data/order_repository.dart';
 import '../../../orders/domain/enums/order_status.dart';
 import '../../../orders/domain/models/order_model.dart';
+import '../../../orders/domain/services/order_analytics_service.dart';
+import '../../../users/data/user_profile_repository.dart';
+import '../../../users/domain/models/user_profile.dart';
 import '../shared/order_digital_twin_card.dart';
 import '../shared/order_panels.dart';
 
 final productionAllOrdersProvider = StreamProvider<List<OrderModel>>((ref) {
   return ref.watch(orderRepositoryProvider).productionQueue();
+});
+
+final productionAnalyticsOrdersProvider = StreamProvider<List<OrderModel>>((
+  ref,
+) {
+  return ref.watch(orderRepositoryProvider).allOrders();
 });
 
 enum ProductionTab { dashboard, queue, ready, station }
@@ -73,12 +82,29 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
   Widget build(BuildContext context) {
     ref.watch(appSettingsProvider);
     final ordersAsync = ref.watch(productionAllOrdersProvider);
+    final analyticsOrders =
+        ref.watch(productionAnalyticsOrdersProvider).value ??
+        const <OrderModel>[];
+    final profiles =
+        ref.watch(allUserProfilesProvider).value ??
+        const <String, UserProfile>{};
+    final analytics = ref
+        .watch(orderAnalyticsServiceProvider)
+        .buildProductionSnapshot(analyticsOrders);
 
     return AvishuMobileFrame(
       title: 'AVISHU',
       metaLabel: _selectedOrder == null
-          ? _t(ru: 'ПРОИЗВОДСТВО / ОЧЕРЕДЬ', en: 'FACTORY / QUEUE', kk: 'ӨНДІРІС / КЕЗЕК')
-          : _t(ru: 'ПРОИЗВОДСТВО / ЗАДАЧА', en: 'FACTORY / TASK', kk: 'ӨНДІРІС / ТАПСЫРМА'),
+          ? _t(
+              ru: 'ПРОИЗВОДСТВО / ОЧЕРЕДЬ',
+              en: 'FACTORY / QUEUE',
+              kk: 'ӨНДІРІС / КЕЗЕК',
+            )
+          : _t(
+              ru: 'ПРОИЗВОДСТВО / ЗАДАЧА',
+              en: 'FACTORY / TASK',
+              kk: 'ӨНДІРІС / ТАПСЫРМА',
+            ),
       leadingIcon: _selectedOrder == null ? Icons.menu : Icons.arrow_back,
       actionIcon: null,
       currentIndex: _tab.index,
@@ -101,11 +127,16 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
         data: (orders) {
           final selectedOrder = _resolveSelectedOrder(orders);
           return SingleChildScrollView(
-            key: PageStorageKey('production-${_tab.index}-${_selectedOrder?.id ?? 'none'}'),
+            key: PageStorageKey(
+              'production-${_tab.index}-${_selectedOrder?.id ?? 'none'}',
+            ),
             padding: const EdgeInsets.fromLTRB(18, 18, 18, 22),
             child: _selectedOrder != null
-                ? _detailView(selectedOrder ?? _selectedOrder!)
-                : _rootView(orders),
+                ? _detailView(
+                    selectedOrder ?? _selectedOrder!,
+                    profiles: profiles,
+                  )
+                : _rootView(orders, profiles: profiles, analytics: analytics),
           );
         },
         loading: () =>
@@ -119,7 +150,11 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
     );
   }
 
-  Widget _rootView(List<OrderModel> orders) {
+  Widget _rootView(
+    List<OrderModel> orders, {
+    required Map<String, UserProfile> profiles,
+    required ProductionAnalyticsSnapshot analytics,
+  }) {
     final accepted = orders
         .where((order) => order.status == OrderStatus.accepted)
         .toList();
@@ -138,7 +173,11 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _hero(
-            title: _t(ru: 'ОЧЕРЕДЬ ЗАДАЧ', en: 'TASK QUEUE', kk: 'ТАПСЫРМАЛАР КЕЗЕГІ'),
+            title: _t(
+              ru: 'ОЧЕРЕДЬ ЗАДАЧ',
+              en: 'TASK QUEUE',
+              kk: 'ТАПСЫРМАЛАР КЕЗЕГІ',
+            ),
             subtitle: _t(
               ru: 'После подтверждения заказ попадает в очередь цеха и проходит этапы пошива до готовности.',
               en: 'After acceptance, the order enters the factory queue and moves through production until ready.',
@@ -175,9 +214,18 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
               ),
             ],
           ),
+          const SizedBox(height: 12),
+          _factoryAnalyticsCard(analytics),
           if (current != null) ...[
             const SizedBox(height: 12),
-            _taskCard(current),
+            _taskCard(
+              current,
+              clientDisplayName: _clientDisplayName(profiles, current),
+            ),
+          ],
+          if (analytics.productMetrics.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            _slowProductsCard(analytics),
           ],
         ],
       ),
@@ -197,7 +245,10 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
           ...accepted.map(
             (order) => Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: _taskCard(order),
+              child: _taskCard(
+                order,
+                clientDisplayName: _clientDisplayName(profiles, order),
+              ),
             ),
           ),
           const SizedBox(height: 4),
@@ -214,7 +265,10 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
           ...inProduction.map(
             (order) => Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: _taskCard(order),
+              child: _taskCard(
+                order,
+                clientDisplayName: _clientDisplayName(profiles, order),
+              ),
             ),
           ),
         ],
@@ -222,7 +276,9 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
       ProductionTab.ready => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionLabel(_t(ru: 'ЗАВЕРШЕННЫЕ', en: 'COMPLETED READY', kk: 'АЯҚТАЛҒАНДАР')),
+          _sectionLabel(
+            _t(ru: 'ЗАВЕРШЕННЫЕ', en: 'COMPLETED READY', kk: 'АЯҚТАЛҒАНДАР'),
+          ),
           const SizedBox(height: 12),
           if (ready.isEmpty)
             _emptyCard(
@@ -235,7 +291,10 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
           ...ready.map(
             (order) => Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: _taskCard(order),
+              child: _taskCard(
+                order,
+                clientDisplayName: _clientDisplayName(profiles, order),
+              ),
             ),
           ),
         ],
@@ -253,7 +312,11 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  _t(ru: 'Интерфейс мастера', en: 'Operator Interface', kk: 'Шебер интерфейсі'),
+                  _t(
+                    ru: 'Интерфейс мастера',
+                    en: 'Operator Interface',
+                    kk: 'Шебер интерфейсі',
+                  ),
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 10),
@@ -308,7 +371,11 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
           ),
           const SizedBox(height: 12),
           AvishuButton(
-            text: _t(ru: 'ВЫЙТИ ИЗ АККАУНТА', en: 'SIGN OUT', kk: 'АККАУНТТАН ШЫҒУ'),
+            text: _t(
+              ru: 'ВЫЙТИ ИЗ АККАУНТА',
+              en: 'SIGN OUT',
+              kk: 'АККАУНТТАН ШЫҒУ',
+            ),
             expanded: true,
             variant: AvishuButtonVariant.outline,
             icon: Icons.logout,
@@ -321,14 +388,20 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
     };
   }
 
-  Widget _detailView(OrderModel order) {
+  Widget _detailView(
+    OrderModel order, {
+    required Map<String, UserProfile> profiles,
+  }) {
     final isAccepted = order.status == OrderStatus.accepted;
     final isInProduction = order.status == OrderStatus.inProduction;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        OrderDigitalTwinCard(order: order),
+        OrderDigitalTwinCard(
+          order: order,
+          clientDisplayName: _clientDisplayName(profiles, order),
+        ),
         const SizedBox(height: 12),
         if (order.id.isEmpty)
           _surfaceCard(
@@ -361,13 +434,21 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
           ),
         const SizedBox(height: 12),
         OrderInfoCard(
-          title: _t(ru: 'ТЕХНИЧЕСКАЯ КАРТОЧКА', en: 'TECHNICAL SHEET', kk: 'ТЕХНИКАЛЫҚ КАРТОЧКА'),
+          title: _t(
+            ru: 'ТЕХНИЧЕСКАЯ КАРТОЧКА',
+            en: 'TECHNICAL SHEET',
+            kk: 'ТЕХНИКАЛЫҚ КАРТОЧКА',
+          ),
           rows: OrderSummaryRows.forOrder(order, language: _language),
         ),
         if (order.clientNote.trim().isNotEmpty) ...[
           const SizedBox(height: 12),
           OrderInfoCard(
-            title: _t(ru: 'КОММЕНТАРИЙ КЛИЕНТА', en: 'CLIENT COMMENT', kk: 'КЛИЕНТ ПІКІРІ'),
+            title: _t(
+              ru: 'КОММЕНТАРИЙ КЛИЕНТА',
+              en: 'CLIENT COMMENT',
+              kk: 'КЛИЕНТ ПІКІРІ',
+            ),
             rows: [
               OrderInfoRowData(
                 label: _t(ru: 'Комментарий', en: 'Comment', kk: 'Пікір'),
@@ -379,7 +460,11 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
         if (order.franchiseeNote.trim().isNotEmpty) ...[
           const SizedBox(height: 12),
           OrderInfoCard(
-            title: _t(ru: 'ПОМЕТКА ФРАНЧАЙЗИ', en: 'FRANCHISE NOTE', kk: 'ФРАНЧАЙЗИ БЕЛГІСІ'),
+            title: _t(
+              ru: 'ПОМЕТКА ФРАНЧАЙЗИ',
+              en: 'FRANCHISE NOTE',
+              kk: 'ФРАНЧАЙЗИ БЕЛГІСІ',
+            ),
             rows: [
               OrderInfoRowData(
                 label: _t(ru: 'Комментарий', en: 'Comment', kk: 'Пікір'),
@@ -405,7 +490,11 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
         const SizedBox(height: 12),
         if (isAccepted)
           AvishuButton(
-            text: _t(ru: 'ВЗЯТЬ В ПОШИВ', en: 'START PRODUCTION', kk: 'ТІГУДІ БАСТАУ'),
+            text: _t(
+              ru: 'ВЗЯТЬ В ПОШИВ',
+              en: 'START PRODUCTION',
+              kk: 'ТІГУДІ БАСТАУ',
+            ),
             expanded: true,
             variant: AvishuButtonVariant.filled,
             onPressed: _isSubmitting
@@ -433,7 +522,11 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
           ),
         if (isInProduction)
           AvishuButton(
-            text: _t(ru: 'ЗАВЕРШИТЬ ПОШИВ', en: 'FINISH PRODUCTION', kk: 'ТІГУДІ АЯҚТАУ'),
+            text: _t(
+              ru: 'ЗАВЕРШИТЬ ПОШИВ',
+              en: 'FINISH PRODUCTION',
+              kk: 'ТІГУДІ АЯҚТАУ',
+            ),
             expanded: true,
             variant: AvishuButtonVariant.filled,
             onPressed: _isSubmitting
@@ -528,7 +621,166 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
     );
   }
 
-  Widget _taskCard(OrderModel order) {
+  Widget _factoryAnalyticsCard(ProductionAnalyticsSnapshot analytics) {
+    return _surfaceCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            _t(
+              ru: 'КАК ИДЁТ ЦЕХ',
+              en: 'FACTORY SNAPSHOT',
+              kk: 'ЦЕХ ҚАЛАЙ ЖҰМЫС ІСТЕП ЖАТЫР',
+            ),
+            style: AppTypography.eyebrow,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            _t(
+              ru: 'Показываем только то, что реально помогает держать ритм: когда стартуем, сколько шьём и где есть риск задержки.',
+              en: 'Only the metrics that help keep the rhythm: when work starts, how long tailoring takes, and where delays may appear.',
+              kk: 'Ритмді ұстап тұруға көмектесетін ғана метрикалар: қашан бастаймыз, тігу қанша уақыт алады және қай жерде кешігу қаупі бар.',
+            ),
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 14),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final itemWidth = (constraints.maxWidth - 12) / 2;
+              return Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  SizedBox(
+                    width: itemWidth,
+                    child: _analyticsMetricCell(
+                      _t(ru: 'До старта', en: 'Start in', kk: 'Бастау уақыты'),
+                      _formatAnalyticsDuration(
+                        analytics.averageQueueToStartTime,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: itemWidth,
+                    child: _analyticsMetricCell(
+                      _t(ru: 'Пошив', en: 'Tailoring', kk: 'Тігу уақыты'),
+                      _formatAnalyticsDuration(analytics.averageTailoringTime),
+                    ),
+                  ),
+                  SizedBox(
+                    width: itemWidth,
+                    child: _analyticsMetricCell(
+                      _t(ru: 'Доставка', en: 'Delivery', kk: 'Жеткізу'),
+                      _formatAnalyticsDuration(
+                        analytics.averageCourierDeliveryTime,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: itemWidth,
+                    child: _analyticsMetricCell(
+                      _t(
+                        ru: 'Риск задержки',
+                        en: 'At risk',
+                        kk: 'Кешігу қаупі',
+                      ),
+                      '${analytics.overdueOrders}',
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: 14),
+          Text(
+            _t(
+              ru: 'Сегодня готово ${analytics.readyToday} заказов.',
+              en: '${analytics.readyToday} orders became ready today.',
+              kk: 'Бүгін ${analytics.readyToday} тапсырыс дайын болды.',
+            ),
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _slowProductsCard(ProductionAnalyticsSnapshot analytics) {
+    final visibleMetrics = analytics.productMetrics.take(3).toList();
+    return _surfaceCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            _t(
+              ru: 'ЧТО ШЬЁТСЯ ДОЛЬШЕ',
+              en: 'WHAT TAKES LONGER',
+              kk: 'НЕ ҰЗАҒЫРАҚ ТІГІЛЕДІ',
+            ),
+            style: AppTypography.eyebrow,
+          ),
+          const SizedBox(height: 10),
+          ...visibleMetrics.map(
+            (metric) => Padding(
+              padding: EdgeInsets.only(
+                bottom: metric == visibleMetrics.last ? 0 : 12,
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      metric.productName,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        _formatAnalyticsDuration(metric.averageTailoringTime),
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _t(
+                          ru: '${metric.orderCount} заказа',
+                          en: '${metric.orderCount} orders',
+                          kk: '${metric.orderCount} тапсырыс',
+                        ),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _analyticsMetricCell(String label, String value) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceLow,
+        border: Border.all(color: AppColors.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: AppTypography.eyebrow),
+          const SizedBox(height: 8),
+          Text(value, style: Theme.of(context).textTheme.titleMedium),
+        ],
+      ),
+    );
+  }
+
+  Widget _taskCard(OrderModel order, {required String clientDisplayName}) {
     return _surfaceCard(
       onTap: () => _openOrder(order),
       child: Column(
@@ -554,6 +806,11 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 8),
+          Text(
+            '${_t(ru: 'Клиент', en: 'Client', kk: 'Клиент')}: $clientDisplayName',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 6),
           Text(order.sizeLabel, style: Theme.of(context).textTheme.bodyMedium),
           const SizedBox(height: 12),
           LinearProgressIndicator(value: order.status.progressValue),
@@ -589,6 +846,58 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
 
   Widget _sectionLabel(String label) {
     return Text(label, style: AppTypography.eyebrow.copyWith(letterSpacing: 3));
+  }
+
+  String _clientDisplayName(
+    Map<String, UserProfile> profiles,
+    OrderModel order,
+  ) {
+    final profile = profiles[order.clientId];
+    final fullName = profile?.fullName.trim() ?? '';
+    if (fullName.isNotEmpty) {
+      return fullName;
+    }
+    return _t(
+      ru: 'Имя уточняется',
+      en: 'Name pending',
+      kk: 'Аты нақтыланып жатыр',
+    );
+  }
+
+  String _formatAnalyticsDuration(Duration duration) {
+    if (duration == Duration.zero) {
+      return '—';
+    }
+    if (duration.inHours < 1) {
+      return _t(
+        ru: '${duration.inMinutes} мин',
+        en: '${duration.inMinutes} min',
+        kk: '${duration.inMinutes} мин',
+      );
+    }
+    if (duration.inDays < 1) {
+      final hours = duration.inHours;
+      final minutes = duration.inMinutes.remainder(60);
+      if (minutes == 0) {
+        return _t(ru: '$hours ч', en: '$hours h', kk: '$hours сағ');
+      }
+      return _t(
+        ru: '$hours ч $minutes мин',
+        en: '$hours h $minutes min',
+        kk: '$hours сағ $minutes мин',
+      );
+    }
+
+    final days = duration.inDays;
+    final hours = duration.inHours.remainder(24);
+    if (hours == 0) {
+      return _t(ru: '$days дн', en: '$days d', kk: '$days күн');
+    }
+    return _t(
+      ru: '$days дн $hours ч',
+      en: '$days d $hours h',
+      kk: '$days күн $hours сағ',
+    );
   }
 
   OrderModel? _resolveSelectedOrder(List<OrderModel> orders) {

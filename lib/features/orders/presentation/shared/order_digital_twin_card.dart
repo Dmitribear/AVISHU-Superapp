@@ -86,6 +86,7 @@ class OrderDigitalTwinCard extends ConsumerWidget {
                         language,
                         ru: 'НОМЕР ЗАКАЗА',
                         en: 'ORDER NUMBER',
+                        kk: 'ТАПСЫРЫС НӨМІРІ',
                       ),
                       value: order.orderNumber.isEmpty
                           ? 'AV-${order.shortId}'
@@ -97,7 +98,12 @@ class OrderDigitalTwinCard extends ConsumerWidget {
                     width: 104,
                     child: _labelValue(
                       context,
-                      label: tr(language, ru: 'ПРИОРИТЕТ', en: 'PRIORITY'),
+                      label: tr(
+                        language,
+                        ru: 'ПРИОРИТЕТ',
+                        en: 'PRIORITY',
+                        kk: 'БАСЫМДЫҚ',
+                      ),
                       value: formatOrderPriority(
                         order.priority,
                         language: language,
@@ -114,7 +120,7 @@ class OrderDigitalTwinCard extends ConsumerWidget {
               const SizedBox(height: 12),
               _labelValue(
                 context,
-                label: tr(language, ru: 'КЛИЕНТ', en: 'CLIENT'),
+                label: tr(language, ru: 'КЛИЕНТ', en: 'CLIENT', kk: 'КЛИЕНТ'),
                 value: clientLabel,
               ),
               const SizedBox(height: 14),
@@ -125,7 +131,12 @@ class OrderDigitalTwinCard extends ConsumerWidget {
               ),
               const SizedBox(height: 14),
               Text(
-                tr(language, ru: 'ЖИВОЙ СТАТУС', en: 'LIVE STATUS'),
+                tr(
+                  language,
+                  ru: 'ЖИВОЙ СТАТУС',
+                  en: 'LIVE STATUS',
+                  kk: 'ТІРІ КҮЙ',
+                ),
                 style: AppTypography.eyebrow,
               ),
               const SizedBox(height: 12),
@@ -140,7 +151,12 @@ class OrderDigitalTwinCard extends ConsumerWidget {
                         width: itemWidth,
                         child: _metricCell(
                           context,
-                          label: tr(language, ru: 'СТАТУС', en: 'STATUS'),
+                          label: tr(
+                            language,
+                            ru: 'СТАТУС',
+                            en: 'STATUS',
+                            kk: 'КҮЙ',
+                          ),
                           value: statusLabel,
                         ),
                       ),
@@ -150,10 +166,11 @@ class OrderDigitalTwinCard extends ConsumerWidget {
                           context,
                           label: tr(
                             language,
-                            ru: 'ВРЕМЯ В ЭТАПЕ',
+                            ru: 'ВРЕМЯ НА ЭТАПЕ',
                             en: 'CURRENT STAGE',
+                            kk: 'ОСЫ КЕЗЕҢ',
                           ),
-                          value: '$currentStageDuration $statusLabel',
+                          value: '$currentStageDuration / $statusLabel',
                         ),
                       ),
                       SizedBox(
@@ -162,8 +179,9 @@ class OrderDigitalTwinCard extends ConsumerWidget {
                           context,
                           label: tr(
                             language,
-                            ru: 'ОТВЕТСТВЕННЫЙ',
+                            ru: 'ОТВЕЧАЕТ',
                             en: 'RESPONSIBLE',
+                            kk: 'ЖАУАПТЫ',
                           ),
                           value: responsibleLabel,
                         ),
@@ -191,7 +209,7 @@ class OrderDigitalTwinCard extends ConsumerWidget {
               ),
               const SizedBox(height: 14),
               Text(
-                tr(language, ru: 'ТАЙМЛАЙН', en: 'TIMELINE'),
+                tr(language, ru: 'ТАЙМЛАЙН', en: 'TIMELINE', kk: 'КЕЗЕҢДЕР'),
                 style: AppTypography.eyebrow,
               ),
               const SizedBox(height: 14),
@@ -216,13 +234,18 @@ class OrderDigitalTwinCard extends ConsumerWidget {
               ),
               const SizedBox(height: 14),
               Text(
-                tr(language, ru: 'МЕТАДАННЫЕ', en: 'META'),
+                tr(language, ru: 'ДАННЫЕ', en: 'META', kk: 'МӘЛІМЕТ'),
                 style: AppTypography.eyebrow,
               ),
               const SizedBox(height: 12),
               _metaRow(
                 context,
-                label: tr(language, ru: 'ТИП ИСПОЛНЕНИЯ', en: 'FULFILLMENT'),
+                label: tr(
+                  language,
+                  ru: 'ТИП ИСПОЛНЕНИЯ',
+                  en: 'FULFILLMENT',
+                  kk: 'ОРЫНДАЛУ ТҮРІ',
+                ),
                 value: formatFulfillmentTypeLabel(
                   order.fulfillmentType,
                   language: language,
@@ -230,20 +253,31 @@ class OrderDigitalTwinCard extends ConsumerWidget {
               ),
               _metaRow(
                 context,
-                label: tr(language, ru: 'СУММА', en: 'TOTAL AMOUNT'),
+                label: tr(
+                  language,
+                  ru: 'СУММА',
+                  en: 'TOTAL AMOUNT',
+                  kk: 'ЖИЫНТЫҚ СОММА',
+                ),
                 value: formatCurrency(order.totalAmount),
               ),
               _metaRow(
                 context,
-                label: tr(language, ru: 'СОЗДАН', en: 'CREATED AT'),
+                label: tr(
+                  language,
+                  ru: 'СОЗДАН',
+                  en: 'CREATED AT',
+                  kk: 'ҚҰРЫЛҒАН',
+                ),
                 value: formatOrderMetaDate(order.createdAt, language: language),
               ),
               _metaRow(
                 context,
                 label: tr(
                   language,
-                  ru: 'ПОСЛЕДНЕЕ ИЗМЕНЕНИЕ',
+                  ru: 'ПОСЛЕДНЕЕ ОБНОВЛЕНИЕ',
                   en: 'LAST STATUS CHANGE',
+                  kk: 'СОҢҒЫ ЖАҢАРТУ',
                 ),
                 value: formatOrderMetaDate(
                   order.lastStatusChangedAt,
@@ -344,7 +378,7 @@ class OrderDigitalTwinCard extends ConsumerWidget {
               const SizedBox(height: 4),
               Text(
                 step.timestamp == null
-                    ? tr(language, ru: 'ОЖИДАНИЕ', en: 'PENDING')
+                    ? tr(language, ru: 'Ожидание', en: 'Pending', kk: 'Күту')
                     : formatOrderMetaDate(step.timestamp!, language: language),
                 style: AppTypography.code.copyWith(color: textColor),
               ),

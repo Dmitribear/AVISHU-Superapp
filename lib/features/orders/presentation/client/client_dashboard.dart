@@ -19,6 +19,7 @@ import '../../../orders/data/order_repository.dart';
 import '../../../orders/domain/enums/delivery_method.dart';
 import '../../../orders/domain/enums/order_status.dart';
 import '../../../orders/domain/models/order_model.dart';
+import '../../../orders/domain/services/order_geocoding_service.dart';
 import '../../../orders/domain/services/order_map_location_resolver.dart';
 import '../../../products/data/product_repository.dart';
 import '../../../users/data/user_profile_repository.dart';
@@ -77,6 +78,26 @@ final currentUserProfileProvider = StreamProvider<UserProfile?>((ref) {
   }
   return ref.watch(userProfileRepositoryProvider).watchById(currentUser.uid);
 });
+
+final checkoutPreviewRouteProvider = FutureProvider.autoDispose
+    .family<
+      OrderRouteLocations,
+      ({
+        DeliveryMethod deliveryMethod,
+        String city,
+        String address,
+        String apartment,
+      })
+    >((ref, request) async {
+      return ref
+          .watch(orderGeocodingServiceProvider)
+          .resolveRoute(
+            deliveryMethod: request.deliveryMethod,
+            city: request.city,
+            address: request.address,
+            apartment: request.apartment,
+          );
+    });
 
 class ClientDashboard extends ConsumerStatefulWidget {
   const ClientDashboard({super.key});
@@ -2397,6 +2418,16 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       address: address,
       apartment: apartment,
     );
+    final routeRequest = (
+      deliveryMethod: _deliveryMethod,
+      city: city,
+      address: address,
+      apartment: apartment,
+    );
+    final routeAsync = hasDestination
+        ? ref.watch(checkoutPreviewRouteProvider(routeRequest))
+        : null;
+    final resolvedRouteLocations = routeAsync?.asData?.value ?? routeLocations;
 
     final statusValue = hasDestination
         ? isPickup
@@ -2457,11 +2488,13 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       live: false,
       pickup: isPickup,
       completed: false,
-      origin: _latLngFromGeoPoint(routeLocations.originLocation),
-      destination: _latLngFromGeoPoint(routeLocations.destinationLocation),
+      origin: _latLngFromGeoPoint(resolvedRouteLocations.originLocation),
+      destination: _latLngFromGeoPoint(
+        resolvedRouteLocations.destinationLocation,
+      ),
       courier: isPickup
           ? null
-          : _latLngFromGeoPoint(routeLocations.originLocation),
+          : _latLngFromGeoPoint(resolvedRouteLocations.originLocation),
     );
   }
 
