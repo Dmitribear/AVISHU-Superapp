@@ -67,7 +67,7 @@ class _AppSettingsSheet extends ConsumerWidget {
                   ),
                 ),
                 Text(
-                  tr(language, ru: 'НАСТРОЙКИ', en: 'SETTINGS'),
+                  tr(language, ru: 'НАСТРОЙКИ', en: 'SETTINGS', kk: 'БОРТАУЛАР'),
                   style: AppTypography.eyebrow,
                 ),
                 const SizedBox(height: 8),
@@ -76,27 +76,30 @@ class _AppSettingsSheet extends ConsumerWidget {
                     language,
                     ru: 'Параметры интерфейса и уведомлений для демо-сценария.',
                     en: 'Interface and notification controls for the demo scenario.',
+                    kk: 'Демо-сценарий үшін интерфейс пен хабарландыруларды басқару.',
                   ),
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 18),
                 _SwitchTile(
-                  title: tr(language, ru: 'Уведомления', en: 'Notifications'),
+                  title: tr(language, ru: 'Уведомления', en: 'Notifications', kk: 'Хабарландырулар'),
                   subtitle: tr(
                     language,
                     ru: 'Показывать обновления по заказам.',
                     en: 'Show order update notifications.',
+                    kk: 'Тапсырыс жаңартуларын көрсету.',
                   ),
                   value: settings.notificationsEnabled,
                   onChanged: controller.setNotifications,
                 ),
                 const SizedBox(height: 10),
                 _SwitchTile(
-                  title: tr(language, ru: 'Звук в цехе', en: 'Factory Sound'),
+                  title: tr(language, ru: 'Звук в цехе', en: 'Factory Sound', kk: 'Цех дыбысы'),
                   subtitle: tr(
                     language,
                     ru: 'Сигнал для новых задач производства.',
                     en: 'Sound cue for new production tasks.',
+                    kk: 'Жаңа өндірістік тапсырмаларға арналған сигнал.',
                   ),
                   value: settings.productionSoundEnabled,
                   onChanged: controller.setProductionSound,
@@ -107,11 +110,13 @@ class _AppSettingsSheet extends ConsumerWidget {
                     language,
                     ru: 'Компактные карточки',
                     en: 'Compact Cards',
+                    kk: 'Ықшам карточкалар',
                   ),
                   subtitle: tr(
                     language,
                     ru: 'Уменьшить вертикальные отступы в списках.',
                     en: 'Reduce vertical spacing in operational lists.',
+                    kk: 'Тізімдердегі тік шегіністерді азайту.',
                   ),
                   value: settings.compactCards,
                   onChanged: controller.setCompactCards,
@@ -122,11 +127,13 @@ class _AppSettingsSheet extends ConsumerWidget {
                     language,
                     ru: 'Язык интерфейса',
                     en: 'Interface Language',
+                    kk: 'Интерфейс тілі',
                   ),
                   subtitle: tr(
                     language,
                     ru: 'Переводит системные подписи интерфейса.',
                     en: 'Translates system interface labels.',
+                    kk: 'Жүйелік интерфейс белгілерін аударады.',
                   ),
                   options: AppLanguage.values
                       .map(
@@ -145,11 +152,13 @@ class _AppSettingsSheet extends ConsumerWidget {
                     language,
                     ru: 'Размер карточек каталога',
                     en: 'Catalog Card Size',
+                    kk: 'Каталог карточкаларының өлшемі',
                   ),
                   subtitle: tr(
                     language,
                     ru: 'Масштаб карточек одежды в каталоге и избранном.',
                     en: 'Controls clothing card size in catalog and favorites.',
+                    kk: 'Каталогтағы және таңдаулыдағы киім карточкаларының масштабы.',
                   ),
                   options: CatalogCardSize.values
                       .map(
@@ -178,6 +187,7 @@ class _AppSettingsSheet extends ConsumerWidget {
                           language,
                           ru: 'Сервисная информация',
                           en: 'Service Info',
+                          kk: 'Сервистік ақпарат',
                         ),
                         style: AppTypography.eyebrow,
                       ),
@@ -187,6 +197,7 @@ class _AppSettingsSheet extends ConsumerWidget {
                           language,
                           ru: 'AVISHU v2.04\nКлиент, франчайзи, производство',
                           en: 'AVISHU v2.04\nClient, franchisee, factory',
+                          kk: 'AVISHU v2.04\nКлиент, франчайзи, өндіріс',
                         ),
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
@@ -199,7 +210,7 @@ class _AppSettingsSheet extends ConsumerWidget {
                   child: OutlinedButton(
                     onPressed: () => Navigator.of(context).pop(),
                     child: Text(
-                      tr(language, ru: 'ЗАКРЫТЬ', en: 'CLOSE'),
+                      tr(language, ru: 'ЗАКРЫТЬ', en: 'CLOSE', kk: 'ЖАБУ'),
                       style: AppTypography.button.copyWith(letterSpacing: 3),
                     ),
                   ),
@@ -219,7 +230,7 @@ class _AppSettingsSheet extends ConsumerWidget {
                       side: const BorderSide(color: AppColors.error),
                     ),
                     child: Text(
-                      tr(language, ru: 'ВЫЙТИ ИЗ АККАУНТА', en: 'SIGN OUT'),
+                      tr(language, ru: 'ВЫЙТИ ИЗ АККАУНТА', en: 'SIGN OUT', kk: 'АККАУНТТАН ШЫҒУ'),
                       style: AppTypography.button.copyWith(
                         color: AppColors.error,
                         letterSpacing: 3,

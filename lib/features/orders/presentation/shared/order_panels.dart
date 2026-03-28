@@ -97,7 +97,7 @@ class OrderTimelineCard extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            tr(language, ru: 'ИСТОРИЯ СТАТУСОВ', en: 'STATUS HISTORY'),
+            tr(language, ru: 'ИСТОРИЯ СТАТУСОВ', en: 'STATUS HISTORY', kk: 'СТАТУСТАР ТАРИХЫ'),
             style: AppTypography.eyebrow,
           ),
           const SizedBox(height: 12),
@@ -163,33 +163,34 @@ class OrderSummaryRows {
   }) {
     return [
       OrderInfoRowData(
-        label: tr(language, ru: 'Изделие', en: 'Product'),
+        label: tr(language, ru: 'Изделие', en: 'Product', kk: 'Бұйым'),
         value: order.productName,
       ),
       OrderInfoRowData(
-        label: tr(language, ru: 'Размер', en: 'Size'),
+        label: tr(language, ru: 'Размер', en: 'Size', kk: 'Өлшем'),
         value: order.sizeLabel,
       ),
       OrderInfoRowData(
-        label: tr(language, ru: 'Сумма', en: 'Amount'),
+        label: tr(language, ru: 'Сумма', en: 'Amount', kk: 'Сома'),
         value: formatCurrency(order.amount),
       ),
       OrderInfoRowData(
-        label: tr(language, ru: 'Доставка', en: 'Delivery'),
+        label: tr(language, ru: 'Доставка', en: 'Delivery', kk: 'Жеткізу'),
         value: order.deliveryMethod.labelFor(language),
       ),
       OrderInfoRowData(
-        label: tr(language, ru: 'Адрес', en: 'Address'),
+        label: tr(language, ru: 'Адрес', en: 'Address', kk: 'Мекенжай'),
         value: order.formattedAddress,
       ),
       OrderInfoRowData(
-        label: tr(language, ru: 'Оплата', en: 'Payment'),
+        label: tr(language, ru: 'Оплата', en: 'Payment', kk: 'Төлем'),
         value: order.paymentLast4.isEmpty
-            ? tr(language, ru: 'Карта', en: 'Card')
+            ? tr(language, ru: 'Карта', en: 'Card', kk: 'Карта')
             : tr(
                 language,
                 ru: 'Карта *${order.paymentLast4}',
                 en: 'Card *${order.paymentLast4}',
+                kk: 'Карта *${order.paymentLast4}',
               ),
       ),
     ];

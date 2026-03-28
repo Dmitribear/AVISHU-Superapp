@@ -22,6 +22,17 @@ void main() {
       status: ProductStatus.active,
       createdAt: now,
       updatedAt: now,
+      specifications: const [],
+      care: const [],
+      colors: const ['Black'],
+      sizes: const ['S', 'M'],
+      defaultColor: 'Black',
+      defaultSize: 'S',
+      sections: const ['Юбки'],
+      silhouette: 'A-Line',
+      material: 'Wool',
+      atelierNote: '',
+      shortDescription: 'Premium wool skirt.',
     );
 
     final catalogProduct = catalogProductFromFirestore(product);

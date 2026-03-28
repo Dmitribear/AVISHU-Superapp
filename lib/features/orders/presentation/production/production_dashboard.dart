@@ -45,25 +45,25 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
 
   AppLanguage get _language => ref.read(appSettingsProvider).language;
 
-  String _t({required String ru, required String en}) {
-    return tr(_language, ru: ru, en: en);
+  String _t({required String ru, required String en, String? kk}) {
+    return tr(_language, ru: ru, en: en, kk: kk);
   }
 
   List<AvishuNavItem> get _navItems => [
     AvishuNavItem(
-      label: _t(ru: 'ОБЗОР', en: 'OVERVIEW'),
+      label: _t(ru: 'ОБЗОР', en: 'OVERVIEW', kk: 'ШОЛУ'),
       icon: Icons.dashboard_outlined,
     ),
     AvishuNavItem(
-      label: _t(ru: 'ОЧЕРЕДЬ', en: 'QUEUE'),
+      label: _t(ru: 'ОЧЕРЕДЬ', en: 'QUEUE', kk: 'КЕЗЕК'),
       icon: Icons.format_list_bulleted_rounded,
     ),
     AvishuNavItem(
-      label: _t(ru: 'ГОТОВО', en: 'READY'),
+      label: _t(ru: 'ГОТОВО', en: 'READY', kk: 'ДАЙЫН'),
       icon: Icons.checkroom_outlined,
     ),
     AvishuNavItem(
-      label: _t(ru: 'СТАНЦИЯ', en: 'STATION'),
+      label: _t(ru: 'СТАНЦИЯ', en: 'STATION', kk: 'БЕКЕТ'),
       icon: Icons.precision_manufacturing_outlined,
     ),
   ];
@@ -76,8 +76,8 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
     return AvishuMobileFrame(
       title: 'AVISHU',
       metaLabel: _selectedOrder == null
-          ? _t(ru: 'ПРОИЗВОДСТВО / ОЧЕРЕДЬ', en: 'FACTORY / QUEUE')
-          : _t(ru: 'ПРОИЗВОДСТВО / ЗАДАЧА', en: 'FACTORY / TASK'),
+          ? _t(ru: 'ПРОИЗВОДСТВО / ОЧЕРЕДЬ', en: 'FACTORY / QUEUE', kk: 'ӨНДІРІС / КЕЗЕК')
+          : _t(ru: 'ПРОИЗВОДСТВО / ЗАДАЧА', en: 'FACTORY / TASK', kk: 'ӨНДІРІС / ТАПСЫРМА'),
       leadingIcon: _selectedOrder == null ? Icons.menu : Icons.arrow_back,
       actionIcon: null,
       currentIndex: _tab.index,
@@ -137,14 +137,16 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _hero(
-            title: _t(ru: 'ОЧЕРЕДЬ ЗАДАЧ', en: 'TASK QUEUE'),
+            title: _t(ru: 'ОЧЕРЕДЬ ЗАДАЧ', en: 'TASK QUEUE', kk: 'ТАПСЫРМАЛАР КЕЗЕГІ'),
             subtitle: _t(
               ru: 'После подтверждения заказ попадает в очередь цеха и проходит этапы пошива до готовности.',
               en: 'After acceptance, the order enters the factory queue and moves through production until ready.',
+              kk: 'Қабылданғаннан кейін тапсырыс цех кезегіне түседі және дайын болғанға дейін тігу кезеңдерінен өтеді.',
             ),
             accent: _t(
               ru: 'АКТИВНЫХ ЗАДАЧ: ${accepted.length + inProduction.length}',
               en: 'ACTIVE TASKS: ${accepted.length + inProduction.length}',
+              kk: 'БЕЛСЕНДІ ТАПСЫРМАЛАР: ${accepted.length + inProduction.length}',
             ),
           ),
           const SizedBox(height: 12),
@@ -152,21 +154,21 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
             children: [
               Expanded(
                 child: _metricCard(
-                  _t(ru: 'К пошиву', en: 'To Tailor'),
+                  _t(ru: 'К пошиву', en: 'To Tailor', kk: 'Тігінге'),
                   '${accepted.length}',
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: _metricCard(
-                  _t(ru: 'В работе', en: 'In Progress'),
+                  _t(ru: 'В работе', en: 'In Progress', kk: 'Жұмыста'),
                   '${inProduction.length}',
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: _metricCard(
-                  _t(ru: 'Готово', en: 'Ready'),
+                  _t(ru: 'Готово', en: 'Ready', kk: 'Дайын'),
                   '${ready.length}',
                 ),
               ),
@@ -181,13 +183,14 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
       ProductionTab.queue => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionLabel(_t(ru: 'К ПОШИВУ', en: 'TO TAILOR')),
+          _sectionLabel(_t(ru: 'К ПОШИВУ', en: 'TO TAILOR', kk: 'ТІГІНГЕ')),
           const SizedBox(height: 12),
           if (accepted.isEmpty)
             _emptyCard(
               _t(
                 ru: 'Новых задач в очереди пока нет.',
                 en: 'No new tasks in queue yet.',
+                kk: 'Кезекте әзірге жаңа тапсырмалар жоқ.',
               ),
             ),
           ...accepted.map(
@@ -197,13 +200,14 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
             ),
           ),
           const SizedBox(height: 4),
-          _sectionLabel(_t(ru: 'В РАБОТЕ', en: 'IN PROGRESS')),
+          _sectionLabel(_t(ru: 'В РАБОТЕ', en: 'IN PROGRESS', kk: 'ЖҰМЫСТА')),
           const SizedBox(height: 12),
           if (inProduction.isEmpty)
             _emptyCard(
               _t(
                 ru: 'После запуска пошива заказ перейдет в этот раздел.',
                 en: 'Once production starts, the order will appear in this section.',
+                kk: 'Тігу басталғаннан кейін тапсырыс осы бөлімге ауысады.',
               ),
             ),
           ...inProduction.map(
@@ -217,13 +221,14 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
       ProductionTab.ready => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionLabel(_t(ru: 'ЗАВЕРШЕННЫЕ', en: 'COMPLETED READY')),
+          _sectionLabel(_t(ru: 'ЗАВЕРШЕННЫЕ', en: 'COMPLETED READY', kk: 'АЯҚТАЛҒАНДАР')),
           const SizedBox(height: 12),
           if (ready.isEmpty)
             _emptyCard(
               _t(
                 ru: 'Завершенные заказы пока отсутствуют.',
                 en: 'No completed ready orders yet.',
+                kk: 'Аяқталған тапсырыстар әзірге жоқ.',
               ),
             ),
           ...ready.map(
@@ -242,12 +247,12 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _t(ru: 'РАБОЧЕЕ МЕСТО', en: 'WORKSTATION'),
+                  _t(ru: 'РАБОЧЕЕ МЕСТО', en: 'WORKSTATION', kk: 'ЖҰМЫС ОРНЫ'),
                   style: AppTypography.eyebrow,
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  _t(ru: 'Интерфейс мастера', en: 'Operator Interface'),
+                  _t(ru: 'Интерфейс мастера', en: 'Operator Interface', kk: 'Шебер интерфейсі'),
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 10),
@@ -286,6 +291,7 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
                   _t(
                     ru: 'Экран показывает текущую задачу, статус заказа и следующее доступное действие.',
                     en: 'This screen shows the current task, order status, and the next available action.',
+                    kk: 'Экран ағымдағы тапсырманы, тапсырыс мәртебесін және келесі қолжетімді әрекетті көрсетеді.',
                   ),
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
@@ -294,7 +300,7 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
           ),
           const SizedBox(height: 16),
           AvishuButton(
-            text: _t(ru: 'ВЫЙТИ ИЗ АККАУНТА', en: 'SIGN OUT'),
+            text: _t(ru: 'ВЫЙТИ ИЗ АККАУНТА', en: 'SIGN OUT', kk: 'АККАУНТТАН ШЫҒУ'),
             expanded: true,
             variant: AvishuButtonVariant.outline,
             icon: Icons.logout,
@@ -347,16 +353,16 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
           ),
         const SizedBox(height: 12),
         OrderInfoCard(
-          title: _t(ru: 'ТЕХНИЧЕСКАЯ КАРТОЧКА', en: 'TECHNICAL SHEET'),
+          title: _t(ru: 'ТЕХНИЧЕСКАЯ КАРТОЧКА', en: 'TECHNICAL SHEET', kk: 'ТЕХНИКАЛЫҚ КАРТОЧКА'),
           rows: OrderSummaryRows.forOrder(order, language: _language),
         ),
         if (order.clientNote.trim().isNotEmpty) ...[
           const SizedBox(height: 12),
           OrderInfoCard(
-            title: _t(ru: 'КОММЕНТАРИЙ КЛИЕНТА', en: 'CLIENT COMMENT'),
+            title: _t(ru: 'КОММЕНТАРИЙ КЛИЕНТА', en: 'CLIENT COMMENT', kk: 'КЛИЕНТ ПІКІРІ'),
             rows: [
               OrderInfoRowData(
-                label: _t(ru: 'Комментарий', en: 'Comment'),
+                label: _t(ru: 'Комментарий', en: 'Comment', kk: 'Пікір'),
                 value: order.clientNote,
               ),
             ],
@@ -365,10 +371,10 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
         if (order.franchiseeNote.trim().isNotEmpty) ...[
           const SizedBox(height: 12),
           OrderInfoCard(
-            title: _t(ru: 'ПОМЕТКА ФРАНЧАЙЗИ', en: 'FRANCHISE NOTE'),
+            title: _t(ru: 'ПОМЕТКА ФРАНЧАЙЗИ', en: 'FRANCHISE NOTE', kk: 'ФРАНЧАЙЗИ БЕЛГІСІ'),
             rows: [
               OrderInfoRowData(
-                label: _t(ru: 'Комментарий', en: 'Comment'),
+                label: _t(ru: 'Комментарий', en: 'Comment', kk: 'Пікір'),
                 value: order.franchiseeNote,
               ),
             ],
@@ -383,6 +389,7 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
               labelText: _t(
                 ru: 'Комментарий производства',
                 en: 'Factory Comment',
+                kk: 'Өндіріс пікірі',
               ),
             ),
           ),
@@ -390,7 +397,7 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
         const SizedBox(height: 12),
         if (isAccepted)
           AvishuButton(
-            text: _t(ru: 'ВЗЯТЬ В ПОШИВ', en: 'START PRODUCTION'),
+            text: _t(ru: 'ВЗЯТЬ В ПОШИВ', en: 'START PRODUCTION', kk: 'ТІГУДІ БАСТАУ'),
             expanded: true,
             variant: AvishuButtonVariant.filled,
             onPressed: _isSubmitting
@@ -418,7 +425,7 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
           ),
         if (isInProduction)
           AvishuButton(
-            text: _t(ru: 'ЗАВЕРШИТЬ ПОШИВ', en: 'FINISH PRODUCTION'),
+            text: _t(ru: 'ЗАВЕРШИТЬ ПОШИВ', en: 'FINISH PRODUCTION', kk: 'ТІГУДІ АЯҚТАУ'),
             expanded: true,
             variant: AvishuButtonVariant.filled,
             onPressed: _isSubmitting
@@ -454,6 +461,7 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
                   _t(
                     ru: 'ГОТОВО. ОЖИДАЕТ ВЫДАЧИ ФРАНЧАЙЗИ.',
                     en: 'READY. AWAITING FRANCHISEE HANDOFF.',
+                    kk: 'ДАЙЫН. ФРАНЧАЙЗИДІҢ БЕРУІН КҮТУДЕ.',
                   ),
                   style: AppTypography.code,
                 ),
@@ -543,7 +551,7 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
           LinearProgressIndicator(value: order.status.progressValue),
           const SizedBox(height: 10),
           Text(
-            _t(ru: 'ОТКРЫТЬ', en: 'OPEN'),
+            _t(ru: 'ОТКРЫТЬ', en: 'OPEN', kk: 'АШУ'),
             style: AppTypography.button,
           ),
         ],
