@@ -1,0 +1,42 @@
+{
+  "id": "hudi-brnx",
+  "name": "Худи BRNX",
+  "slug": "hudi-brnx",
+  "description": "Объёмное худи, которое не добавляет объёма, а наоборот делает вас визуально более хрупкой и нежной. Такое реально только у нас, ведь мы отшиваем изделия для себя, которые вписываются в будни, обнимают вас и создают ощущение комфорта и уюта. А главное то, что оно унисекс. Отлично подойдет как мужчинам, так и девушка вне зависимости от возраста и типа фигуры🔥",
+  "shortDescription": "Объёмное унисекс худи oversize, которое создаёт ощущение комфорта и уюта.",
+  "category": "cardigans",
+  "material": "Плотный футер",
+  "silhouette": "Oversize",
+  "atelierNote": "Наши менеджера подберут для Вас актуальный вид доставки, Ваш размер и сориентируют цены в Вашей валюте. Отправляем посылки по всему Миру 🌍.",
+  "sections": ["Кардиганы и кофты"],
+  "colors": ["Серый меланж", "Айвори", "Черный", "Красный"],
+  "sizes": ["Oversize"],
+  "defaultColor": "Серый меланж",
+  "defaultSize": "Oversize",
+  "specifications": [
+    { "label": "Цвета", "value": "Серый меланж, черный, айвори, красный" },
+    { "label": "Размерный ряд", "value": "Oversize" },
+    { "label": "Посадка", "value": "Объёмное унисекс худи" },
+    { "label": "Доставка", "value": "Отправляем посылки по всему миру" }
+  ],
+  "care": [
+    "Деликатная стирка при 30°C наизнанку.",
+    "Сушить в расправленном виде, избегая перегрева.",
+    "Не использовать агрессивное отбеливание и высокую температуру."
+  ],
+  "price": 34800,
+  "currency": "KZT",
+  "coverImage": "https://avishu.kz/wp-content/uploads/2025/11/BRNX_grey2-1300x1733.webp",
+  "gallery": [
+    "https://avishu.kz/wp-content/uploads/2025/11/BRNX_grey2-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2025/11/BRNX_grey4-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2025/11/BRNX_grey3-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2025/11/BRNX_black2-1-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2025/11/BRNX_black4-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2025/11/BRNX_red1-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2025/11/BRNX_aiv2-1300x1733.webp"
+  ],
+  "isPreorderAvailable": false,
+  "defaultProductionDays": 0,
+  "status": "active"
+}

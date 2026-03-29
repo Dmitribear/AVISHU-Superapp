@@ -1,0 +1,41 @@
+{
+  "id": "loom-hudi",
+  "name": "LOOM худи",
+  "slug": "loom-hudi",
+  "description": "LOOM🔥 По-настоящему объёмное и тёплое худи с плотным подкладом — самый мягкий и уютный евроначёс с махровой текстурой внутри. Матовый футер создаёт благородный, спокойный эффект ткани. Длина прикрывает бёдра — можно носить с лосинами или как платье, в зависимости от роста. Модель овер, со своей свободой.",
+  "shortDescription": "Объёмное тёплое худи с плотным подкладом и мягким евроначёсом, которое прикрывает бёдра.",
+  "category": "cardigans",
+  "material": "Матовый футер с плотным евроначёсом",
+  "silhouette": "Oversized",
+  "atelierNote": "Наши менеджера подберут для Вас актуальный вид доставки, Ваш размер и сориентируют цены в Вашей валюте. Отправляем посылки по всему Миру 🌍.",
+  "sections": ["Новинки", "Кардиганы и кофты", "База", "Зима"],
+  "colors": ["Голубой", "Серый"],
+  "sizes": ["42-46", "48-52"],
+  "defaultColor": "Голубой",
+  "defaultSize": "42-46",
+  "specifications": [
+    { "label": "Цвета", "value": "Белый, серый, розовый и голубой" },
+    { "label": "Размерный ряд", "value": "42-46, 48-52" },
+    { "label": "Посадка", "value": "Оверсайз, длина прикрывает бёдра" },
+    { "label": "Доставка", "value": "Отправляем посылки по всему миру" }
+  ],
+  "care": [
+    "Деликатная стирка при 30°C наизнанку.",
+    "Сушить в расправленном виде, избегая перегрева.",
+    "Не использовать агрессивное отбеливание и высокую температуру."
+  ],
+  "price": 32000,
+  "currency": "KZT",
+  "coverImage": "https://avishu.kz/wp-content/uploads/2025/11/LOOM_grey1-1300x1733.webp",
+  "gallery": [
+    "https://avishu.kz/wp-content/uploads/2025/11/LOOM_grey1-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2025/11/LOOM_grey2-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2025/11/LOOM_grey3-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2025/11/LOOM_blue2-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2025/11/LOOM_blue3-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2025/11/LOOM_blue4-1300x1733.webp"
+  ],
+  "isPreorderAvailable": false,
+  "defaultProductionDays": 0,
+  "status": "active"
+}
