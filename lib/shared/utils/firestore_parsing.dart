@@ -74,3 +74,16 @@ List<String> stringListFromFirestoreValue(dynamic value) {
   }
   return const <String>[];
 }
+
+Map<String, bool> stringBoolMapFromFirestoreValue(dynamic value) {
+  if (value is Map) {
+    final result = <String, bool>{};
+    value.forEach((key, mapValue) {
+      if (key is String && mapValue is bool) {
+        result[key] = mapValue;
+      }
+    });
+    return result;
+  }
+  return const <String, bool>{};
+}

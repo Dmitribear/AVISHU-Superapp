@@ -1,0 +1,38 @@
+{
+  "id": "yubka-she",
+  "name": "Юбка SHE",
+  "slug": "yubka-she",
+  "description": "Юбка из японского шелка для вечера и на каждый день. Дополните образ футболкой, топом из нашей коллекции и заметными аксессуарами. В юбке имеется два глубоких кармана, мягкая резиночка и сзади замочек.",
+  "shortDescription": "Юбка из японского шелка на каждый день и для вечера.",
+  "category": "skirts",
+  "material": "Японский шелк (вискоза 60%, нейлон 40%)",
+  "silhouette": "Straight skirt",
+  "atelierNote": "Наши менеджера подберут для Вас актуальный вид доставки, Ваш размер и сориентируют цены в Вашей валюте. Отправляем посылки по всему Миру 🌍",
+  "sections": ["Лето"],
+  "colors": ["Кофе"],
+  "sizes": ["XS", "S", "M", "L", "XL", "XXL"],
+  "defaultColor": "Кофе",
+  "defaultSize": "XS",
+  "specifications": [
+    { "label": "Цвета", "value": "кофе" },
+    { "label": "Материал", "value": "Японский шелк (вискоза 60%, нейлон 40%)" },
+    { "label": "Размерный ряд", "value": "XS – XXL, ростовки 160/170/180 см" },
+    { "label": "Длина", "value": "80/85/90 см" }
+  ],
+  "care": [
+    "Деликатная стирка при 30°C наизнанку.",
+    "Сушить в расправленном виде, избегая перегрева.",
+    "Не использовать агрессивное отбеливание и высокую температуру."
+  ],
+  "price": 30500,
+  "currency": "KZT",
+  "coverImage": "https://avishu.kz/wp-content/uploads/2024/09/she_y-2-1300x1733.webp",
+  "gallery": [
+    "https://avishu.kz/wp-content/uploads/2024/09/she_y-2-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2024/09/she_y-3-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2024/09/she_y-1-1300x1733.webp"
+  ],
+  "isPreorderAvailable": false,
+  "defaultProductionDays": 0,
+  "status": "active"
+}

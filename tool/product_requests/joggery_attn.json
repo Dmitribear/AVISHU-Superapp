@@ -1,0 +1,38 @@
+{
+  "id": "joggery-attn",
+  "name": "Джогеры ATTN",
+  "slug": "joggery-attn",
+  "description": "Капсула ATTN – тёплая капсула из термофлиса. Это джогеры, легинсы, лонгсливы и олимпийки, которые можно сочетать между собой, надевать как термобелье или самостоятельно. Это must have на сезон с осени до весны.",
+  "shortDescription": "Тёплые джогеры из термофлиса на сезон с осени до весны.",
+  "category": "trousers",
+  "material": "Термо флис (60% хлопок, 40% полиэстор)",
+  "silhouette": "Joggers",
+  "atelierNote": "Наши менеджера подберут для Вас актуальный вид доставки, Ваш размер и сориентируют цены в Вашей валюте. Отправляем посылки по всему Миру 🌍",
+  "sections": ["Брюки"],
+  "colors": ["Черный"],
+  "sizes": ["160", "170"],
+  "defaultColor": "Черный",
+  "defaultSize": "160",
+  "specifications": [
+    { "label": "Цвета", "value": "Черный, графит, айвори" },
+    { "label": "Материал", "value": "Термо флис (60% хлопок, 40% полиэстор)" },
+    { "label": "Размерный ряд", "value": "XS – XXL, ростовки 160/170/180 см" },
+    { "label": "Длина", "value": "70/74/80 см" }
+  ],
+  "care": [
+    "Деликатная стирка при 30°C наизнанку.",
+    "Сушить в расправленном виде, избегая перегрева.",
+    "Не использовать агрессивное отбеливание и высокую температуру."
+  ],
+  "price": 27500,
+  "currency": "KZT",
+  "coverImage": "https://avishu.kz/wp-content/uploads/2024/11/attn_j_bl3-1300x1733.webp",
+  "gallery": [
+    "https://avishu.kz/wp-content/uploads/2024/11/attn_j_bl3-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2024/11/attn_j_bl2-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2024/11/attn_j_bl4-1300x1733.webp"
+  ],
+  "isPreorderAvailable": false,
+  "defaultProductionDays": 0,
+  "status": "active"
+}

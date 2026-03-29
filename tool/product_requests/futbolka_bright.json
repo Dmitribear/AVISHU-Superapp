@@ -1,0 +1,39 @@
+{
+  "id": "futbolka-bright",
+  "name": "Футболка BRIGHT",
+  "slug": "futbolka-bright",
+  "description": "Футболки BRIGHT – базовая вещь в каждом гардеробе. Легкие, дышащие и комфортные.",
+  "shortDescription": "Легкая, дышащая и комфортная футболка oversize.",
+  "category": "base",
+  "material": "95,5% Хлопок",
+  "silhouette": "Oversize",
+  "atelierNote": "Наши менеджера подберут для Вас актуальный вид доставки, Ваш размер и сориентируют цены в Вашей валюте. Отправляем посылки по всему Миру 🌍",
+  "sections": ["База"],
+  "colors": ["Маджента"],
+  "sizes": ["Oversize"],
+  "defaultColor": "Маджента",
+  "defaultSize": "Oversize",
+  "specifications": [
+    { "label": "Цвета", "value": "черный, белый, красный, розовый, голубой" },
+    { "label": "Материал", "value": "95,5% Хлопок" },
+    { "label": "Размерный ряд", "value": "oversize, длина 72 см" },
+    { "label": "Доставка", "value": "Отправляем посылки по всему миру" }
+  ],
+  "care": [
+    "Деликатная стирка при 30°C наизнанку.",
+    "Сушить в расправленном виде, избегая перегрева.",
+    "Не использовать агрессивное отбеливание и высокую температуру."
+  ],
+  "price": 15200,
+  "currency": "KZT",
+  "coverImage": "https://avishu.kz/wp-content/uploads/2024/09/BRIGHT_madg2-1300x1733.webp",
+  "gallery": [
+    "https://avishu.kz/wp-content/uploads/2024/09/BRIGHT_madg2-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2024/09/BRIGHT_madg3-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2024/09/BRIGHT_madg4-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2024/09/BRIGHT_madg-1300x1733.webp"
+  ],
+  "isPreorderAvailable": false,
+  "defaultProductionDays": 0,
+  "status": "active"
+}

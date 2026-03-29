@@ -12,6 +12,7 @@ class AvishuButton extends StatelessWidget {
   final bool expanded;
   final IconData? icon;
   final EdgeInsetsGeometry? padding;
+  final double? height;
 
   const AvishuButton({
     super.key,
@@ -21,6 +22,7 @@ class AvishuButton extends StatelessWidget {
     this.expanded = false,
     this.icon,
     this.padding,
+    this.height,
   });
 
   @override
@@ -63,6 +65,7 @@ class AvishuButton extends StatelessWidget {
 
     final resolvedPadding =
         padding ?? const EdgeInsets.symmetric(horizontal: 20, vertical: 18);
+    final resolvedMinimumSize = height == null ? null : Size(0, height!);
 
     Widget button;
     switch (variant) {
@@ -71,6 +74,7 @@ class AvishuButton extends StatelessWidget {
           onPressed: onPressed,
           style: FilledButton.styleFrom(
             padding: resolvedPadding,
+            minimumSize: resolvedMinimumSize,
             shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.zero,
             ),
@@ -82,6 +86,7 @@ class AvishuButton extends StatelessWidget {
           onPressed: onPressed,
           style: TextButton.styleFrom(
             padding: resolvedPadding,
+            minimumSize: resolvedMinimumSize,
             shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.zero,
             ),
@@ -96,6 +101,7 @@ class AvishuButton extends StatelessWidget {
             backgroundColor: AppColors.surfaceLowest,
             side: const BorderSide(color: AppColors.black, width: 1),
             padding: resolvedPadding,
+            minimumSize: resolvedMinimumSize,
             shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.zero,
             ),

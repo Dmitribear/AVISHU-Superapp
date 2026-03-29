@@ -1,0 +1,39 @@
+{
+  "id": "longsliv-skin",
+  "name": "Лонгслив SKIN",
+  "slug": "longsliv-skin",
+  "description": "Новые оттенки Лонгов SKIN, которые вот уже несколько месяцев не сдают позиции и являются одними из самых часто запрашиваемых и выкупаемых. Но не спроста, они действительно невероятно тактильно приятные к телу, ощущаются как вторая кожа (да-да, поэтому они называются SKIN). В общем, это идеальные базовые лонгсливы, которые должны быть в гардеробе каждой.",
+  "shortDescription": "Базовый тактильно приятный лонгслив, ощущающийся как вторая кожа.",
+  "category": "base",
+  "material": "Мягкий трикотаж",
+  "silhouette": "Slim basic",
+  "atelierNote": "Наши менеджера подберут для Вас актуальный вид доставки, Ваш размер и сориентируют цены в Вашей валюте. Отправляем посылки по всему Миру 🌍",
+  "sections": ["База"],
+  "colors": ["Лед", "Белый", "Кофе"],
+  "sizes": ["S", "M", "L", "XL"],
+  "defaultColor": "Лед",
+  "defaultSize": "S",
+  "specifications": [
+    { "label": "Цвета", "value": "чёрный, кофе, белый, лёд" },
+    { "label": "Размерный ряд", "value": "S – XL" },
+    { "label": "Посадка", "value": "Базовый лонгслив как вторая кожа" },
+    { "label": "Доставка", "value": "Отправляем посылки по всему миру" }
+  ],
+  "care": [
+    "Деликатная стирка при 30°C наизнанку.",
+    "Сушить в расправленном виде, избегая перегрева.",
+    "Не использовать агрессивное отбеливание и высокую температуру."
+  ],
+  "price": 22000,
+  "currency": "KZT",
+  "coverImage": "https://avishu.kz/wp-content/uploads/2025/12/SKIN-cofee_2-1300x1733.webp",
+  "gallery": [
+    "https://avishu.kz/wp-content/uploads/2025/12/SKIN-cofee_2-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2025/12/SKIN-ice_1-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2025/12/SKIN-black_1-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2025/12/SKIN-wh_1-1300x1733.webp"
+  ],
+  "isPreorderAvailable": false,
+  "defaultProductionDays": 0,
+  "status": "active"
+}
