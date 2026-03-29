@@ -1,0 +1,37 @@
+{
+  "id": "svitshot-plush",
+  "name": "Свитшот PLUSH",
+  "slug": "svitshot-plush",
+  "description": "PLUSH – идеально теплый базовый костюм на холодную осень и зиму. Основа трехнитка, изнанка из нежного плюша. Не создает лишнего объема, очень легкий и комфортный. Свитшот идет по размерам, не оверсайз. Никаких лишних деталей, чистая база.",
+  "shortDescription": "Теплый базовый свитшот PLUSH на осень и зиму.",
+  "category": "base",
+  "material": "Премиальный трикотаж трехнитка, изнанка плюш",
+  "silhouette": "Regular sweatshirt",
+  "atelierNote": "Наши менеджера подберут для Вас актуальный вид доставки, Ваш размер и сориентируют цены в Вашей валюте. Отправляем посылки по всему Миру 🌍",
+  "sections": ["Зима"],
+  "colors": ["Графит", "Черный", "Шоколад"],
+  "sizes": ["XS", "S", "M", "L", "XL", "XXL"],
+  "defaultColor": "Графит",
+  "defaultSize": "XS",
+  "specifications": [
+    { "label": "Цвета", "value": "Черный, сливка, шоколад, графит" },
+    { "label": "Материал", "value": "Премиальный трикотаж трехнитка, изнанка плюш" },
+    { "label": "Размерный ряд", "value": "XS – XXL, ростовки 160/170/180 см" }
+  ],
+  "care": [
+    "Деликатная стирка при 30°C наизнанку.",
+    "Сушить в расправленном виде, избегая перегрева.",
+    "Не использовать агрессивное отбеливание и высокую температуру."
+  ],
+  "price": 25000,
+  "currency": "KZT",
+  "coverImage": "https://avishu.kz/wp-content/uploads/2024/11/IMG_7110-1300x1733.webp",
+  "gallery": [
+    "https://avishu.kz/wp-content/uploads/2024/11/IMG_7110-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2024/11/IMG_7072-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2024/11/IMG_7342-scaled.webp"
+  ],
+  "isPreorderAvailable": false,
+  "defaultProductionDays": 0,
+  "status": "active"
+}

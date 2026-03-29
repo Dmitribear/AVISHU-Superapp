@@ -1,0 +1,38 @@
+{
+  "id": "futbolka-all-inn",
+  "name": "Футболка ALL.INN",
+  "slug": "futbolka-all-inn",
+  "description": "Базовая футболка All Inn — идеальный вариант на каждый день. Выполнена из современного материала неопрен модал, который мягкий, плотный, не мнётся и отлично держит форму. Удлинённый крой добавляет актуальности и комфорта. Отлично сочетается с джинсами, брюками или юбкой — универсальная база для любого гардероба",
+  "shortDescription": "Базовая удлинённая футболка oversize из неопрена модал на каждый день.",
+  "category": "base",
+  "material": "Неопрен модал",
+  "silhouette": "Oversize",
+  "atelierNote": "Наши менеджера подберут для Вас актуальный вид доставки, Ваш размер и сориентируют цены в Вашей валюте. Отправляем посылки по всему Миру 🌍",
+  "sections": ["База"],
+  "colors": ["Белый", "Черный", "Тауп"],
+  "sizes": ["Oversize"],
+  "defaultColor": "Тауп",
+  "defaultSize": "Oversize",
+  "specifications": [
+    { "label": "Цвета", "value": "Черный, белый, тауп" },
+    { "label": "Размерный ряд", "value": "oversize" },
+    { "label": "Материал", "value": "Неопрен модал" },
+    { "label": "Доставка", "value": "Отправляем посылки по всему миру" }
+  ],
+  "care": [
+    "Деликатная стирка при 30°C наизнанку.",
+    "Сушить в расправленном виде, избегая перегрева.",
+    "Не использовать агрессивное отбеливание и высокую температуру."
+  ],
+  "price": 24500,
+  "currency": "KZT",
+  "coverImage": "https://avishu.kz/wp-content/uploads/2025/12/ALLINN_taup-1300x1733.webp",
+  "gallery": [
+    "https://avishu.kz/wp-content/uploads/2025/12/ALLINN_taup-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2025/12/ALLINN_black2-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2025/12/ALLINN_taup-1300x1733.webp"
+  ],
+  "isPreorderAvailable": false,
+  "defaultProductionDays": 0,
+  "status": "active"
+}

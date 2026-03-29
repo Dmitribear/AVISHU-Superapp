@@ -1,0 +1,38 @@
+{
+  "id": "rubashki-evo",
+  "name": "Рубашки EVO",
+  "slug": "rubashki-evo",
+  "description": "Свободная рубашка универсального кроя с возможностью приталивания за счет дополнительной пуговицы. Подходит для деловых и повседневных образов, легко комбинируется с классическими и кэжуал-вещами. Карман слева на груди – функциональный и стильный элемент.",
+  "shortDescription": "Свободная рубашка oversize из хлопка для деловых и повседневных образов.",
+  "category": "base",
+  "material": "100% хлопок средней плотности",
+  "silhouette": "Oversize",
+  "atelierNote": "Наши менеджера подберут для Вас актуальный вид доставки, Ваш размер и сориентируют цены в Вашей валюте. Отправляем посылки по всему Миру 🌍",
+  "sections": ["База"],
+  "colors": ["Белый"],
+  "sizes": ["Oversize"],
+  "defaultColor": "Белый",
+  "defaultSize": "Oversize",
+  "specifications": [
+    { "label": "Цвета", "value": "белый" },
+    { "label": "Материал", "value": "100% хлопок средней плотности" },
+    { "label": "Размерный ряд", "value": "oversize" },
+    { "label": "Длина", "value": "по спинке 79 см, длина рукава 56 см" }
+  ],
+  "care": [
+    "Деликатная стирка при 30°C наизнанку.",
+    "Сушить в расправленном виде, избегая перегрева.",
+    "Не использовать агрессивное отбеливание и высокую температуру."
+  ],
+  "price": 27200,
+  "currency": "KZT",
+  "coverImage": "https://avishu.kz/wp-content/uploads/2025/04/IMG_0333-1300x1733.webp",
+  "gallery": [
+    "https://avishu.kz/wp-content/uploads/2025/04/IMG_0333-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2025/04/IMG_0334-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2025/04/IMG_0335-1300x1733.webp"
+  ],
+  "isPreorderAvailable": false,
+  "defaultProductionDays": 0,
+  "status": "active"
+}

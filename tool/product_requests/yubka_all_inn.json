@@ -1,0 +1,40 @@
+{
+  "id": "yubka-all-inn",
+  "name": "Юбка ALL.INN",
+  "slug": "yubka-all-inn",
+  "description": "Юбка ALL.INN абсолютный победитель в универсальности и комфорте. Сочетайте с любой обувью и на любой повод. Материал – тактильный трикотаж, который не мнется MODAL CUPRA. В составе хлопок – телу приятно. Эта юбка станет отличным выбором для создания стильных образов в любое время года. Сочетайте её с футболками, блузами или свитерами для создания непринуждённого, но элегантного стиля, подходящего как для прогулок по городу, так и для встреч с друзьями.",
+  "shortDescription": "Универсальная и комфортная юбка из тактильного трикотажа на каждый день.",
+  "category": "skirts",
+  "material": "Вискоза, хлопок, эластан",
+  "silhouette": "Skirt",
+  "atelierNote": "Наши менеджера подберут для Вас актуальный вид доставки, Ваш размер и сориентируют цены в Вашей валюте. Отправляем посылки по всему Миру 🌍",
+  "sections": ["Юбки"],
+  "colors": ["Белый", "Черный", "Тауп"],
+  "sizes": ["S", "M", "L", "XL"],
+  "defaultColor": "Черный",
+  "defaultSize": "S",
+  "specifications": [
+    { "label": "Цвета", "value": "Черный, белый, тауп" },
+    { "label": "Материал", "value": "вискоза, хлопок, эластан" },
+    { "label": "Размерный ряд", "value": "S – XL" },
+    { "label": "Цена", "value": "Минимальная цена: 23500 ₸" }
+  ],
+  "care": [
+    "Деликатная стирка при 30°C наизнанку.",
+    "Сушить в расправленном виде, избегая перегрева.",
+    "Не использовать агрессивное отбеливание и высокую температуру."
+  ],
+  "price": 23500,
+  "currency": "KZT",
+  "coverImage": "https://avishu.kz/wp-content/uploads/2025/12/IMG_4636-1300x1733.webp",
+  "gallery": [
+    "https://avishu.kz/wp-content/uploads/2025/12/IMG_4636-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2025/12/ALL.INN_skirt-bl3-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2025/12/ALL.INN_skirt-wh1-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2025/12/ALL.INN_skirt-wh3-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2025/12/ALL.INN_skirt-taup1-1300x1733.webp"
+  ],
+  "isPreorderAvailable": false,
+  "defaultProductionDays": 0,
+  "status": "active"
+}

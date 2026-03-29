@@ -1,0 +1,38 @@
+{
+  "id": "plate-futbolka-all-inn",
+  "name": "Платье-футболка ALL.INN",
+  "slug": "plate-futbolka-all-inn",
+  "description": "Стиль и минимализм. Добавив аксессуары или обувь, ваш образ будет меняться под ваше настроение",
+  "shortDescription": "Минималистичное платье-футболка, которое легко менять аксессуарами и обувью.",
+  "category": "skirts",
+  "material": "Трикотаж",
+  "silhouette": "T-shirt dress",
+  "atelierNote": "Наши менеджера подберут для Вас актуальный вид доставки, Ваш размер и сориентируют цены в Вашей валюте. Отправляем посылки по всему Миру 🌍",
+  "sections": ["Юбки"],
+  "colors": ["Тауп"],
+  "sizes": ["S", "M", "L", "XL"],
+  "defaultColor": "Тауп",
+  "defaultSize": "S",
+  "specifications": [
+    { "label": "Цвета", "value": "Тауп" },
+    { "label": "Размерный ряд", "value": "S – XL" },
+    { "label": "Ростовки", "value": "160 см и 170 см" },
+    { "label": "Стиль", "value": "Минимализм" }
+  ],
+  "care": [
+    "Деликатная стирка при 30°C наизнанку.",
+    "Сушить в расправленном виде, избегая перегрева.",
+    "Не использовать агрессивное отбеливание и высокую температуру."
+  ],
+  "price": 32000,
+  "currency": "KZT",
+  "coverImage": "https://avishu.kz/wp-content/uploads/2025/12/ALL.INN_t-shirt-taup1-1300x1733.webp",
+  "gallery": [
+    "https://avishu.kz/wp-content/uploads/2025/12/ALL.INN_t-shirt-taup1-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2025/12/ALL.INN_t-shirt-taup3-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2025/12/ALL.INN_t-shirt-taup4-1300x1733.webp"
+  ],
+  "isPreorderAvailable": false,
+  "defaultProductionDays": 0,
+  "status": "active"
+}

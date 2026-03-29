@@ -1447,11 +1447,16 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               const SizedBox(height: 16),
               Row(
                 children: [
-                  Flexible(flex: 4, child: _quantitySelector()),
+                  Flexible(
+                    flex: 4,
+                    child: SizedBox(height: 56, child: _quantitySelector()),
+                  ),
                   const SizedBox(width: 10),
                   Flexible(
                     flex: 6,
-                    child: AvishuButton(
+                    child: SizedBox(
+                      height: 56,
+                      child: AvishuButton(
                       text: isFavorite
                           ? _t(
                               ru: 'В ИЗБРАННОМ',
@@ -1463,18 +1468,20 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                               en: 'ADD TO FAVORITES',
                               kk: 'ТАҢДАУЛЫҒА ҚОСУ',
                             ),
-                      expanded: true,
-                      variant: AvishuButtonVariant.outline,
-                      icon: isFavorite
-                          ? Icons.favorite
-                          : Icons.favorite_border_outlined,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 16,
+                        expanded: true,
+                        height: 56,
+                        variant: AvishuButtonVariant.outline,
+                        icon: isFavorite
+                            ? Icons.favorite
+                            : Icons.favorite_border_outlined,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 0,
+                        ),
+                        onPressed: () {
+                          setState(() => _toggleFavorite(product.id));
+                        },
                       ),
-                      onPressed: () {
-                        setState(() => _toggleFavorite(product.id));
-                      },
                     ),
                   ),
                 ],
@@ -3244,25 +3251,37 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         color: AppColors.surfaceLowest,
         border: Border.all(color: AppColors.black),
       ),
+      height: double.infinity,
       child: Row(
         children: [
-          IconButton(
-            onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-            visualDensity: VisualDensity.compact,
-            icon: const Icon(Icons.remove),
+          SizedBox(
+            width: 40,
+            child: IconButton(
+              onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+              visualDensity: VisualDensity.compact,
+              icon: const Icon(Icons.remove),
+            ),
           ),
-          Text(
-            _quantity.toString().padLeft(2, '0'),
-            style: Theme.of(context).textTheme.titleMedium,
+          Expanded(
+            child: Center(
+              child: Text(
+                _quantity.toString(),
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
           ),
-          IconButton(
-            onPressed: () => setState(() => _quantity++),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-            visualDensity: VisualDensity.compact,
-            icon: const Icon(Icons.add),
+          SizedBox(
+            width: 40,
+            child: IconButton(
+              onPressed: () => setState(() => _quantity++),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+              visualDensity: VisualDensity.compact,
+              icon: const Icon(Icons.add),
+            ),
           ),
         ],
       ),

@@ -1,0 +1,41 @@
+{
+  "id": "mantiya-alter",
+  "name": "Мантия ALTER",
+  "slug": "mantiya-alter",
+  "description": "Новинка, легкая, комфортная и невесомая. • расцветки: чёрный, серый • размер: free",
+  "shortDescription": "Легкая, комфортная и невесомая мантия в размере free.",
+  "category": "cardigans",
+  "material": "Легкая костюмная ткань",
+  "silhouette": "Free",
+  "atelierNote": "Наши менеджера подберут для Вас актуальный вид доставки, Ваш размер и сориентируют цены в Вашей валюте. Отправляем посылки по всему Миру 🌍",
+  "sections": ["Кардиганы и кофты"],
+  "colors": ["Черный", "Серый"],
+  "sizes": ["Free"],
+  "defaultColor": "Черный",
+  "defaultSize": "Free",
+  "specifications": [
+    { "label": "Цвета", "value": "Черный, серый" },
+    { "label": "Размерный ряд", "value": "Free" },
+    { "label": "Посадка", "value": "Легкая невесомая мантия" },
+    { "label": "Доставка", "value": "Отправляем посылки по всему миру" }
+  ],
+  "care": [
+    "Деликатная стирка при 30°C наизнанку.",
+    "Сушить в расправленном виде, избегая перегрева.",
+    "Не использовать агрессивное отбеливание и высокую температуру."
+  ],
+  "price": 37000,
+  "currency": "KZT",
+  "coverImage": "https://avishu.kz/wp-content/uploads/2025/11/alter_bl1-1300x1733.webp",
+  "gallery": [
+    "https://avishu.kz/wp-content/uploads/2025/11/alter_bl1-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2025/11/alter_bl3-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2025/11/alter_bl2-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2025/11/alter_gr2-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2025/11/alter_gr3-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2025/11/alter_gr4-1300x1733.webp"
+  ],
+  "isPreorderAvailable": false,
+  "defaultProductionDays": 0,
+  "status": "active"
+}

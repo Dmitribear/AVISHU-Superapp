@@ -1,0 +1,40 @@
+{
+  "id": "futbolka-she",
+  "name": "Футболка SHE",
+  "slug": "futbolka-she",
+  "description": "Объемная удлиненная футболка из японского шелка для вечера и на каждый день. Дополните образ брюками или юбкой из нашей коллекции, заметными аксессуарами. В данной футболке комфортно будет с утра и до самого вечера.",
+  "shortDescription": "Объемная удлиненная футболка из японского шелка на каждый день и для вечера.",
+  "category": "base",
+  "material": "Японский шелк (вискоза 60%, нейлон 40%)",
+  "silhouette": "Oversized elongated tee",
+  "atelierNote": "Наши менеджера подберут для Вас актуальный вид доставки, Ваш размер и сориентируют цены в Вашей валюте. Отправляем посылки по всему Миру 🌍",
+  "sections": ["Лето"],
+  "colors": ["Белый", "Черный"],
+  "sizes": ["XS", "S", "M", "L", "XL"],
+  "defaultColor": "Белый",
+  "defaultSize": "XS",
+  "specifications": [
+    { "label": "Цвета", "value": "черный, белый" },
+    { "label": "Материал", "value": "Японский шелк (вискоза 60%, нейлон 40%)" },
+    { "label": "Размерный ряд", "value": "XS – XXL, ростовки 160/170/180 см" },
+    { "label": "Длина", "value": "72 см" }
+  ],
+  "care": [
+    "Деликатная стирка при 30°C наизнанку.",
+    "Сушить в расправленном виде, избегая перегрева.",
+    "Не использовать агрессивное отбеливание и высокую температуру."
+  ],
+  "price": 18200,
+  "currency": "KZT",
+  "coverImage": "https://avishu.kz/wp-content/uploads/2024/08/she_f-2-1300x1733.webp",
+  "gallery": [
+    "https://avishu.kz/wp-content/uploads/2024/08/she_f-2-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2024/08/she_f-1-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2024/08/she_f-4-1300x1733.webp",
+    "https://avishu.kz/wp-content/uploads/2024/08/IMG_1535-1-1300x1733.jpg",
+    "https://avishu.kz/wp-content/uploads/2024/08/IMG_5632-1300x1733.jpg"
+  ],
+  "isPreorderAvailable": false,
+  "defaultProductionDays": 0,
+  "status": "active"
+}
