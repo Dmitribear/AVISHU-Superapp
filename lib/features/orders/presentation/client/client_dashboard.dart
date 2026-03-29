@@ -32,6 +32,7 @@ import '../shared/order_digital_twin_card.dart';
 import '../shared/order_delivery_map_card.dart';
 import '../shared/order_formatters.dart';
 import '../shared/order_panels.dart';
+import '../shared/desk_help/desk_help.dart';
 import 'catalog_sections/molecules/client_catalog_media_carousel.dart';
 import 'client_data.dart';
 import 'dashboard_sections/client_dashboard_sections.dart';
@@ -1003,10 +1004,13 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     UserRole currentRole,
     OrderModel? trackedOrder,
   ) {
+    final compact = ref.watch(appSettingsProvider).compactCards;
     final user = ref.watch(currentUserProvider).value;
     final profile = ref.watch(currentUserProfileProvider).value;
     final favoriteProducts = _favoriteProducts;
     final loyalty = _loyaltySnapshot(profile, orders);
+    final supportOrder =
+        trackedOrder ?? (orders.isNotEmpty ? orders.first : null);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1208,6 +1212,199 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             onTap: () => setState(() => _view = ClientView.tracking),
           ),
         ],
+        const SizedBox(height: 12),
+        DeskHelpGuideSection(
+          compact: compact,
+          eyebrow: _t(
+            ru: 'КАК ПОЛЬЗОВАТЬСЯ',
+            en: 'HOW TO USE',
+            kk: 'ҚАЛАЙ ПАЙДАЛАНУ КЕРЕК',
+          ),
+          title: _t(
+            ru: 'Все важное по заказу собрано в одном ритме.',
+            en: 'Everything important about your order lives in one flow.',
+            kk: 'Тапсырыс бойынша маңыздының бәрі бір ағында жиналған.',
+          ),
+          description: _t(
+            ru: 'Каталог, оформление, оплата и трекинг связаны между собой, поэтому не нужно искать статус по разным экранам.',
+            en: 'Catalog, checkout, payment, and tracking are connected, so you do not need to search for status across different screens.',
+            kk: 'Каталог, рәсімдеу, төлем және бақылау бір жүйеге байланысқан, сондықтан мәртебені әр экраннан іздеудің қажеті жоқ.',
+          ),
+          points: [
+            DeskHelpGuidePoint(
+              title: _t(
+                ru: 'Выберите модель и доступный размер',
+                en: 'Pick a model and an available size',
+                kk: 'Модель мен қолжетімді өлшемді таңдаңыз',
+              ),
+              description: _t(
+                ru: 'В карточке сразу видно, какие размеры закрыты, а какие можно заказать без уточнений.',
+                en: 'The product card immediately shows which sizes are unavailable and which ones can be ordered right away.',
+                kk: 'Карточкада қай өлшем жабық екені және қайсысын бірден тапсырыс беруге болатыны бірден көрінеді.',
+              ),
+            ),
+            DeskHelpGuidePoint(
+              title: _t(
+                ru: 'Следите за статусом без звонков',
+                en: 'Track status without calls',
+                kk: 'Мәртебені қоңыраусыз бақылаңыз',
+              ),
+              description: _t(
+                ru: 'После оплаты заказ переходит в трекинг, где видны этап, адрес и движение по доставке.',
+                en: 'After payment, the order moves into tracking where you can see the stage, address, and delivery movement.',
+                kk: 'Төлемнен кейін тапсырыс бақылауға өтеді, онда кезең, мекенжай және жеткізу қозғалысы көрінеді.',
+              ),
+            ),
+            DeskHelpGuidePoint(
+              title: _t(
+                ru: 'Если нужно вмешательство, все под рукой',
+                en: 'If you need help, everything is ready',
+                kk: 'Көмек керек болса, бәрі дайын',
+              ),
+              description: _t(
+                ru: 'Внизу есть быстрые действия: можно скопировать email, номер заказа и готовый бриф для поддержки.',
+                en: 'Below you will find quick actions to copy your email, order number, and a ready support brief.',
+                kk: 'Төменде email, тапсырыс нөмірі және дайын қолдау мәтінін көшіруге арналған жедел әрекеттер бар.',
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        DeskHelpSystemFlowSection(
+          compact: compact,
+          eyebrow: _t(
+            ru: 'СИСТЕМНЫЙ ПОТОК',
+            en: 'SYSTEM FLOW',
+            kk: 'ЖҮЙЕЛІК АҒЫН',
+          ),
+          steps: [
+            DeskHelpFlowStep(
+              title: localizedRoleLabel(UserRole.client, _language),
+              details: _t(
+                ru: 'Клиент выбирает модель, проверяет доступный размер, подтверждает адрес и оплачивает заказ.',
+                en: 'The client chooses a model, checks the available size, confirms the address, and pays for the order.',
+                kk: 'Клиент модельді таңдап, қолжетімді өлшемді тексеріп, мекенжайды растап, тапсырысты төлейді.',
+              ),
+            ),
+            DeskHelpFlowStep(
+              title: localizedRoleLabel(UserRole.franchisee, _language),
+              details: _t(
+                ru: 'Франчайзи получает заказ сразу после оплаты, проверяет детали и передает его в работу без лишних переписок.',
+                en: 'The franchisee receives the order right after payment, checks the details, and sends it into work without extra back-and-forth.',
+                kk: 'Франчайзи тапсырысты төлемнен кейін бірден алып, деректерді тексеріп, оны артық хат алмасусыз жұмысқа жібереді.',
+              ),
+            ),
+            DeskHelpFlowStep(
+              title: localizedRoleLabel(UserRole.production, _language),
+              details: _t(
+                ru: 'Производство принимает задачу, обновляет этапы пошива и отмечает готовность, когда вещь собрана.',
+                en: 'Production accepts the task, updates tailoring stages, and marks the item ready once everything is complete.',
+                kk: 'Өндіріс тапсырманы қабылдап, тігу кезеңдерін жаңартады және бұйым дайын болғанда мәртебені белгілейді.',
+              ),
+            ),
+            DeskHelpFlowStep(
+              title: localizedRoleLabel(UserRole.client, _language),
+              details: _t(
+                ru: 'Клиент видит обновление в трекинге, получает готовый статус и завершает цикл получением заказа.',
+                en: 'The client sees the update in tracking, receives the ready status, and completes the cycle by receiving the order.',
+                kk: 'Клиент жаңартуды бақылаудан көреді, дайын мәртебесін алады және тапсырысты алу арқылы циклды аяқтайды.',
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        DeskHelpSupportSection(
+          compact: compact,
+          eyebrow: _t(
+            ru: 'ПОМОЩЬ И ПОДДЕРЖКА',
+            en: 'HELP & SUPPORT',
+            kk: 'КӨМЕК ЖӘНЕ ҚОЛДАУ',
+          ),
+          title: _t(
+            ru: 'Подготовьте обращение за несколько секунд.',
+            en: 'Prepare a support message in a few seconds.',
+            kk: 'Қолдау хабарламасын бірнеше секундта дайындаңыз.',
+          ),
+          description: _t(
+            ru: 'Если нужно быстро решить вопрос по адресу, оплате или заказу, скопируйте готовые данные и отправьте их в ваш канал поддержки AVISHU.',
+            en: 'If you need to resolve an address, payment, or order issue quickly, copy the ready details and send them through your AVISHU support channel.',
+            kk: 'Егер мекенжай, төлем немесе тапсырыс бойынша сұрақты тез шешу керек болса, дайын деректерді көшіріп, оларды AVISHU қолдау арнасына жіберіңіз.',
+          ),
+          actions: [
+            DeskHelpSupportAction(
+              title: _t(
+                ru: 'Скопировать email профиля',
+                en: 'Copy profile email',
+                kk: 'Профиль email-ын көшіру',
+              ),
+              description: _t(
+                ru: 'Полезно, если поддержке нужно быстро найти ваш аккаунт.',
+                en: 'Useful when support needs to find your account quickly.',
+                kk: 'Қолдау қызметіне аккаунтыңызды тез табу керек болса пайдалы.',
+              ),
+              actionLabel: _t(ru: 'КОПИЯ', en: 'COPY', kk: 'КОПИЯ'),
+              onTap: () => _copyToClipboard(
+                user?.email ?? '',
+                _t(
+                  ru: 'Email профиля скопирован.',
+                  en: 'Profile email copied.',
+                  kk: 'Профиль email-ы көшірілді.',
+                ),
+              ),
+            ),
+            DeskHelpSupportAction(
+              title: _t(
+                ru: 'Скопировать номер заказа',
+                en: 'Copy order number',
+                kk: 'Тапсырыс нөмірін көшіру',
+              ),
+              description: _t(
+                ru: 'Добавьте номер заказа в сообщение, чтобы не тратить время на уточнение.',
+                en: 'Add the order number to your message so there is no delay in identifying the request.',
+                kk: 'Хабарламаға тапсырыс нөмірін қосыңыз, сонда сұрауды анықтауға уақыт кетпейді.',
+              ),
+              actionLabel: _t(ru: 'КОПИЯ', en: 'COPY', kk: 'КОПИЯ'),
+              onTap: () => _copyToClipboard(
+                supportOrder == null ? '' : '#${supportOrder.shortId}',
+                _t(
+                  ru: 'Номер заказа скопирован.',
+                  en: 'Order number copied.',
+                  kk: 'Тапсырыс нөмірі көшірілді.',
+                ),
+              ),
+            ),
+            DeskHelpSupportAction(
+              title: _t(
+                ru: 'Скопировать бриф для поддержки',
+                en: 'Copy support brief',
+                kk: 'Қолдау мәтінін көшіру',
+              ),
+              description: _t(
+                ru: 'Готовый шаблон обращения уже содержит аккаунт и заказ, чтобы вам осталось описать только саму ситуацию.',
+                en: 'The ready template already includes your account and order, so you only need to describe the issue itself.',
+                kk: 'Дайын шаблонда аккаунт пен тапсырыс бар, сондықтан сізге тек мәселенің өзін сипаттау қалады.',
+              ),
+              actionLabel: _t(ru: 'КОПИЯ', en: 'COPY', kk: 'КОПИЯ'),
+              onTap: () => _copyToClipboard(
+                _clientSupportBrief(
+                  userEmail: user?.email ?? '',
+                  order: supportOrder,
+                ),
+                _t(
+                  ru: 'Бриф для поддержки скопирован.',
+                  en: 'Support brief copied.',
+                  kk: 'Қолдау мәтіні көшірілді.',
+                ),
+              ),
+            ),
+          ],
+          footerText: _t(
+            ru: 'Чтобы получить ответ быстрее, добавьте в обращение размер, адрес доставки и скрин, если что-то отображается неверно.',
+            en: 'To get help faster, include your size, delivery address, and a screenshot if something looks wrong.',
+            kk: 'Жауапты тезірек алу үшін өлшемді, жеткізу мекенжайын және бірдеңе қате көрінсе скриншотты қосыңыз.',
+          ),
+        ),
+        const SizedBox(height: 16),
         const SizedBox(height: 16),
         AvishuButton(
           text: _t(ru: 'ПОЧЕМУ AVISHU', en: 'WHY AVISHU', kk: 'НЕГЕ AVISHU'),
@@ -1445,17 +1642,17 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                     child: SizedBox(
                       height: 56,
                       child: AvishuButton(
-                      text: isFavorite
-                          ? _t(
-                              ru: 'В ИЗБРАННОМ',
-                              en: 'IN FAVORITES',
-                              kk: 'ТАҢДАУЛЫДА',
-                            )
-                          : _t(
-                              ru: 'В ИЗБРАННОЕ',
-                              en: 'ADD TO FAVORITES',
-                              kk: 'ТАҢДАУЛЫҒА ҚОСУ',
-                            ),
+                        text: isFavorite
+                            ? _t(
+                                ru: 'В ИЗБРАННОМ',
+                                en: 'IN FAVORITES',
+                                kk: 'ТАҢДАУЛЫДА',
+                              )
+                            : _t(
+                                ru: 'В ИЗБРАННОЕ',
+                                en: 'ADD TO FAVORITES',
+                                kk: 'ТАҢДАУЛЫҒА ҚОСУ',
+                              ),
                         expanded: true,
                         height: 56,
                         variant: AvishuButtonVariant.outline,
@@ -2069,6 +2266,46 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _copyToClipboard(String text, String message) async {
+    if (text.trim().isEmpty) {
+      _showMessage(
+        _t(
+          ru: 'Пока нечего копировать.',
+          en: 'There is nothing to copy yet.',
+          kk: 'Әзірге көшіретін дерек жоқ.',
+        ),
+      );
+      return;
+    }
+
+    await Clipboard.setData(ClipboardData(text: text));
+    if (!mounted) {
+      return;
+    }
+    _showMessage(message);
+  }
+
+  String _clientSupportBrief({
+    required String userEmail,
+    required OrderModel? order,
+  }) {
+    final accountEmail = userEmail.trim().isEmpty
+        ? 'not_provided'
+        : userEmail.trim();
+    final orderLabel = order == null ? 'not_attached' : '#${order.shortId}';
+
+    return [
+      'AVISHU SUPPORT BRIEF',
+      'ROLE: CLIENT',
+      'ACCOUNT: $accountEmail',
+      'ORDER: $orderLabel',
+      'ISSUE:',
+      '- What happened',
+      '- What you expected instead',
+      '- Screenshot attached: yes / no',
+    ].join('\n');
   }
 
   void _openProduct(CatalogProduct product) {
@@ -3368,7 +3605,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
           SizedBox(
             width: 40,
             child: IconButton(
-              onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
+              onPressed: _quantity > 1
+                  ? () => setState(() => _quantity--)
+                  : null,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
               visualDensity: VisualDensity.compact,

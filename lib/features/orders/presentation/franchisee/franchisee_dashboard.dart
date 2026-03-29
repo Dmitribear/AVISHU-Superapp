@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -25,6 +26,7 @@ import '../../../products/presentation/franchisee_product_studio/franchisee_prod
 import '../../../products/presentation/franchisee_product_studio/franchisee_product_studio_view.dart';
 import '../../../users/data/user_profile_repository.dart';
 import '../../../users/domain/models/user_profile.dart';
+import '../shared/desk_help/desk_help.dart';
 import '../shared/order_digital_twin_card.dart';
 import '../shared/order_formatters.dart';
 import '../shared/order_panels.dart';
@@ -401,6 +403,14 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
   }
 
   Widget _buildProfileTab() {
+    final compact = ref.watch(appSettingsProvider).compactCards;
+    final user = ref.watch(currentUserProvider).value;
+    final orders =
+        ref.watch(franchiseeOrdersProvider).value ?? const <OrderModel>[];
+    final products =
+        ref.watch(franchiseeProductsProvider).value ?? const <ProductModel>[];
+    final priorityOrder = orders.isNotEmpty ? orders.first : null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -466,6 +476,200 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
             ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        DeskHelpGuideSection(
+          compact: compact,
+          eyebrow: _t(
+            ru: 'КАК РАБОТАТЬ В ДЕСКЕ',
+            en: 'HOW TO WORK IN THE DESK',
+            kk: 'ЖҰМЫС ҮСТЕЛІН ҚАЛАЙ ҚОЛДАНУ КЕРЕК',
+          ),
+          title: _t(
+            ru: 'Вся операционная логика собрана в одном экране.',
+            en: 'All operating logic is gathered in one desk.',
+            kk: 'Барлық операциялық логика бір экранға жиналған.',
+          ),
+          description: _t(
+            ru: 'Новые заказы, поток производства, готовые позиции и каталог товара работают как единая система без переключения между разными инструментами.',
+            en: 'New orders, factory flow, ready handoff items, and the product catalog work as one system without switching between separate tools.',
+            kk: 'Жаңа тапсырыстар, өндіріс ағыны, дайын позициялар және тауар каталогы бөлек құралдарға өтпей-ақ бір жүйе ретінде жұмыс істейді.',
+          ),
+          points: [
+            DeskHelpGuidePoint(
+              title: _t(
+                ru: 'Берите новый заказ сразу после оплаты',
+                en: 'Take the order right after payment',
+                kk: 'Тапсырысты төлемнен кейін бірден алыңыз',
+              ),
+              description: _t(
+                ru: 'Новый заказ появляется без перезагрузки, поэтому можно быстро проверить адрес, комментарий и изделие.',
+                en: 'A new order appears without reload, so you can immediately check the address, note, and garment.',
+                kk: 'Жаңа тапсырыс қайта жүктеусіз көрінеді, сондықтан мекенжайды, ескертпені және бұйымды бірден тексеруге болады.',
+              ),
+            ),
+            DeskHelpGuidePoint(
+              title: _t(
+                ru: 'Передавайте в производство без потери деталей',
+                en: 'Send to production without losing details',
+                kk: 'Өндіріске деректерді жоғалтпай жіберіңіз',
+              ),
+              description: _t(
+                ru: 'После подтверждения заказ сразу уходит в поток, а клиентские и внутренние заметки остаются в карточке.',
+                en: 'After confirmation, the order moves straight into the flow while client and internal notes stay attached to the card.',
+                kk: 'Растаудан кейін тапсырыс ағынға бірден өтеді, ал клиент пен ішкі ескертпелер карточкада сақталады.',
+              ),
+            ),
+            DeskHelpGuidePoint(
+              title: _t(
+                ru: 'Обновляйте каталог без отдельной админки',
+                en: 'Update the catalog without a separate admin panel',
+                kk: 'Каталогты бөлек админкасыз жаңартыңыз',
+              ),
+              description: _t(
+                ru: 'В разделе товаров можно менять наличие, размеры, цену и галерею, не выходя из AVISHU.',
+                en: 'In the product section you can update stock, sizes, price, and gallery without leaving AVISHU.',
+                kk: 'Тауар бөлімінде AVISHU-ден шықпай-ақ қолжетімділікті, өлшемдерді, бағаны және галереяны жаңартуға болады.',
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        DeskHelpSystemFlowSection(
+          compact: compact,
+          eyebrow: _t(
+            ru: 'СИСТЕМНЫЙ ПОТОК',
+            en: 'SYSTEM FLOW',
+            kk: 'ЖҮЙЕЛІК АҒЫН',
+          ),
+          steps: [
+            DeskHelpFlowStep(
+              title: localizedRoleLabel(UserRole.client, _language),
+              details: _t(
+                ru: 'Клиент выбирает изделие, подтверждает размер, адрес и завершает оплату.',
+                en: 'The client chooses a garment, confirms the size and address, and completes payment.',
+                kk: 'Клиент бұйымды таңдап, өлшем мен мекенжайды растап, төлемді аяқтайды.',
+              ),
+            ),
+            DeskHelpFlowStep(
+              title: localizedRoleLabel(UserRole.franchisee, _language),
+              details: _t(
+                ru: 'Франчайзи видит новый заказ сразу после оплаты, уточняет детали и передает задачу дальше.',
+                en: 'The franchisee sees the new order right after payment, checks the details, and moves the task forward.',
+                kk: 'Франчайзи жаңа тапсырысты төлемнен кейін бірден көріп, деректерді тексеріп, тапсырманы келесі кезеңге жібереді.',
+              ),
+            ),
+            DeskHelpFlowStep(
+              title: localizedRoleLabel(UserRole.production, _language),
+              details: _t(
+                ru: 'Производство берет заказ в работу, обновляет этапы и отмечает готовность вещи.',
+                en: 'Production takes the order into work, updates the stages, and marks the garment as ready.',
+                kk: 'Өндіріс тапсырысты жұмысқа алып, кезеңдерді жаңартады және бұйымның дайындығын белгілейді.',
+              ),
+            ),
+            DeskHelpFlowStep(
+              title: localizedRoleLabel(UserRole.client, _language),
+              details: _t(
+                ru: 'Клиент получает обновление в трекинге, видит готовность и завершает путь получением заказа.',
+                en: 'The client receives the update in tracking, sees the ready status, and finishes the journey by receiving the order.',
+                kk: 'Клиент бақылауда жаңартуды көріп, дайын мәртебесін алады және тапсырысты алу арқылы циклды аяқтайды.',
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        DeskHelpSupportSection(
+          compact: compact,
+          eyebrow: _t(
+            ru: 'ПОМОЩЬ И ПОДДЕРЖКА',
+            en: 'HELP & SUPPORT',
+            kk: 'КӨМЕК ЖӘНЕ ҚОЛДАУ',
+          ),
+          title: _t(
+            ru: 'Соберите понятное обращение без ручной подготовки.',
+            en: 'Build a clear support request without manual prep.',
+            kk: 'Қолдау сұрауын қолмен дайындамай-ақ жинаңыз.',
+          ),
+          description: _t(
+            ru: 'Если нужно быстро подключить поддержку, скопируйте готовый бриф, email или номер приоритетного заказа.',
+            en: 'If you need to involve support quickly, copy the ready brief, email, or the priority order number.',
+            kk: 'Қолдауды тез қосу керек болса, дайын мәтінді, email-ды немесе басым тапсырыс нөмірін көшіріп алыңыз.',
+          ),
+          actions: [
+            DeskHelpSupportAction(
+              title: _t(
+                ru: 'Скопировать email аккаунта',
+                en: 'Copy account email',
+                kk: 'Аккаунт email-ын көшіру',
+              ),
+              description: _t(
+                ru: 'Поможет поддержке быстро найти ваш рабочий профиль.',
+                en: 'Helps support find your working profile quickly.',
+                kk: 'Қолдау қызметіне жұмыс профиліңізді тез табуға көмектеседі.',
+              ),
+              actionLabel: _t(ru: 'КОПИЯ', en: 'COPY', kk: 'КОПИЯ'),
+              onTap: () => _copyToClipboard(
+                user?.email ?? '',
+                _t(
+                  ru: 'Email аккаунта скопирован.',
+                  en: 'Account email copied.',
+                  kk: 'Аккаунт email-ы көшірілді.',
+                ),
+              ),
+            ),
+            DeskHelpSupportAction(
+              title: _t(
+                ru: 'Скопировать приоритетный заказ',
+                en: 'Copy priority order',
+                kk: 'Басым тапсырысты көшіру',
+              ),
+              description: _t(
+                ru: 'Подходит, когда нужно быстро показать, по какому заказу требуется помощь.',
+                en: 'Use this when you need to show which order needs help right away.',
+                kk: 'Қай тапсырыс бойынша көмек керек екенін бірден көрсету қажет болса қолданыңыз.',
+              ),
+              actionLabel: _t(ru: 'КОПИЯ', en: 'COPY', kk: 'КОПИЯ'),
+              onTap: () => _copyToClipboard(
+                priorityOrder == null ? '' : '#${priorityOrder.shortId}',
+                _t(
+                  ru: 'Номер заказа скопирован.',
+                  en: 'Order number copied.',
+                  kk: 'Тапсырыс нөмірі көшірілді.',
+                ),
+              ),
+            ),
+            DeskHelpSupportAction(
+              title: _t(
+                ru: 'Скопировать бриф для поддержки',
+                en: 'Copy support brief',
+                kk: 'Қолдау мәтінін көшіру',
+              ),
+              description: _t(
+                ru: 'Шаблон уже включает роль, email, количество заказов и товаров.',
+                en: 'The template already includes your role, email, and current order and product totals.',
+                kk: 'Шаблонда рөліңіз, email және ағымдағы тапсырыс пен тауар саны бар.',
+              ),
+              actionLabel: _t(ru: 'КОПИЯ', en: 'COPY', kk: 'КОПИЯ'),
+              onTap: () => _copyToClipboard(
+                _franchiseeSupportBrief(
+                  userEmail: user?.email ?? '',
+                  orders: orders,
+                  products: products,
+                  priorityOrder: priorityOrder,
+                ),
+                _t(
+                  ru: 'Бриф для поддержки скопирован.',
+                  en: 'Support brief copied.',
+                  kk: 'Қолдау мәтіні көшірілді.',
+                ),
+              ),
+            ),
+          ],
+          footerText: _t(
+            ru: 'Для быстрого ответа добавьте скрин карточки заказа или товара и кратко опишите, на каком шаге возникла проблема.',
+            en: 'To get help faster, attach a screenshot of the order or product card and mention at which step the problem appeared.',
+            kk: 'Жауапты тезірек алу үшін тапсырыс не тауар карточкасының скринін жіберіп, мәселе қай қадамда шыққанын қысқаша жазыңыз.',
           ),
         ),
         const SizedBox(height: 16),
@@ -871,6 +1075,8 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
   }
 
   Widget _metricCard(String label, String value) {
+    final valueStyle = Theme.of(context).textTheme.titleLarge;
+
     return _surfaceCard(
       child: SizedBox(
         height: 100,
@@ -880,7 +1086,7 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
           children: [
             Text(label, style: AppTypography.eyebrow),
             const SizedBox(height: 10),
-            Text(value, style: Theme.of(context).textTheme.titleLarge),
+            _metricValueLabel(value, valueStyle),
           ],
         ),
       ),
@@ -984,6 +1190,8 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
   }
 
   Widget _analyticsMetricCell(String label, String value) {
+    final valueStyle = Theme.of(context).textTheme.titleMedium;
+
     return Container(
       height: 88,
       padding: const EdgeInsets.all(12),
@@ -997,7 +1205,33 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
         children: [
           Text(label, style: AppTypography.eyebrow),
           const SizedBox(height: 8),
-          Text(value, style: Theme.of(context).textTheme.titleMedium),
+          _metricValueLabel(value, valueStyle),
+        ],
+      ),
+    );
+  }
+
+  Widget _metricValueLabel(String value, TextStyle? style) {
+    final trimmedValue = value.trim();
+    if (!trimmedValue.endsWith('₸')) {
+      return Text(trimmedValue, style: style);
+    }
+
+    final amount = trimmedValue
+        .substring(0, trimmedValue.length - 1)
+        .trimRight();
+
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.centerLeft,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        children: [
+          Text(amount, style: style),
+          const SizedBox(width: 6),
+          Text('₸', style: style),
         ],
       ),
     );
@@ -1163,6 +1397,52 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _copyToClipboard(String text, String message) async {
+    if (text.trim().isEmpty) {
+      _showSnack(
+        _t(
+          ru: 'Пока нечего копировать.',
+          en: 'There is nothing to copy yet.',
+          kk: 'Әзірге көшіретін дерек жоқ.',
+        ),
+      );
+      return;
+    }
+
+    await Clipboard.setData(ClipboardData(text: text));
+    if (!mounted) {
+      return;
+    }
+    _showSnack(message);
+  }
+
+  String _franchiseeSupportBrief({
+    required String userEmail,
+    required List<OrderModel> orders,
+    required List<ProductModel> products,
+    required OrderModel? priorityOrder,
+  }) {
+    final accountEmail = userEmail.trim().isEmpty
+        ? 'not_provided'
+        : userEmail.trim();
+    final priorityOrderLabel = priorityOrder == null
+        ? 'not_attached'
+        : '#${priorityOrder.shortId}';
+
+    return [
+      'AVISHU SUPPORT BRIEF',
+      'ROLE: FRANCHISEE',
+      'ACCOUNT: $accountEmail',
+      'ORDERS IN DESK: ${orders.length}',
+      'PRODUCTS IN STUDIO: ${products.length}',
+      'PRIORITY ORDER: $priorityOrderLabel',
+      'ISSUE:',
+      '- What is blocked',
+      '- Which screen or card is affected',
+      '- Screenshot attached: yes / no',
+    ].join('\n');
   }
 
   Future<void> _syncCourierLocation(OrderModel order, double progress) async {

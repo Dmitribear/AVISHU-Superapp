@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -18,6 +19,7 @@ import '../../../orders/domain/models/order_model.dart';
 import '../../../orders/domain/services/order_analytics_service.dart';
 import '../../../users/data/user_profile_repository.dart';
 import '../../../users/domain/models/user_profile.dart';
+import '../shared/desk_help/desk_help.dart';
 import '../shared/order_digital_twin_card.dart';
 import '../shared/order_panels.dart';
 
@@ -155,6 +157,8 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
     required Map<String, UserProfile> profiles,
     required ProductionAnalyticsSnapshot analytics,
   }) {
+    final compact = ref.watch(appSettingsProvider).compactCards;
+    final user = ref.watch(currentUserProvider).value;
     final accepted = orders
         .where((order) => order.status == OrderStatus.accepted)
         .toList();
@@ -362,6 +366,202 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
               ],
             ),
           ),
+          const SizedBox(height: 12),
+          DeskHelpGuideSection(
+            compact: compact,
+            eyebrow: _t(
+              ru: 'КАК РАБОТАТЬ НА СТАНЦИИ',
+              en: 'HOW TO WORK AT THE STATION',
+              kk: 'БЕКЕТТЕ ҚАЛАЙ ЖҰМЫС ІСТЕУ КЕРЕК',
+            ),
+            title: _t(
+              ru: 'Рабочий ритм держится на понятных шагах.',
+              en: 'The workstation stays fast when every step is clear.',
+              kk: 'Әр қадам анық болса, жұмыс ырғағы жоғалмайды.',
+            ),
+            description: _t(
+              ru: 'Станция помогает быстро взять задачу, видеть статус и отмечать готовность без лишних переходов.',
+              en: 'The station helps you pick up a task quickly, see its status, and mark it ready without extra navigation.',
+              kk: 'Бекет тапсырманы тез алуға, мәртебені көруге және дайындықты артық өтусіз белгілеуге көмектеседі.',
+            ),
+            points: [
+              DeskHelpGuidePoint(
+                title: _t(
+                  ru: 'Начинайте с ближайшей задачи',
+                  en: 'Start with the nearest task',
+                  kk: 'Ең жақын тапсырмадан бастаңыз',
+                ),
+                description: _t(
+                  ru: 'Очередь показывает, какие заказы ждут запуска и что уже находится в работе.',
+                  en: 'The queue shows which orders are waiting to start and which ones are already in progress.',
+                  kk: 'Кезек қай тапсырыстар іске қосуды күтіп тұрғанын және қайсысы жұмыста екенін көрсетеді.',
+                ),
+              ),
+              DeskHelpGuidePoint(
+                title: _t(
+                  ru: 'Обновляйте этапы сразу по факту',
+                  en: 'Update stages as soon as they happen',
+                  kk: 'Кезеңдерді бірден жаңартып отырыңыз',
+                ),
+                description: _t(
+                  ru: 'Так франчайзи и клиент видят реальный статус, а очередь не расползается по срокам.',
+                  en: 'This keeps franchisee and client status accurate and prevents the queue from drifting out of sync.',
+                  kk: 'Осылай франчайзи мен клиент нақты мәртебені көреді және кезек мерзімнен ауытқымайды.',
+                ),
+              ),
+              DeskHelpGuidePoint(
+                title: _t(
+                  ru: 'Отмечайте готовность без паузы',
+                  en: 'Mark ready without delay',
+                  kk: 'Дайындықты кідіріссіз белгілеңіз',
+                ),
+                description: _t(
+                  ru: 'Когда вещь собрана, сразу переводите ее в готово, чтобы выдача не задерживалась.',
+                  en: 'Once the garment is complete, move it to ready immediately so handoff is not delayed.',
+                  kk: 'Бұйым дайын болған сәтте оны бірден ready мәртебесіне өткізіңіз, сонда беру кешікпейді.',
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          DeskHelpSystemFlowSection(
+            compact: compact,
+            eyebrow: _t(
+              ru: 'СИСТЕМНЫЙ ПОТОК',
+              en: 'SYSTEM FLOW',
+              kk: 'ЖҮЙЕЛІК АҒЫН',
+            ),
+            steps: [
+              DeskHelpFlowStep(
+                title: localizedRoleLabel(UserRole.client, _language),
+                details: _t(
+                  ru: 'Клиент создает заказ и передает в систему все данные по изделию, размеру и доставке.',
+                  en: 'The client creates the order and sends the system the garment, size, and delivery details.',
+                  kk: 'Клиент тапсырыс жасап, жүйеге бұйым, өлшем және жеткізу бойынша барлық деректі береді.',
+                ),
+              ),
+              DeskHelpFlowStep(
+                title: localizedRoleLabel(UserRole.franchisee, _language),
+                details: _t(
+                  ru: 'Франчайзи принимает заказ, подтверждает его и отправляет в работу с сохранением всех заметок.',
+                  en: 'The franchisee accepts the order, confirms it, and sends it into work while keeping all notes attached.',
+                  kk: 'Франчайзи тапсырысты қабылдап, растап, барлық ескертпелерді сақтай отырып жұмысқа жібереді.',
+                ),
+              ),
+              DeskHelpFlowStep(
+                title: localizedRoleLabel(UserRole.production, _language),
+                details: _t(
+                  ru: 'Производство берет задачу в цех, обновляет этапы и отвечает за перевод заказа в готово.',
+                  en: 'Production takes the task into the workshop, updates the stages, and moves the order into ready.',
+                  kk: 'Өндіріс тапсырманы цехқа алып, кезеңдерді жаңартады және тапсырысты дайын мәртебесіне өткізеді.',
+                ),
+              ),
+              DeskHelpFlowStep(
+                title: localizedRoleLabel(UserRole.client, _language),
+                details: _t(
+                  ru: 'Клиент получает обновление в трекинге и завершает путь получением готового заказа.',
+                  en: 'The client receives the update in tracking and completes the journey by receiving the finished order.',
+                  kk: 'Клиент бақылауда жаңартуды алып, дайын тапсырысты алу арқылы процесті аяқтайды.',
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          DeskHelpSupportSection(
+            compact: compact,
+            eyebrow: _t(
+              ru: 'ПОМОЩЬ И ПОДДЕРЖКА',
+              en: 'HELP & SUPPORT',
+              kk: 'КӨМЕК ЖӘНЕ ҚОЛДАУ',
+            ),
+            title: _t(
+              ru: 'Подготовьте эскалацию без лишней переписки.',
+              en: 'Prepare an escalation without extra back-and-forth.',
+              kk: 'Эскалацияны артық хат алмасусыз дайындаңыз.',
+            ),
+            description: _t(
+              ru: 'Если задача заблокирована, можно быстро скопировать нужные данные и передать их в поддержку.',
+              en: 'If a task is blocked, you can quickly copy the right details and pass them to support.',
+              kk: 'Егер тапсырма тоқтап қалса, қажетті деректі тез көшіріп, оны қолдауға беруге болады.',
+            ),
+            actions: [
+              DeskHelpSupportAction(
+                title: _t(
+                  ru: 'Скопировать email аккаунта',
+                  en: 'Copy account email',
+                  kk: 'Аккаунт email-ын көшіру',
+                ),
+                description: _t(
+                  ru: 'Нужно, если поддержке требуется быстро найти рабочую учетную запись.',
+                  en: 'Useful when support needs to identify your working account quickly.',
+                  kk: 'Қолдау қызметіне жұмыс аккаунтыңызды тез табу керек болса қажет.',
+                ),
+                actionLabel: _t(ru: 'КОПИЯ', en: 'COPY', kk: 'КОПИЯ'),
+                onTap: () => _copyToClipboard(
+                  user?.email ?? '',
+                  _t(
+                    ru: 'Email аккаунта скопирован.',
+                    en: 'Account email copied.',
+                    kk: 'Аккаунт email-ы көшірілді.',
+                  ),
+                ),
+              ),
+              DeskHelpSupportAction(
+                title: _t(
+                  ru: 'Скопировать активную задачу',
+                  en: 'Copy active task',
+                  kk: 'Белсенді тапсырманы көшіру',
+                ),
+                description: _t(
+                  ru: 'Так поддержка сразу увидит, какой заказ сейчас требует внимания.',
+                  en: 'This lets support see which order currently needs attention.',
+                  kk: 'Осылай қолдау қай тапсырысқа дәл қазір назар керек екенін бірден көреді.',
+                ),
+                actionLabel: _t(ru: 'КОПИЯ', en: 'COPY', kk: 'КОПИЯ'),
+                onTap: () => _copyToClipboard(
+                  current == null ? '' : '#${current.shortId}',
+                  _t(
+                    ru: 'Номер задачи скопирован.',
+                    en: 'Task number copied.',
+                    kk: 'Тапсырма нөмірі көшірілді.',
+                  ),
+                ),
+              ),
+              DeskHelpSupportAction(
+                title: _t(
+                  ru: 'Скопировать бриф для поддержки',
+                  en: 'Copy support brief',
+                  kk: 'Қолдау мәтінін көшіру',
+                ),
+                description: _t(
+                  ru: 'Шаблон включает роль, email и текущее состояние очереди.',
+                  en: 'The template includes your role, email, and the current queue status.',
+                  kk: 'Шаблонда рөліңіз, email және кезектің ағымдағы күйі бар.',
+                ),
+                actionLabel: _t(ru: 'КОПИЯ', en: 'COPY', kk: 'КОПИЯ'),
+                onTap: () => _copyToClipboard(
+                  _productionSupportBrief(
+                    userEmail: user?.email ?? '',
+                    acceptedCount: accepted.length,
+                    inProductionCount: inProduction.length,
+                    readyCount: ready.length,
+                    currentOrder: current,
+                  ),
+                  _t(
+                    ru: 'Бриф для поддержки скопирован.',
+                    en: 'Support brief copied.',
+                    kk: 'Қолдау мәтіні көшірілді.',
+                  ),
+                ),
+              ),
+            ],
+            footerText: _t(
+              ru: 'Для быстрого ответа укажите, на каком этапе задача остановилась и приложите скрин экрана станции.',
+              en: 'To get help faster, mention at which stage the task stopped and attach a screenshot of the station screen.',
+              kk: 'Жауапты тезірек алу үшін тапсырма қай кезеңде тоқтағанын жазып, бекет экранының скринін тіркеңіз.',
+            ),
+          ),
+          const SizedBox(height: 12),
           AvishuButton(
             text: _t(ru: 'ПОЧЕМУ AVISHU', en: 'WHY AVISHU', kk: 'НЕГЕ AVISHU'),
             expanded: true,
@@ -912,6 +1112,60 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
       }
     }
     return selectedOrder;
+  }
+
+  void _showSnack(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _copyToClipboard(String text, String message) async {
+    if (text.trim().isEmpty) {
+      _showSnack(
+        _t(
+          ru: 'Пока нечего копировать.',
+          en: 'There is nothing to copy yet.',
+          kk: 'Әзірге көшіретін дерек жоқ.',
+        ),
+      );
+      return;
+    }
+
+    await Clipboard.setData(ClipboardData(text: text));
+    if (!mounted) {
+      return;
+    }
+    _showSnack(message);
+  }
+
+  String _productionSupportBrief({
+    required String userEmail,
+    required int acceptedCount,
+    required int inProductionCount,
+    required int readyCount,
+    required OrderModel? currentOrder,
+  }) {
+    final accountEmail = userEmail.trim().isEmpty
+        ? 'not_provided'
+        : userEmail.trim();
+    final currentOrderLabel = currentOrder == null
+        ? 'not_attached'
+        : '#${currentOrder.shortId}';
+
+    return [
+      'AVISHU SUPPORT BRIEF',
+      'ROLE: PRODUCTION',
+      'ACCOUNT: $accountEmail',
+      'TO TAILOR: $acceptedCount',
+      'IN PROGRESS: $inProductionCount',
+      'READY: $readyCount',
+      'CURRENT TASK: $currentOrderLabel',
+      'ISSUE:',
+      '- What is blocked',
+      '- Which stage is affected',
+      '- Screenshot attached: yes / no',
+    ].join('\n');
   }
 
   void _openOrder(OrderModel order) {
