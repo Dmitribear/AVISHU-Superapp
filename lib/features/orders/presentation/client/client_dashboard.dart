@@ -44,25 +44,25 @@ extension CatalogSortOptionX on CatalogSortOption {
       case CatalogSortOption.defaultOrder:
         return tr(
           language,
-          ru: 'Р СџР С• РЎС“Р СР С•Р В»РЎвЂЎР В°Р Р…Р С‘РЎР‹',
+          ru: 'По умолчанию',
           en: 'Default',
         );
       case CatalogSortOption.newFirst:
         return tr(
           language,
-          ru: 'Р РЋР Р…Р В°РЎвЂЎР В°Р В»Р В° Р Р…Р С•Р Р†Р С‘Р Р…Р С”Р С‘',
+          ru: 'Сначала новинки',
           en: 'New First',
         );
       case CatalogSortOption.priceLowToHigh:
         return tr(
           language,
-          ru: 'Р В¦Р ВµР Р…Р В°: Р С—Р С• Р Р†Р С•Р В·РЎР‚Р В°РЎРѓРЎвЂљР В°Р Р…Р С‘РЎР‹',
+          ru: 'Цена: по возрастанию',
           en: 'Price: Low to High',
         );
       case CatalogSortOption.priceHighToLow:
         return tr(
           language,
-          ru: 'Р В¦Р ВµР Р…Р В°: Р С—Р С• РЎС“Р В±РЎвЂ№Р Р†Р В°Р Р…Р С‘РЎР‹',
+          ru: 'Цена: по убыванию',
           en: 'Price: High to Low',
         );
     }
@@ -150,7 +150,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
 
   final Set<String> _favoriteProductIds = <String>{};
   final _cityController = TextEditingController(
-    text: 'Р С’Р В»Р СР В°РЎвЂљРЎвЂ№',
+    text: 'Алматы',
   );
   final _addressController = TextEditingController();
   final _apartmentController = TextEditingController();
@@ -200,33 +200,33 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
   List<AvishuNavItem> get _navItems => [
     AvishuNavItem(
       label: _t(
-        ru: 'Р СџР С’Р СњР вЂўР вЂєР В¬',
+        ru: 'ПАНЕЛЬ',
         en: 'HOME',
-        kk: 'Р СџР С’Р СњР вЂўР вЂєР В¬',
+        kk: 'ПАНЕЛЬ',
       ),
       icon: Icons.grid_view_rounded,
     ),
     AvishuNavItem(
       label: _t(
-        ru: 'Р С™Р С’Р СћР С’Р вЂєР С›Р вЂњ',
+        ru: 'КАТАЛОГ',
         en: 'CATALOG',
-        kk: 'Р С™Р С’Р СћР С’Р вЂєР С›Р вЂњ',
+        kk: 'КАТАЛОГ',
       ),
       icon: Icons.layers_outlined,
     ),
     AvishuNavItem(
       label: _t(
-        ru: 'Р ВР РЋР СћР С›Р В Р ВР Р‡',
+        ru: 'ИСТОРИЯ',
         en: 'ORDERS',
-        kk: 'Р СћР С’Р В Р ВР ТђР В«',
+        kk: 'ТАРИХЫ',
       ),
       icon: Icons.inventory_2_outlined,
     ),
     AvishuNavItem(
       label: _t(
-        ru: 'Р СџР В Р С›Р В¤Р ВР вЂєР В¬',
+        ru: 'ПРОФИЛЬ',
         en: 'PROFILE',
-        kk: 'Р СџР В Р С›Р В¤Р ВР вЂєР В¬',
+        kk: 'ПРОФИЛЬ',
       ),
       icon: Icons.person_outline,
       badge: _hasStatusBadge,
@@ -395,7 +395,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         error: (err, _) => Center(
           child: Text(
             _t(
-              ru: 'Р С›РЎв‚¬Р С‘Р В±Р С”Р В° Р В·Р В°Р С–РЎР‚РЎС“Р В·Р С”Р С‘: $err',
+              ru: 'Ошибка загрузки: $err',
               en: 'Loading error: $err',
             ),
           ),
@@ -409,56 +409,56 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       case ClientView.product:
         if (_selectedProduct == null) {
           return _t(
-            ru: 'Р С™Р вЂєР ВР вЂўР СњР Сћ / Р СћР С›Р вЂ™Р С’Р В ',
+            ru: 'КЛИЕНТ / ТОВАР',
             en: 'CLIENT / PRODUCT',
-            kk: 'Р С™Р вЂєР ВР вЂўР СњР Сћ / Р СћР С’Р Р€Р С’Р В ',
+            kk: 'КЛИЕНТ / ТАУАР',
           );
         }
-        return '${_t(ru: 'Р С™Р вЂєР ВР вЂўР СњР Сћ', en: 'CLIENT', kk: 'Р С™Р вЂєР ВР вЂўР СњР Сћ')} / '
+        return '${_t(ru: 'КЛИЕНТ', en: 'CLIENT', kk: 'КЛИЕНТ')} / '
             '${localizeCatalogSection(_language, _selectedProduct!.category).toUpperCase()}';
       case ClientView.checkout:
         return _t(
-          ru: 'Р С™Р вЂєР ВР вЂўР СњР Сћ / Р С›Р В¤Р С›Р В Р СљР вЂєР вЂўР СњР ВР вЂў',
+          ru: 'КЛИЕНТ / ОФОРМЛЕНИЕ',
           en: 'CLIENT / CHECKOUT',
-          kk: 'Р С™Р вЂєР ВР вЂўР СњР Сћ / Р СћР С’Р СџР РЋР В«Р В Р В«Р РЋ',
+          kk: 'КЛИЕНТ / ТАПСЫРЫС',
         );
       case ClientView.payment:
         return _t(
-          ru: 'Р С™Р вЂєР ВР вЂўР СњР Сћ / Р С›Р СџР вЂєР С’Р СћР С’',
+          ru: 'КЛИЕНТ / ОПЛАТА',
           en: 'CLIENT / PAYMENT',
-          kk: 'Р С™Р вЂєР ВР вЂўР СњР Сћ / Р СћРЈРЃР вЂєР вЂўР Сљ',
+          kk: 'КЛИЕНТ / ТӨЛЕМ',
         );
       case ClientView.tracking:
         return _t(
-          ru: 'Р С™Р вЂєР ВР вЂўР СњР Сћ / Р СћР В Р вЂўР С™Р ВР СњР вЂњ',
+          ru: 'КЛИЕНТ / ТРЕКИНГ',
           en: 'CLIENT / TRACKING',
-          kk: 'Р С™Р вЂєР ВР вЂўР СњР Сћ / Р вЂР С’РўС™Р В«Р вЂєР С’Р Р€',
+          kk: 'КЛИЕНТ / БАҚЫЛАУ',
         );
       case ClientView.root:
         switch (_tab) {
           case ClientTab.dashboard:
             return _t(
-              ru: 'Р С™Р вЂєР ВР вЂўР СњР Сћ / Р СџР С’Р СњР вЂўР вЂєР В¬',
+              ru: 'КЛИЕНТ / ПАНЕЛЬ',
               en: 'CLIENT / HOME',
-              kk: 'Р С™Р вЂєР ВР вЂўР СњР Сћ / Р СџР С’Р СњР вЂўР вЂєР В¬',
+              kk: 'КЛИЕНТ / ПАНЕЛЬ',
             );
           case ClientTab.collections:
             return _t(
-              ru: 'Р С™Р вЂєР ВР вЂўР СњР Сћ / Р С™Р С’Р СћР С’Р вЂєР С›Р вЂњ',
+              ru: 'КЛИЕНТ / КАТАЛОГ',
               en: 'CLIENT / CATALOG',
-              kk: 'Р С™Р вЂєР ВР вЂўР СњР Сћ / Р С™Р С’Р СћР С’Р вЂєР С›Р вЂњ',
+              kk: 'КЛИЕНТ / КАТАЛОГ',
             );
           case ClientTab.archive:
             return _t(
-              ru: 'Р С™Р вЂєР ВР вЂўР СњР Сћ / Р ВР РЋР СћР С›Р В Р ВР Р‡',
+              ru: 'КЛИЕНТ / ИСТОРИЯ',
               en: 'CLIENT / ORDERS',
-              kk: 'Р С™Р вЂєР ВР вЂўР СњР Сћ / Р СћР С’Р В Р ВР ТђР В«',
+              kk: 'КЛИЕНТ / ТАРИХЫ',
             );
           case ClientTab.profile:
             return _t(
-              ru: 'Р С™Р вЂєР ВР вЂўР СњР Сћ / Р СџР В Р С›Р В¤Р ВР вЂєР В¬',
+              ru: 'КЛИЕНТ / ПРОФИЛЬ',
               en: 'CLIENT / PROFILE',
-              kk: 'Р С™Р вЂєР ВР вЂўР СњР Сћ / Р СџР В Р С›Р В¤Р ВР вЂєР В¬',
+              kk: 'КЛИЕНТ / ПРОФИЛЬ',
             );
         }
     }
@@ -512,19 +512,19 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       children: [
         _heroCard(
           title: _t(
-            ru: 'Р С™Р С’Р СџР РЋР Р€Р вЂєР С’ Р РЋР вЂўР вЂ”Р С›Р СњР С’',
+            ru: 'КАПСУЛА СЕЗОНА',
             en: 'SEASON CAPSULE',
-            kk: 'Р СљР С’Р Р€Р РЋР В«Р СљР вЂќР В«РўС™ Р С™Р С’Р СџР РЋР Р€Р вЂєР С’',
+            kk: 'МАУСЫМДЫҚ КАПСУЛА',
           ),
           subtitle: _t(
-            ru: 'Р С™Р В°РЎвЂљР В°Р В»Р С•Р С– РЎРѓР С•Р В±РЎР‚Р В°Р Р… РЎРѓ РЎР‚Р В°Р В·Р Т‘Р ВµР В»Р В°Р СР С‘, РЎвЂћР С‘Р В»РЎРЉРЎвЂљРЎР‚Р В°Р СР С‘, РЎРѓР С•РЎР‚РЎвЂљР С‘РЎР‚Р С•Р Р†Р С”Р С•Р в„– Р С‘ Р С—Р С•Р В»Р Р…Р С•РЎвЂ Р ВµР Р…Р Р…Р С•Р в„– Р С”Р В°РЎР‚РЎвЂљР С•РЎвЂЎР С”Р С•Р в„– РЎвЂљР С•Р Р†Р В°РЎР‚Р В° Р Р† РЎвЂћР С‘РЎР‚Р СР ВµР Р…Р Р…Р С•Р С AVISHU-РЎР‚Р С‘РЎвЂљР СР Вµ.',
+            ru: 'Каталог собран с разделами, фильтрами, сортировкой и полноценной карточкой товара в фирменном AVISHU-ритме.',
             en: 'The catalog now combines sections, filters, sorting, and a full product card in the AVISHU rhythm.',
-            kk: 'Р С™Р В°РЎвЂљР В°Р В»Р С•Р С– Р В±РЈВ©Р В»РЎвЂ“Р СР Т‘Р ВµРЎР‚Р СР ВµР Р…, РЎРѓРўР‡Р В·Р С–РЎвЂ“Р В»Р ВµРЎР‚Р СР ВµР Р…, РЎРѓРўВ±РЎР‚РЎвЂ№Р С—РЎвЂљР В°РЎС“Р СР ВµР Р… Р В¶РЈв„ўР Р…Р Вµ РЎвЂћР С‘РЎР‚Р СР В°Р В»РЎвЂ№РўвЂє AVISHU-РЎвЂ№РЎР‚РўвЂњР В°РўвЂњРЎвЂ№Р Р…Р Т‘Р В°РўвЂњРЎвЂ№ РЎвЂљР С•Р В»РЎвЂ№РўвЂєРўвЂєР В°Р Р…Р Т‘РЎвЂ№ РЎвЂљР В°РЎС“Р В°РЎР‚ Р С”Р В°РЎР‚РЎвЂљР С•РЎвЂЎР С”Р В°РЎРѓРЎвЂ№Р СР ВµР Р… Р В¶Р С‘Р Р…Р В°РўвЂєРЎвЂљР В°Р В»РўвЂњР В°Р Р….',
+            kk: 'Каталог бөлімдермен, сүзгілермен, сұрыптаумен және фирмалық AVISHU-ырғағындағы толыққанды тауар карточкасымен жинақталған.',
           ),
           accent: _t(
-            ru: 'Р СњР С›Р вЂ™Р В«Р Тђ Р СљР С›Р вЂќР вЂўР вЂєР вЂўР в„ў: ${_catalogProducts.where((item) => item.isNew).length}',
+            ru: 'НОВЫХ МОДЕЛЕЙ: ${_catalogProducts.where((item) => item.isNew).length}',
             en: 'NEW MODELS: ${_catalogProducts.where((item) => item.isNew).length}',
-            kk: 'Р вЂ“Р С’РўСћР С’ Р СљР С›Р вЂќР вЂўР вЂєР В¬Р вЂќР вЂўР В : ${_catalogProducts.where((item) => item.isNew).length}',
+            kk: 'ЖАҢА МОДЕЛЬДЕР: ${_catalogProducts.where((item) => item.isNew).length}',
           ),
         ),
         const SizedBox(height: 12),
@@ -533,9 +533,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             Expanded(
               child: _metricCard(
                 label: _t(
-                  ru: 'Р СџРЎР‚Р ВµР Т‘Р В·Р В°Р С”Р В°Р В·РЎвЂ№',
+                  ru: 'Предзаказы',
                   en: 'Preorders',
-                  kk: 'Р С’Р В»Р Т‘РЎвЂ№Р Р… Р В°Р В»Р В° РЎвЂљР В°Р С—РЎРѓРЎвЂ№РЎР‚РЎвЂ№РЎРѓРЎвЂљР В°РЎР‚',
+                  kk: 'Алдын ала тапсырыстар',
                 ),
                 value: preorderCount.toString(),
               ),
@@ -544,9 +544,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             Expanded(
               child: _metricCard(
                 label: _t(
-                  ru: 'Р вЂєРЎР‹Р В±Р С‘Р СРЎвЂ№Р Вµ',
+                  ru: 'Любимые',
                   en: 'Favorites',
-                  kk: 'Р СћР В°РўР€Р Т‘Р В°РЎС“Р В»РЎвЂ№Р В»Р В°РЎР‚',
+                  kk: 'Таңдаулылар',
                 ),
                 value: _favoriteProductIds.length.toString(),
               ),
@@ -561,27 +561,27 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               children: [
                 Text(
                   _t(
-                    ru: 'Р С’Р С™Р СћР ВР вЂ™Р СњР В«Р в„ў Р вЂ”Р С’Р С™Р С’Р вЂ”',
+                    ru: 'АКТИВНЫЙ ЗАКАЗ',
                     en: 'ACTIVE ORDER',
-                    kk: 'Р вЂР вЂўР вЂєР РЋР вЂўР СњР вЂќР вЂ  Р СћР С’Р СџР РЋР В«Р В Р В«Р РЋ',
+                    kk: 'БЕЛСЕНДІ ТАПСЫРЫС',
                   ),
                   style: AppTypography.eyebrow,
                 ),
                 const SizedBox(height: 12),
                 Text(
                   _t(
-                    ru: 'Р вЂ”Р В°Р С”Р В°Р В·Р С•Р Р† Р С—Р С•Р С”Р В° Р Р…Р ВµРЎвЂљ',
+                    ru: 'Заказов пока нет',
                     en: 'No orders yet',
-                    kk: 'РЈВР В·РЎвЂ“РЎР‚Р С–Р Вµ РЎвЂљР В°Р С—РЎРѓРЎвЂ№РЎР‚РЎвЂ№РЎРѓРЎвЂљР В°РЎР‚ Р В¶Р С•РўвЂє',
+                    kk: 'Әзірге тапсырыстар жоқ',
                   ),
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 10),
                 Text(
                   _t(
-                    ru: 'Р С›РЎвЂљР С”РЎР‚Р С•Р в„–РЎвЂљР Вµ Р С”Р В°РЎвЂљР В°Р В»Р С•Р С–, Р Р…Р В°РЎРѓРЎвЂљРЎР‚Р С•Р в„–РЎвЂљР Вµ Р Р†РЎвЂ№Р Т‘Р В°РЎвЂЎРЎС“ Р С”Р В°Р С” Р Р…Р В° РЎРѓР В°Р в„–РЎвЂљР Вµ Р С‘ Р С•РЎвЂћР С•РЎР‚Р СР С‘РЎвЂљР Вµ Р С—Р ВµРЎР‚Р Р†РЎвЂ№Р в„– Р В·Р В°Р С”Р В°Р В· Р Р† Р С•Р Т‘Р Р…Р С•Р С Р С—Р С•РЎвЂљР С•Р С”Р Вµ.',
+                    ru: 'Откройте каталог, настройте выдачу как на сайте и оформите первый заказ в одном потоке.',
                     en: 'Open the catalog, adjust the feed like on the website, and place the first order in one flow.',
-                    kk: 'Р С™Р В°РЎвЂљР В°Р В»Р С•Р С–РЎвЂљРЎвЂ№ Р В°РЎв‚¬РЎвЂ№РўР€РЎвЂ№Р В·, РЎРѓР В°Р в„–РЎвЂљРЎвЂљР В°РўвЂњРЎвЂ№ РЎРѓР С‘РЎРЏРўвЂєРЎвЂљРЎвЂ№ Р С”РЈВ©РЎР‚РЎРѓР ВµРЎвЂљРЎвЂ“Р В»РЎвЂ“Р СР Т‘РЎвЂ“ РЎР‚Р ВµРЎвЂљРЎвЂљР ВµРўР€РЎвЂ“Р В· Р В¶РЈв„ўР Р…Р Вµ Р В±РЎвЂ“РЎР‚ Р В»Р ВµР С”Р С—Р ВµР Р… Р В°Р В»РўвЂњР В°РЎв‚¬РўвЂєРЎвЂ№ РЎвЂљР В°Р С—РЎРѓРЎвЂ№РЎР‚РЎвЂ№РЎРѓРЎвЂљРЎвЂ№ РЎР‚Р ВµРЎРѓРЎвЂ“Р СР Т‘Р ВµРўР€РЎвЂ“Р В·.',
+                    kk: 'Каталогты ашыңыз, сайттағы сияқты көрсетілімді реттеңіз және бір лекпен алғашқы тапсырысты ресімдеңіз.',
                   ),
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
@@ -592,9 +592,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
           _orderCard(
             order: activeOrder,
             cta: _t(
-              ru: 'Р С›Р СћР РЋР вЂєР вЂўР вЂќР ВР СћР В¬',
+              ru: 'ОТСЛЕДИТЬ',
               en: 'TRACK',
-              kk: 'Р вЂР С’РўС™Р В«Р вЂєР С’Р Р€',
+              kk: 'БАҚЫЛАУ',
             ),
             onTap: () {
               setState(() {
@@ -606,9 +606,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         const SizedBox(height: 12),
         _sectionLabel(
           _t(
-            ru: 'Р вЂР В«Р РЋР СћР В Р В«Р в„ў Р вЂ™Р В«Р вЂР С›Р В ',
+            ru: 'БЫСТРЫЙ ВЫБОР',
             en: 'QUICK PICK',
-            kk: 'Р вЂ“Р вЂўР вЂќР вЂўР вЂє Р СћР С’РўСћР вЂќР С’Р Р€',
+            kk: 'ЖЕДЕЛ ТАҢДАУ',
           ),
         ),
         const SizedBox(height: 12),
@@ -627,24 +627,24 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               Expanded(
                 child: Text(
                   _t(
-                    ru: 'Р СџР ВµРЎР‚Р ВµР в„–РЎвЂљР С‘ Р Р† Р С”Р В°РЎвЂљР В°Р В»Р С•Р С–',
+                    ru: 'Перейти в каталог',
                     en: 'Open Catalog',
-                    kk: 'Р С™Р В°РЎвЂљР В°Р В»Р С•Р С–РўвЂєР В° РЈВ©РЎвЂљРЎС“',
+                    kk: 'Каталогқа өту',
                   ),
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
               AvishuButton(
                 text: _t(
-                  ru: 'Р С›Р СћР С™Р В Р В«Р СћР В¬',
+                  ru: 'ОТКРЫТЬ',
                   en: 'OPEN',
-                  kk: 'Р С’Р РЃР Р€',
+                  kk: 'АШУ',
                 ),
                 onPressed: () {
                   setState(() {
                     _tab = ClientTab.collections;
                     _view = ClientView.root;
-                    _selectSection('Р СњР С•Р Р†Р С‘Р Р…Р С”Р С‘');
+                    _selectSection('Новинки');
                   });
                 },
                 padding: const EdgeInsets.symmetric(
@@ -663,48 +663,48 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     final products = _visibleProducts;
     final sectionLabel = _showFavoritesOnly
         ? _t(
-            ru: 'Р ВР вЂ”Р вЂР В Р С’Р СњР СњР С›Р вЂў',
+            ru: 'ИЗБРАННОЕ',
             en: 'FAVORITES',
-            kk: 'Р СћР С’РўСћР вЂќР С’Р Р€Р вЂєР В«Р вЂєР С’Р В ',
+            kk: 'ТАҢДАУЛЫЛАР',
           )
         : localizeCatalogSection(_language, _activeSection).toUpperCase();
     final filtersSummary = _activeCatalogFiltersCount == 0
         ? _t(
-            ru: '${products.length} Р СР С•Р Т‘Р ВµР В»Р ВµР в„–',
+            ru: '${products.length} моделей',
             en: '${products.length} items',
-            kk: '${products.length} Р СР С•Р Т‘Р ВµР В»РЎРЉ',
+            kk: '${products.length} модель',
           )
         : _t(
-            ru: '$_activeCatalogFiltersCount РЎвЂћР С‘Р В»РЎРЉРЎвЂљРЎР‚Р С•Р Р† РІР‚Сћ ${products.length} Р СР С•Р Т‘Р ВµР В»Р ВµР в„–',
-            en: '$_activeCatalogFiltersCount filters РІР‚Сћ ${products.length} items',
-            kk: '$_activeCatalogFiltersCount РЎРѓРўР‡Р В·Р С–РЎвЂ“ РІР‚Сћ ${products.length} Р СР С•Р Т‘Р ВµР В»РЎРЉ',
+            ru: '$_activeCatalogFiltersCount фильтров • ${products.length} моделей',
+            en: '$_activeCatalogFiltersCount filters вЂў ${products.length} items',
+            kk: '$_activeCatalogFiltersCount сүзгі • ${products.length} модель',
           );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '${_t(ru: 'Р вЂњР вЂєР С’Р вЂ™Р СњР С’Р Р‡', en: 'HOME')} / $sectionLabel',
+          '${_t(ru: 'ГЛАВНАЯ', en: 'HOME')} / $sectionLabel',
           style: AppTypography.code,
         ),
         const SizedBox(height: 12),
         _catalogAccordion(
           eyebrow: _t(
-            ru: 'Р В Р С’Р вЂ”Р вЂќР вЂўР вЂєР В« Р С™Р С’Р СћР С’Р вЂєР С›Р вЂњР С’',
+            ru: 'РАЗДЕЛЫ КАТАЛОГА',
             en: 'CATALOG SECTIONS',
-            kk: 'Р С™Р С’Р СћР С’Р вЂєР С›Р вЂњ Р вЂРЈРЃР вЂєР вЂ Р СљР вЂќР вЂўР В Р вЂ ',
+            kk: 'КАТАЛОГ БӨЛІМДЕРІ',
           ),
           title: sectionLabel,
           summary: _showFavoritesOnly
               ? _t(
-                  ru: 'Р вЂ™РЎвЂ№Р В±РЎР‚Р В°Р Р…РЎвЂ№ РЎРѓР С•РЎвЂ¦РЎР‚Р В°Р Р…Р ВµР Р…Р Р…РЎвЂ№Р Вµ Р СР С•Р Т‘Р ВµР В»Р С‘ Р С—РЎР‚Р С•РЎвЂћР С‘Р В»РЎРЏ',
+                  ru: 'Выбраны сохраненные модели профиля',
                   en: 'Saved profile favorites only',
-                  kk: 'Р СџРЎР‚Р С•РЎвЂћР С‘Р В»РЎРЉР Т‘Р ВµР С–РЎвЂ“ РЎРѓР В°РўвЂєРЎвЂљР В°Р В»РўвЂњР В°Р Р… Р СР С•Р Т‘Р ВµР В»РЎРЉР Т‘Р ВµРЎР‚ РЎвЂљР В°РўР€Р Т‘Р В°Р В»Р Т‘РЎвЂ№',
+                  kk: 'Профильдегі сақталған модельдер таңдалды',
                 )
               : _t(
-                  ru: 'Р СћР ВµР С”РЎС“РЎвЂ°Р С‘Р в„– РЎР‚Р В°Р В·Р Т‘Р ВµР В» Р С”Р В°РЎвЂљР В°Р В»Р С•Р С–Р В°',
+                  ru: 'Текущий раздел каталога',
                   en: 'Current catalog section',
-                  kk: 'Р С™Р В°РЎвЂљР В°Р В»Р С•Р С–РЎвЂљРЎвЂ№РўР€ Р В°РўвЂњРЎвЂ№Р СР Т‘Р В°РўвЂњРЎвЂ№ Р В±РЈВ©Р В»РЎвЂ“Р СРЎвЂ“',
+                  kk: 'Каталогтың ағымдағы бөлімі',
                 ),
           expanded: _catalogSectionsExpanded,
           onToggle: () {
@@ -717,9 +717,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             children: [
               _catalogSectionTile(
                 label: _t(
-                  ru: 'Р ВР вЂ”Р вЂР В Р С’Р СњР СњР С›Р вЂў',
+                  ru: 'ИЗБРАННОЕ',
                   en: 'FAVORITES',
-                  kk: 'Р СћР С’РўСћР вЂќР С’Р Р€Р вЂєР В«Р вЂєР С’Р В ',
+                  kk: 'ТАҢДАУЛЫЛАР',
                 ),
                 active: _showFavoritesOnly,
                 onTap: () {
@@ -749,9 +749,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         const SizedBox(height: 12),
         _catalogAccordion(
           eyebrow: _t(
-            ru: 'Р В¤Р ВР вЂєР В¬Р СћР В Р В« Р В Р РЋР С›Р В Р СћР ВР В Р С›Р вЂ™Р С™Р С’',
+            ru: 'ФИЛЬТРЫ И СОРТИРОВКА',
             en: 'FILTERS & SORTING',
-            kk: 'Р РЋРўВ®Р вЂ”Р вЂњР вЂ Р вЂєР вЂўР В  Р вЂ“РЈВР СњР вЂў Р РЋРўВ°Р В Р В«Р СџР СћР С’Р Р€',
+            kk: 'СҮЗГІЛЕР ЖӘНЕ СҰРЫПТАУ',
           ),
           title: sectionLabel,
           summary: filtersSummary,
@@ -772,9 +772,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                 },
                 child: Text(
                   _t(
-                    ru: 'Р С›РЎвЂЎР С‘РЎРѓРЎвЂљР С‘РЎвЂљРЎРЉ Р Р†РЎвЂ№Р В±Р С•РЎР‚',
+                    ru: 'Очистить выбор',
                     en: 'Clear filters',
-                    kk: 'Р СћР В°РўР€Р Т‘Р В°РЎС“Р Т‘РЎвЂ№ РЎвЂљР В°Р В·Р В°РЎР‚РЎвЂљРЎС“',
+                    kk: 'Таңдауды тазарту',
                   ),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     decoration: TextDecoration.underline,
@@ -784,9 +784,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               const SizedBox(height: 16),
               _filterGroup(
                 title: _t(
-                  ru: 'Р С™Р В°РЎвЂљР ВµР С–Р С•РЎР‚Р С‘РЎРЏ',
+                  ru: 'Категория',
                   en: 'Category',
-                  kk: 'Р РЋР В°Р Р…Р В°РЎвЂљ',
+                  kk: 'Санат',
                 ),
                 options: _categoryOptions,
                 selectedValue: _categoryFilter,
@@ -796,9 +796,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               ),
               _filterGroup(
                 title: _t(
-                  ru: 'Р В Р В°Р В·Р СР ВµРЎР‚',
+                  ru: 'Размер',
                   en: 'Size',
-                  kk: 'РЈРЃР В»РЎв‚¬Р ВµР С',
+                  kk: 'Өлшем',
                 ),
                 options: _sizeOptions,
                 selectedValue: _sizeFilter,
@@ -806,9 +806,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               ),
               _filterGroup(
                 title: _t(
-                  ru: 'Р В¦Р Р†Р ВµРЎвЂљ',
+                  ru: 'Цвет',
                   en: 'Color',
-                  kk: 'Р СћРўР‡РЎРѓ',
+                  kk: 'Түс',
                 ),
                 options: _colorOptions,
                 selectedValue: _colorFilter,
@@ -816,9 +816,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               ),
               Text(
                 _t(
-                  ru: 'Р В¦Р вЂўР СњР С’',
+                  ru: 'ЦЕНА',
                   en: 'PRICE',
-                  kk: 'Р вЂР С’РўвЂ™Р С’',
+                  kk: 'БАҒА',
                 ),
                 style: AppTypography.eyebrow,
               ),
@@ -861,9 +861,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               children: [
                 Text(
                   _t(
-                    ru: 'Р СњР вЂўР Сћ Р РЋР С›Р вЂ™Р СџР С’Р вЂќР вЂўР СњР ВР в„ў',
+                    ru: 'НЕТ СОВПАДЕНИЙ',
                     en: 'NO MATCHES',
-                    kk: 'Р РЋРЈВР в„ўР С™Р вЂўР РЋР СћР вЂ Р С™ Р вЂ“Р С›РўС™',
+                    kk: 'СӘЙКЕСТІК ЖОҚ',
                   ),
                   style: AppTypography.eyebrow,
                 ),
@@ -871,14 +871,14 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                 Text(
                   _showFavoritesOnly
                       ? _t(
-                          ru: 'Р вЂ™ Р С‘Р В·Р В±РЎР‚Р В°Р Р…Р Р…Р С•Р С Р С—Р С•Р С”Р В° Р Р…Р ВµРЎвЂљ Р СР С•Р Т‘Р ВµР В»Р ВµР в„–. Р С›РЎвЂљР С”РЎР‚Р С•Р в„–РЎвЂљР Вµ Р С”Р В°РЎР‚РЎвЂљР С•РЎвЂЎР С”РЎС“ РЎвЂљР С•Р Р†Р В°РЎР‚Р В° Р С‘ РЎРѓР С•РЎвЂ¦РЎР‚Р В°Р Р…Р С‘РЎвЂљР Вµ Р ВµР Вµ РЎРѓР ВµРЎР‚Р Т‘РЎвЂ Р ВµР С.',
+                          ru: 'В избранном пока нет моделей. Откройте карточку товара и сохраните ее сердцем.',
                           en: 'No favorite models yet. Open a product card and save it with the heart icon.',
-                          kk: 'Р СћР В°РўР€Р Т‘Р В°РЎС“Р В»РЎвЂ№Р Т‘Р В° РЈв„ўР В·РЎвЂ“РЎР‚Р С–Р Вµ Р СР С•Р Т‘Р ВµР В»РЎРЉР Т‘Р ВµРЎР‚ Р В¶Р С•РўвЂє. Р СћР В°РЎС“Р В°РЎР‚ Р С”Р В°РЎР‚РЎвЂљР С•РЎвЂЎР С”Р В°РЎРѓРЎвЂ№Р Р… Р В°РЎв‚¬РЎвЂ№Р С—, Р С•Р Р…РЎвЂ№ Р В¶РўР‡РЎР‚Р ВµР С”РЎв‚¬Р ВµР СР ВµР Р… РЎРѓР В°РўвЂєРЎвЂљР В°РўР€РЎвЂ№Р В·.',
+                          kk: 'Таңдаулыда әзірге модельдер жоқ. Тауар карточкасын ашып, оны жүрекшемен сақтаңыз.',
                         )
                       : _t(
-                          ru: 'Р СџР С•Р С—РЎР‚Р С•Р В±РЎС“Р в„–РЎвЂљР Вµ РЎРѓР Р…РЎРЏРЎвЂљРЎРЉ Р С•Р Т‘Р С‘Р Р… Р С‘Р В· РЎвЂћР С‘Р В»РЎРЉРЎвЂљРЎР‚Р С•Р Р† Р С‘Р В»Р С‘ Р Р†РЎвЂ№Р В±РЎР‚Р В°РЎвЂљРЎРЉ Р Т‘РЎР‚РЎС“Р С–Р С•Р в„– РЎР‚Р В°Р В·Р Т‘Р ВµР В» Р С”Р В°РЎвЂљР В°Р В»Р С•Р С–Р В°.',
+                          ru: 'Попробуйте снять один из фильтров или выбрать другой раздел каталога.',
                           en: 'Try clearing a filter or switching to another catalog section.',
-                          kk: 'Р РЋРўР‡Р В·Р С–РЎвЂ“Р В»Р ВµРЎР‚Р Т‘РЎвЂ“РўР€ Р В±РЎвЂ“РЎР‚РЎвЂ“Р Р… Р В°Р В»РЎвЂ№Р С— РЎвЂљР В°РЎРѓРЎвЂљР В°Р С— Р С”РЈВ©РЎР‚РЎвЂ“РўР€РЎвЂ“Р В· Р Р…Р ВµР СР ВµРЎРѓР Вµ Р С”Р В°РЎвЂљР В°Р В»Р С•Р С–РЎвЂљРЎвЂ№РўР€ Р В±Р В°РЎРѓРўвЂєР В° Р В±РЈВ©Р В»РЎвЂ“Р СРЎвЂ“Р Р… РЎвЂљР В°РўР€Р Т‘Р В°РўР€РЎвЂ№Р В·.',
+                          kk: 'Сүзгілердің бірін алып тастап көріңіз немесе каталогтың басқа бөлімін таңдаңыз.',
                         ),
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
@@ -906,7 +906,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Р вЂњР вЂєР С’Р вЂ™Р СњР С’Р Р‡ / ${_activeSection.toUpperCase()}',
+          'ГЛАВНАЯ / ${_activeSection.toUpperCase()}',
           style: AppTypography.code,
         ),
         const SizedBox(height: 12),
@@ -915,7 +915,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Р В Р С’Р вЂ”Р вЂќР вЂўР вЂєР В« Р С™Р С’Р СћР С’Р вЂєР С›Р вЂњР С’',
+                'РАЗДЕЛЫ КАТАЛОГА',
                 style: AppTypography.eyebrow,
               ),
               const SizedBox(height: 12),
@@ -949,7 +949,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Р В¤Р С‘Р В»РЎРЉРЎвЂљРЎР‚Р В°РЎвЂ Р С‘РЎРЏ Р С‘ РЎРѓР С•РЎР‚РЎвЂљР С‘РЎР‚Р С•Р Р†Р С”Р В° РЎРѓР С•Р В±РЎР‚Р В°Р Р…РЎвЂ№ Р С—Р С• Р В»Р С•Р С–Р С‘Р С”Р Вµ РЎРѓР В°Р в„–РЎвЂљР В°, Р Р…Р С• Р Р† Р В±Р С•Р В»Р ВµР Вµ Р В¶Р ВµРЎРѓРЎвЂљР С”Р С•Р С Р С‘ РЎвЂЎР С‘РЎРѓРЎвЂљР С•Р С Р СР С•Р В±Р С‘Р В»РЎРЉР Р…Р С•Р С Р С‘Р Р…РЎвЂљР ВµРЎР‚РЎвЂћР ВµР в„–РЎРѓР Вµ AVISHU.',
+                          'Фильтрация и сортировка собраны по логике сайта, но в более жестком и чистом мобильном интерфейсе AVISHU.',
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                       ],
@@ -957,7 +957,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                   ),
                   const SizedBox(width: 12),
                   Text(
-                    '${products.length} Р СР С•Р Т‘Р ВµР В»Р ВµР в„–',
+                    '${products.length} моделей',
                     style: AppTypography.code,
                   ),
                 ],
@@ -970,7 +970,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                   setState(_resetCatalogFilters);
                 },
                 child: Text(
-                  'Р С›РЎвЂЎР С‘РЎРѓРЎвЂљР С‘РЎвЂљРЎРЉ Р Р†РЎвЂ№Р В±Р С•РЎР‚',
+                  'Очистить выбор',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     decoration: TextDecoration.underline,
                   ),
@@ -978,24 +978,24 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               ),
               const SizedBox(height: 16),
               _filterGroup(
-                title: 'Р С™Р В°РЎвЂљР ВµР С–Р С•РЎР‚Р С‘РЎРЏ',
+                title: 'Категория',
                 options: _categoryOptions,
                 selectedValue: _categoryFilter,
                 onChanged: (value) => setState(() => _categoryFilter = value),
               ),
               _filterGroup(
-                title: 'Р В Р В°Р В·Р СР ВµРЎР‚',
+                title: 'Размер',
                 options: _sizeOptions,
                 selectedValue: _sizeFilter,
                 onChanged: (value) => setState(() => _sizeFilter = value),
               ),
               _filterGroup(
-                title: 'Р В¦Р Р†Р ВµРЎвЂљ',
+                title: 'Цвет',
                 options: _colorOptions,
                 selectedValue: _colorFilter,
                 onChanged: (value) => setState(() => _colorFilter = value),
               ),
-              Text('Р В¦Р вЂўР СњР С’', style: AppTypography.eyebrow),
+              Text('ЦЕНА', style: AppTypography.eyebrow),
               const SizedBox(height: 10),
               SliderTheme(
                 data: SliderTheme.of(context).copyWith(
@@ -1034,12 +1034,12 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Р СњР вЂўР Сћ Р РЋР С›Р вЂ™Р СџР С’Р вЂќР вЂўР СњР ВР в„ў',
+                  'НЕТ СОВПАДЕНИЙ',
                   style: AppTypography.eyebrow,
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  'Р СџР С•Р С—РЎР‚Р С•Р В±РЎС“Р в„–РЎвЂљР Вµ РЎРѓР Р…РЎРЏРЎвЂљРЎРЉ Р С•Р Т‘Р С‘Р Р… Р С‘Р В· РЎвЂћР С‘Р В»РЎРЉРЎвЂљРЎР‚Р С•Р Р† Р С‘Р В»Р С‘ Р Р†РЎвЂ№Р В±РЎР‚Р В°РЎвЂљРЎРЉ Р Т‘РЎР‚РЎС“Р С–Р С•Р в„– РЎР‚Р В°Р В·Р Т‘Р ВµР В» Р С”Р В°РЎвЂљР В°Р В»Р С•Р С–Р В°.',
+                  'Попробуйте снять один из фильтров или выбрать другой раздел каталога.',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ],
@@ -1064,9 +1064,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       children: [
         _sectionLabel(
           _t(
-            ru: 'Р ВР РЋР СћР С›Р В Р ВР Р‡ Р вЂ”Р С’Р С™Р С’Р вЂ”Р С›Р вЂ™',
+            ru: 'ИСТОРИЯ ЗАКАЗОВ',
             en: 'ORDER HISTORY',
-            kk: 'Р СћР С’Р СџР РЋР В«Р В Р В«Р РЋР СћР С’Р В  Р СљРўВ°Р В Р С’РўвЂ™Р С’Р СћР В«',
+            kk: 'ТАПСЫРЫСТАР МҰРАҒАТЫ',
           ),
         ),
         const SizedBox(height: 12),
@@ -1074,9 +1074,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
           _surfaceCard(
             child: Text(
               _t(
-                ru: 'Р ВРЎРѓРЎвЂљР С•РЎР‚Р С‘РЎРЏ Р С—Р С•РЎРЏР Р†Р С‘РЎвЂљРЎРѓРЎРЏ Р С—Р С•РЎРѓР В»Р Вµ Р С—Р ВµРЎР‚Р Р†Р С•Р С–Р С• Р С•РЎвЂћР С•РЎР‚Р СР В»Р ВµР Р…Р Р…Р С•Р С–Р С• Р В·Р В°Р С”Р В°Р В·Р В°.',
+                ru: 'История появится после первого оформленного заказа.',
                 en: 'History will appear after the first completed checkout.',
-                kk: 'Р СћР В°РЎР‚Р С‘РЎвЂ¦ Р В°Р В»РўвЂњР В°РЎв‚¬РўвЂєРЎвЂ№ РЎвЂљР В°Р С—РЎРѓРЎвЂ№РЎР‚РЎвЂ№РЎРѓРЎвЂљР В°Р Р… Р С”Р ВµР в„–РЎвЂ“Р Р… Р С—Р В°Р в„–Р Т‘Р В° Р В±Р С•Р В»Р В°Р Т‘РЎвЂ№.',
+                kk: 'Тарих алғашқы тапсырыстан кейін пайда болады.',
               ),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
@@ -1087,9 +1087,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             child: _orderCard(
               order: order,
               cta: _t(
-                ru: 'Р вЂќР вЂўР СћР С’Р вЂєР В',
+                ru: 'ДЕТАЛИ',
                 en: 'DETAILS',
-                kk: 'Р СљРЈВР вЂєР вЂ Р СљР вЂўР СћР СћР вЂўР В ',
+                kk: 'МӘЛІМЕТТЕР',
               ),
               onTap: () {
                 setState(() {
@@ -1123,9 +1123,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             children: [
               Text(
                 _t(
-                  ru: 'Р С™Р вЂєР ВР вЂўР СњР СћР РЋР С™Р ВР в„ў Р СџР В Р С›Р В¤Р ВР вЂєР В¬',
+                  ru: 'КЛИЕНТСКИЙ ПРОФИЛЬ',
                   en: 'CLIENT PROFILE',
-                  kk: 'Р С™Р вЂєР ВР вЂўР СњР Сћ Р СџР В Р С›Р В¤Р ВР вЂєР вЂ ',
+                  kk: 'КЛИЕНТ ПРОФИЛІ',
                 ),
                 style: AppTypography.eyebrow,
               ),
@@ -1156,7 +1156,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                   children: [
                     Expanded(
                       child: Text(
-                        '${_t(ru: 'Р В Р С›Р вЂєР В¬', en: 'ROLE', kk: 'Р В РЈРЃР вЂєР вЂ ')}: ${localizedRoleLabel(currentRole, _language)}',
+                        '${_t(ru: 'РОЛЬ', en: 'ROLE', kk: 'РӨЛІ')}: ${localizedRoleLabel(currentRole, _language)}',
                         style: AppTypography.button.copyWith(
                           color: AppColors.white,
                           letterSpacing: 3,
@@ -1165,9 +1165,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                     ),
                     Text(
                       _t(
-                        ru: 'Р СћР вЂўР С™Р Р€Р В©Р С’Р Р‡',
+                        ru: 'ТЕКУЩАЯ',
                         en: 'CURRENT',
-                        kk: 'Р С’РўвЂ™Р В«Р СљР вЂќР С’РўвЂ™Р В«',
+                        kk: 'АҒЫМДАҒЫ',
                       ),
                       style: AppTypography.eyebrow.copyWith(
                         color: AppColors.white,
@@ -1186,9 +1186,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             children: [
               Text(
                 _t(
-                  ru: 'Р СџР В Р С›Р вЂњР В Р С’Р СљР СљР С’ Р вЂєР С›Р Р‡Р вЂєР В¬Р СњР С›Р РЋР СћР В',
+                  ru: 'ПРОГРАММА ЛОЯЛЬНОСТИ',
                   en: 'LOYALTY PROGRAM',
-                  kk: 'Р вЂєР С›Р Р‡Р вЂєР В¬Р вЂќР вЂ Р вЂєР вЂ Р С™ Р вЂР С’РўвЂ™Р вЂќР С’Р В Р вЂєР С’Р СљР С’Р РЋР В«',
+                  kk: 'ЛОЯЛЬДІЛІК БАҒДАРЛАМАСЫ',
                 ),
                 style: AppTypography.eyebrow,
               ),
@@ -1217,9 +1217,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                   Expanded(
                     child: _metricCard(
                       label: _t(
-                        ru: 'Р СџР С›Р СћР В Р С’Р В§Р вЂўР СњР С›',
+                        ru: 'ПОТРАЧЕНО',
                         en: 'SPENT',
-                        kk: 'Р вЂ“РўВ°Р СљР РЋР С’Р вЂєР вЂќР В«',
+                        kk: 'ЖҰМСАЛДЫ',
                       ),
                       value: formatCurrency(loyalty.totalSpent),
                     ),
@@ -1228,9 +1228,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                   Expanded(
                     child: _metricCard(
                       label: _t(
-                        ru: 'Р вЂР С›Р СњР Р€Р РЋР В«',
+                        ru: 'БОНУСЫ',
                         en: 'BONUSES',
-                        kk: 'Р вЂР С›Р СњР Р€Р РЋР СћР С’Р В ',
+                        kk: 'БОНУСТАР',
                       ),
                       value: formatCurrency(loyalty.bonusBalance),
                     ),
@@ -1241,23 +1241,23 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               Text(
                 loyalty.nextTier == null
                     ? _t(
-                        ru: 'Р СљР В°Р С”РЎРѓР С‘Р СР В°Р В»РЎРЉР Р…РЎвЂ№Р в„– РЎС“РЎР‚Р С•Р Р†Р ВµР Р…РЎРЉ РЎС“Р В¶Р Вµ Р С•РЎвЂљР С”РЎР‚РЎвЂ№РЎвЂљ.',
+                        ru: 'Максимальный уровень уже открыт.',
                         en: 'Top tier already unlocked.',
-                        kk: 'Р вЂўРўР€ Р В¶Р С•РўвЂњР В°РЎР‚РЎвЂ№ Р Т‘Р ВµРўР€Р С–Р ВµР в„– Р В°РЎв‚¬РЎвЂ№Р В»РўвЂњР В°Р Р….',
+                        kk: 'Ең жоғары деңгей ашылған.',
                       )
                     : _t(
-                        ru: 'Р вЂќР С• РЎС“РЎР‚Р С•Р Р†Р Р…РЎРЏ ${loyalty.nextTier!.titleFor(_language)} Р С•РЎРѓРЎвЂљР В°Р В»Р С•РЎРѓРЎРЉ ${formatCurrency(loyalty.amountToNextTier)}.',
+                        ru: 'До уровня ${loyalty.nextTier!.titleFor(_language)} осталось ${formatCurrency(loyalty.amountToNextTier)}.',
                         en: '${formatCurrency(loyalty.amountToNextTier)} left to reach ${loyalty.nextTier!.titleFor(_language)}.',
-                        kk: '${loyalty.nextTier!.titleFor(_language)} Р Т‘Р ВµРўР€Р С–Р ВµР в„–РЎвЂ“Р Р…Р Вµ Р Т‘Р ВµР в„–РЎвЂ“Р Р… ${formatCurrency(loyalty.amountToNextTier)} РўвЂєР В°Р В»Р Т‘РЎвЂ№.',
+                        kk: '${loyalty.nextTier!.titleFor(_language)} деңгейіне дейін ${formatCurrency(loyalty.amountToNextTier)} қалды.',
                       ),
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 8),
               Text(
                 _t(
-                  ru: 'Р СџР С•РЎР‚Р С•Р С– РЎРѓРЎвЂЎР С‘РЎвЂљР В°Р ВµРЎвЂљРЎРѓРЎРЏ Р С—Р С• РЎРѓРЎС“Р СР СР Вµ Р С•Р С—Р В»Р В°РЎвЂЎР ВµР Р…Р Р…РЎвЂ№РЎвЂ¦ Р С—Р С•Р С”РЎС“Р С—Р С•Р С”, Р В° Р Р…Р Вµ Р С—Р С• Р С”Р С•Р В»Р С‘РЎвЂЎР ВµРЎРѓРЎвЂљР Р†РЎС“ Р В·Р В°Р С”Р В°Р В·Р С•Р Р†.',
+                  ru: 'Порог считается по сумме оплаченных покупок, а не по количеству заказов.',
                   en: 'Tiers are based on total paid spend, not on order count.',
-                  kk: 'Р вЂќР ВµРўР€Р С–Р ВµР в„–Р В»Р ВµРЎР‚ РЎвЂљР В°Р С—РЎРѓРЎвЂ№РЎР‚РЎвЂ№РЎРѓ РЎРѓР В°Р Р…РЎвЂ№Р Р…Р В° Р ВµР СР ВµРЎРѓ, РЎвЂљРЈВ©Р В»Р ВµР Р…Р С–Р ВµР Р… РЎРѓР В°РЎвЂљРЎвЂ№Р С— Р В°Р В»РЎС“ РЎРѓР С•Р СР В°РЎРѓРЎвЂ№Р Р…Р В° Р В±Р В°Р в„–Р В»Р В°Р Р…РЎвЂ№РЎРѓРЎвЂљРЎвЂ№.',
+                  kk: 'Деңгейлер тапсырыс санына емес, төленген сатып алу сомасына байланысты.',
                 ),
                 style: AppTypography.code,
               ),
@@ -1280,9 +1280,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               Expanded(
                 child: Text(
                   _t(
-                    ru: 'Р вЂєРЎР‹Р В±Р С‘Р СРЎвЂ№Р Вµ Р СР С•Р Т‘Р ВµР В»Р С‘',
+                    ru: 'Любимые модели',
                     en: 'Favorite Models',
-                    kk: 'Р СћР В°РўР€Р Т‘Р В°РЎС“Р В»РЎвЂ№ Р СР С•Р Т‘Р ВµР В»РЎРЉР Т‘Р ВµРЎР‚',
+                    kk: 'Таңдаулы модельдер',
                   ),
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
@@ -1310,9 +1310,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
           _surfaceCard(
             child: Text(
               _t(
-                ru: 'Р РЋР С•РЎвЂ¦РЎР‚Р В°Р Р…Р ВµР Р…Р Р…РЎвЂ№Р Вµ Р СР С•Р Т‘Р ВµР В»Р С‘ Р С—Р С•РЎРЏР Р†РЎРЏРЎвЂљРЎРѓРЎРЏ Р В·Р Т‘Р ВµРЎРѓРЎРЉ Р С‘ Р В±РЎС“Р Т‘РЎС“РЎвЂљ Р С•РЎвЂљР С”РЎР‚РЎвЂ№Р Р†Р В°РЎвЂљРЎРЉРЎРѓРЎРЏ Р С”Р В°Р С” Р С•Р В±РЎвЂ№РЎвЂЎР Р…РЎвЂ№Р Вµ Р С”Р В°РЎР‚РЎвЂљР С•РЎвЂЎР С”Р С‘ РЎвЂљР С•Р Р†Р В°РЎР‚Р В°.',
+                ru: 'Сохраненные модели появятся здесь и будут открываться как обычные карточки товара.',
                 en: 'Saved models will appear here and open like regular product cards.',
-                kk: 'Р РЋР В°РўвЂєРЎвЂљР В°Р В»РўвЂњР В°Р Р… Р СР С•Р Т‘Р ВµР В»РЎРЉР Т‘Р ВµРЎР‚ Р С•РЎРѓРЎвЂ№Р Р…Р Т‘Р В° Р С—Р В°Р в„–Р Т‘Р В° Р В±Р С•Р В»Р В°Р Т‘РЎвЂ№ Р В¶РЈв„ўР Р…Р Вµ РЈв„ўР Т‘Р ВµРЎвЂљРЎвЂљР ВµР С–РЎвЂ“ РЎвЂљР В°РЎС“Р В°РЎР‚ Р С”Р В°РЎР‚РЎвЂљР С•РЎвЂЎР С”Р В°Р В»Р В°РЎР‚РЎвЂ№ РЎРѓР С‘РЎРЏРўвЂєРЎвЂљРЎвЂ№ Р В°РЎв‚¬РЎвЂ№Р В»Р В°Р Т‘РЎвЂ№.',
+                kk: 'Сақталған модельдер осында пайда болады және әдеттегі тауар карточкалары сияқты ашылады.',
               ),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
@@ -1323,9 +1323,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
           _orderCard(
             order: trackedOrder,
             cta: _t(
-              ru: 'Р С›Р СћР РЋР вЂєР вЂўР вЂќР ВР СћР В¬',
+              ru: 'ОТСЛЕДИТЬ',
               en: 'TRACK',
-              kk: 'Р вЂР С’РўС™Р В«Р вЂєР С’Р Р€',
+              kk: 'БАҚЫЛАУ',
             ),
             onTap: () => setState(() => _view = ClientView.tracking),
           ),
@@ -1333,9 +1333,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         const SizedBox(height: 16),
         AvishuButton(
           text: _t(
-            ru: 'Р СџР С›Р В§Р вЂўР СљР Р€ AVISHU',
+            ru: 'ПОЧЕМУ AVISHU',
             en: 'WHY AVISHU',
-            kk: 'Р СњР вЂўР вЂњР вЂў AVISHU',
+            kk: 'НЕГЕ AVISHU',
           ),
           expanded: true,
           variant: AvishuButtonVariant.filled,
@@ -1345,9 +1345,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         const SizedBox(height: 16),
         AvishuButton(
           text: _t(
-            ru: 'Р вЂ™Р В«Р в„ўР СћР В Р ВР вЂ” Р С’Р С™Р С™Р С’Р Р€Р СњР СћР С’',
+            ru: 'ВЫЙТИ ИЗ АККАУНТА',
             en: 'SIGN OUT',
-            kk: 'Р С’Р С™Р С™Р С’Р Р€Р СњР СћР СћР С’Р Сњ Р РЃР В«РўвЂ™Р Р€',
+            kk: 'АККАУНТТАН ШЫҒУ',
           ),
           expanded: true,
           variant: AvishuButtonVariant.outline,
@@ -1372,7 +1372,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '${_t(ru: 'Р вЂњР вЂєР С’Р вЂ™Р СњР С’Р Р‡', en: 'HOME', kk: 'Р вЂР С’Р РЋР СћР В« Р вЂР вЂўР Сћ')} / ${seasonLabel.toUpperCase()} / ${categoryLabel.toUpperCase()} / ${product.title}',
+          '${_t(ru: 'ГЛАВНАЯ', en: 'HOME', kk: 'БАСТЫ БЕТ')} / ${seasonLabel.toUpperCase()} / ${categoryLabel.toUpperCase()} / ${product.title}',
           style: AppTypography.code,
         ),
         const SizedBox(height: 12),
@@ -1414,48 +1414,48 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         const SizedBox(height: 12),
         OrderInfoCard(
           title: _t(
-            ru: 'Р ВР СњР В¤Р С›Р В Р СљР С’Р В¦Р ВР Р‡ Р С› Р СћР С›Р вЂ™Р С’Р В Р вЂў',
+            ru: 'ИНФОРМАЦИЯ О ТОВАРЕ',
             en: 'PRODUCT INFO',
-            kk: 'Р СћР С’Р Р€Р С’Р В  Р СћР Р€Р В Р С’Р вЂєР В« Р С’РўС™Р СџР С’Р В Р С’Р Сћ',
+            kk: 'ТАУАР ТУРАЛЫ АҚПАРАТ',
           ),
           rows: [
             OrderInfoRowData(
               label: _t(
-                ru: 'Р С’РЎР‚РЎвЂљР С‘Р С”РЎС“Р В»',
+                ru: 'Артикул',
                 en: 'SKU',
-                kk: 'Р С’РЎР‚РЎвЂљР С‘Р С”РЎС“Р В»',
+                kk: 'Артикул',
               ),
               value: product.sku,
             ),
             OrderInfoRowData(
               label: _t(
-                ru: 'Р СљР В°РЎвЂљР ВµРЎР‚Р С‘Р В°Р В»',
+                ru: 'Материал',
                 en: 'Material',
-                kk: 'Р СљР В°РЎвЂљР ВµРЎР‚Р С‘Р В°Р В»',
+                kk: 'Материал',
               ),
               value: product.material,
             ),
             OrderInfoRowData(
               label: _t(
-                ru: 'Р РЋР С‘Р В»РЎС“РЎРЊРЎвЂљ',
+                ru: 'Силуэт',
                 en: 'Silhouette',
-                kk: 'Р РЋР С‘Р В»РЎС“РЎРЊРЎвЂљ',
+                kk: 'Силуэт',
               ),
               value: product.silhouette,
             ),
             OrderInfoRowData(
               label: _t(
-                ru: 'Р В¦Р Р†Р ВµРЎвЂљ',
+                ru: 'Цвет',
                 en: 'Color',
-                kk: 'Р СћРўР‡РЎРѓ',
+                kk: 'Түс',
               ),
               value: selectedColor,
             ),
             OrderInfoRowData(
               label: _t(
-                ru: 'Р В Р В°Р В·Р СР ВµРЎР‚',
+                ru: 'Размер',
                 en: 'Size',
-                kk: 'РЈРЃР В»РЎв‚¬Р ВµР С',
+                kk: 'Өлшем',
               ),
               value: selectedSize,
             ),
@@ -1467,7 +1467,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                _t(ru: 'Р В¦Р вЂ™Р вЂўР Сћ', en: 'COLOR', kk: 'Р СћРўВ®Р РЋ'),
+                _t(ru: 'ЦВЕТ', en: 'COLOR', kk: 'ТҮС'),
                 style: AppTypography.eyebrow,
               ),
               const SizedBox(height: 8),
@@ -1487,9 +1487,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               const SizedBox(height: 16),
               Text(
                 _t(
-                  ru: 'Р В Р С’Р вЂ”Р СљР вЂўР В ',
+                  ru: 'РАЗМЕР',
                   en: 'SIZE',
-                  kk: 'РЈРЃР вЂєР РЃР вЂўР Сљ',
+                  kk: 'ӨЛШЕМ',
                 ),
                 style: AppTypography.eyebrow,
               ),
@@ -1516,9 +1516,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                     const SizedBox(width: 8),
                     Text(
                       _t(
-                        ru: 'Р В Р В°Р В·Р СР ВµРЎР‚Р Р…Р В°РЎРЏ РЎРѓР ВµРЎвЂљР С”Р В°',
+                        ru: 'Размерная сетка',
                         en: 'Size Guide',
-                        kk: 'РЈРЃР В»РЎв‚¬Р ВµР СР Т‘Р ВµРЎР‚ Р С”Р ВµРЎРѓРЎвЂљР ВµРЎРѓРЎвЂ“',
+                        kk: 'Өлшемдер кестесі',
                       ),
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
@@ -1529,9 +1529,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                 const SizedBox(height: 16),
                 Text(
                   _t(
-                    ru: 'Р вЂќР С’Р СћР С’ Р вЂњР С›Р СћР С›Р вЂ™Р СњР С›Р РЋР СћР В',
+                    ru: 'ДАТА ГОТОВНОСТИ',
                     en: 'READY DATE',
-                    kk: 'Р вЂќР С’Р в„ўР В«Р Сњ Р вЂР С›Р вЂєР С’Р СћР В«Р Сњ Р С™РўВ®Р СњР вЂ ',
+                    kk: 'ДАЙЫН БОЛАТЫН КҮНІ',
                   ),
                   style: AppTypography.eyebrow,
                 ),
@@ -1555,14 +1555,14 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               Text(
                 product.inStock
                     ? _t(
-                        ru: 'Р вЂ™ Р Р…Р В°Р В»Р С‘РЎвЂЎР С‘Р С‘',
+                        ru: 'В наличии',
                         en: 'In Stock',
-                        kk: 'РўС™Р С•Р в„–Р СР В°Р Т‘Р В° Р В±Р В°РЎР‚',
+                        kk: 'Қоймада бар',
                       )
                     : _t(
-                        ru: 'Р СњР ВµРЎвЂљ Р Р† Р Р…Р В°Р В»Р С‘РЎвЂЎР С‘Р С‘',
+                        ru: 'Нет в наличии',
                         en: 'Out of Stock',
-                        kk: 'РўС™Р С•Р в„–Р СР В°Р Т‘Р В° Р В¶Р С•РўвЂє',
+                        kk: 'Қоймада жоқ',
                       ),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: product.inStock ? AppColors.black : AppColors.error,
@@ -1584,14 +1584,14 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                     child: AvishuButton(
                       text: isFavorite
                           ? _t(
-                              ru: 'Р вЂ™ Р ВР вЂ”Р вЂР В Р С’Р СњР СњР С›Р Сљ',
+                              ru: 'В ИЗБРАННОМ',
                               en: 'IN FAVORITES',
-                              kk: 'Р СћР С’РўСћР вЂќР С’Р Р€Р вЂєР В«Р вЂќР С’',
+                              kk: 'ТАҢДАУЛЫДА',
                             )
                           : _t(
-                              ru: 'Р вЂ™ Р ВР вЂ”Р вЂР В Р С’Р СњР СњР С›Р вЂў',
+                              ru: 'В ИЗБРАННОЕ',
                               en: 'ADD TO FAVORITES',
-                              kk: 'Р СћР С’РўСћР вЂќР С’Р Р€Р вЂєР В«РўвЂ™Р С’ РўС™Р С›Р РЋР Р€',
+                              kk: 'ТАҢДАУЛЫҒА ҚОСУ',
                             ),
                       expanded: true,
                       variant: AvishuButtonVariant.outline,
@@ -1613,14 +1613,14 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               AvishuButton(
                 text: product.preorder
                     ? _t(
-                        ru: 'Р СџР В Р С›Р вЂќР С›Р вЂєР вЂ“Р ВР СћР В¬ Р СџР В Р вЂўР вЂќР вЂ”Р С’Р С™Р С’Р вЂ”',
+                        ru: 'ПРОДОЛЖИТЬ ПРЕДЗАКАЗ',
                         en: 'CONTINUE PREORDER',
-                        kk: 'Р С’Р вЂєР вЂќР В«Р Сњ Р С’Р вЂєР С’ Р СћР С’Р СџР РЋР В«Р В Р В«Р РЋР СћР В« Р вЂ“Р С’Р вЂєРўвЂ™Р С’Р РЋР СћР В«Р В Р Р€',
+                        kk: 'АЛДЫН АЛА ТАПСЫРЫСТЫ ЖАЛҒАСТЫРУ',
                       )
                     : _t(
-                        ru: 'Р С›Р В¤Р С›Р В Р СљР ВР СћР В¬ Р вЂ”Р С’Р С™Р С’Р вЂ”',
+                        ru: 'ОФОРМИТЬ ЗАКАЗ',
                         en: 'PLACE ORDER',
-                        kk: 'Р СћР С’Р СџР РЋР В«Р В Р В«Р РЋ Р вЂР вЂўР В Р Р€',
+                        kk: 'ТАПСЫРЫС БЕРУ',
                       ),
                 expanded: true,
                 variant: AvishuButtonVariant.filled,
@@ -1637,9 +1637,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         const SizedBox(height: 12),
         _productAccordion(
           title: _t(
-            ru: 'Р С›Р СџР ВР РЋР С’Р СњР ВР вЂў',
+            ru: 'ОПИСАНИЕ',
             en: 'DESCRIPTION',
-            kk: 'Р РЋР ВР СџР С’Р СћР СћР С’Р СљР С’',
+            kk: 'СИПАТТАМА',
           ),
           expanded: _descriptionExpanded,
           onToggle: () {
@@ -1653,9 +1653,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         const SizedBox(height: 12),
         _productAccordion(
           title: _t(
-            ru: 'Р ТђР С’Р В Р С’Р С™Р СћР вЂўР В Р ВР РЋР СћР ВР С™Р В',
+            ru: 'ХАРАКТЕРИСТИКИ',
             en: 'SPECIFICATIONS',
-            kk: 'Р РЋР ВР СџР С’Р СћР СћР С’Р СљР С’Р вЂєР С’Р В ',
+            kk: 'СИПАТТАМАЛАР',
           ),
           expanded: _specificationsExpanded,
           onToggle: () {
@@ -1696,9 +1696,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         const SizedBox(height: 12),
         _productAccordion(
           title: _t(
-            ru: 'Р Р€Р ТђР С›Р вЂќ',
+            ru: 'УХОД',
             en: 'CARE',
-            kk: 'Р С™РўВ®Р СћР вЂ Р Сљ',
+            kk: 'КҮТІМ',
           ),
           expanded: _careExpanded,
           onToggle: () {
@@ -1711,7 +1711,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                   (rule) => Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Text(
-                      'РІР‚Сћ $rule',
+                      'вЂў $rule',
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ),
@@ -1740,48 +1740,48 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       children: [
         ClientCheckoutSummarySection(
           title: _t(
-            ru: 'Р РЋР С›Р РЋР СћР С’Р вЂ™ Р вЂ”Р С’Р С™Р С’Р вЂ”Р С’',
+            ru: 'СОСТАВ ЗАКАЗА',
             en: 'ORDER SUMMARY',
-            kk: 'Р СћР С’Р СџР РЋР В«Р В Р В«Р РЋ РўС™РўВ°Р В Р С’Р СљР В«',
+            kk: 'ТАПСЫРЫС ҚҰРАМЫ',
           ),
           rows: [
             OrderInfoRowData(
               label: _t(
-                ru: 'Р ВР В·Р Т‘Р ВµР В»Р С‘Р Вµ',
+                ru: 'Изделие',
                 en: 'Product',
-                kk: 'Р вЂРўВ±Р в„–РЎвЂ№Р С',
+                kk: 'Бұйым',
               ),
               value: product.title,
             ),
             OrderInfoRowData(
               label: _t(
-                ru: 'Р В¦Р Р†Р ВµРЎвЂљ',
+                ru: 'Цвет',
                 en: 'Color',
-                kk: 'Р СћРўР‡РЎРѓ',
+                kk: 'Түс',
               ),
               value: _selectedColor ?? product.defaultColor,
             ),
             OrderInfoRowData(
               label: _t(
-                ru: 'Р В Р В°Р В·Р СР ВµРЎР‚',
+                ru: 'Размер',
                 en: 'Size',
-                kk: 'РЈРЃР В»РЎв‚¬Р ВµР С',
+                kk: 'Өлшем',
               ),
               value: _selectedSize ?? product.defaultSize,
             ),
             OrderInfoRowData(
               label: _t(
-                ru: 'Р С™Р С•Р В»Р С‘РЎвЂЎР ВµРЎРѓРЎвЂљР Р†Р С•',
+                ru: 'Количество',
                 en: 'Quantity',
-                kk: 'Р РЋР В°Р Р…РЎвЂ№',
+                kk: 'Саны',
               ),
               value: '$_quantity',
             ),
             OrderInfoRowData(
               label: _t(
-                ru: 'Р РЋРЎвЂљР С•Р С‘Р СР С•РЎРѓРЎвЂљРЎРЉ Р С—Р С•Р В·Р С‘РЎвЂ Р С‘Р С‘',
+                ru: 'Стоимость позиции',
                 en: 'Unit Price',
-                kk: 'Р вЂРЎвЂ“РЎР‚Р В»РЎвЂ“Р С” Р В±Р В°РўвЂњР В°РЎРѓРЎвЂ№',
+                kk: 'Бірлік бағасы',
               ),
               value: formatCurrency(product.price),
             ),
@@ -1851,18 +1851,18 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         const SizedBox(height: 12),
         ClientCheckoutTotalSection(
           title: _t(
-            ru: 'Р ВР СћР С›Р вЂњР С›',
+            ru: 'ИТОГО',
             en: 'TOTAL',
-            kk: 'Р вЂ“Р ВР В«Р СњР В«',
+            kk: 'ЖИЫНЫ',
           ),
           rows: _checkoutRows(product, pricing: pricing, loyalty: loyalty),
         ),
         const SizedBox(height: 18),
         AvishuButton(
           text: _t(
-            ru: 'Р СџР вЂўР В Р вЂўР в„ўР СћР В Р С™ Р С›Р СџР вЂєР С’Р СћР вЂў',
+            ru: 'ПЕРЕЙТИ К ОПЛАТЕ',
             en: 'GO TO PAYMENT',
-            kk: 'Р СћРЈРЃР вЂєР вЂўР СљР вЂњР вЂў РЈРЃР СћР Р€',
+            kk: 'ТӨЛЕМГЕ ӨТУ',
           ),
           expanded: true,
           variant: AvishuButtonVariant.filled,
@@ -2032,9 +2032,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         _addressController.text.trim().isEmpty) {
       _showMessage(
         _t(
-          ru: 'Р вЂ”Р В°Р С—Р С•Р В»Р Р…Р С‘РЎвЂљР Вµ Р С–Р С•РЎР‚Р С•Р Т‘ Р С‘ Р В°Р Т‘РЎР‚Р ВµРЎРѓ Р Т‘Р С•РЎРѓРЎвЂљР В°Р Р†Р С”Р С‘.',
+          ru: 'Заполните город и адрес доставки.',
           en: 'Fill in the city and delivery address.',
-          kk: 'РўС™Р В°Р В»Р В° Р СР ВµР Р… Р В¶Р ВµРЎвЂљР С”РЎвЂ“Р В·РЎС“ Р СР ВµР С”Р ВµР Р…Р В¶Р В°Р в„–РЎвЂ№Р Р… РЎвЂљР С•Р В»РЎвЂљРЎвЂ№РЎР‚РЎвЂ№РўР€РЎвЂ№Р В·.',
+          kk: 'Қала мен жеткізу мекенжайын толтырыңыз.',
         ),
       );
       return false;
@@ -2049,9 +2049,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
         _cvvController.text.trim().length < 3) {
       _showMessage(
         _t(
-          ru: 'Р СџРЎР‚Р С•Р Р†Р ВµРЎР‚РЎРЉРЎвЂљР Вµ Р Т‘Р В°Р Р…Р Р…РЎвЂ№Р Вµ Р В±Р В°Р Р…Р С”Р С•Р Р†РЎРѓР С”Р С•Р в„– Р С”Р В°РЎР‚РЎвЂљРЎвЂ№.',
+          ru: 'Проверьте данные банковской карты.',
           en: 'Check the bank card details.',
-          kk: 'Р вЂР В°Р Р…Р С” Р С”Р В°РЎР‚РЎвЂљР В°РЎРѓРЎвЂ№Р Р…РЎвЂ№РўР€ Р Т‘Р ВµРЎР‚Р ВµР С”РЎвЂљР ВµРЎР‚РЎвЂ“Р Р… РЎвЂљР ВµР С”РЎРѓР ВµРЎР‚РЎвЂ“РўР€РЎвЂ“Р В·.',
+          kk: 'Банк картасының деректерін тексеріңіз.',
         ),
       );
       return false;
@@ -2060,69 +2060,69 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
   }
 
   String _checkoutAddressTitle() {
-    return _t(ru: 'РђРґСЂРµСЃ РґРѕСЃС‚Р°РІРєРё', en: 'DELIVERY ADDRESS');
+    return _t(ru: 'Адрес доставки', en: 'DELIVERY ADDRESS');
   }
 
   String _checkoutCityLabel() {
-    return _t(ru: 'Р“РѕСЂРѕРґ', en: 'City');
+    return _t(ru: 'Город', en: 'City');
   }
 
   String _checkoutAddressLabel() {
-    return _t(ru: 'РђРґСЂРµСЃ', en: 'Address');
+    return _t(ru: 'Адрес', en: 'Address');
   }
 
   String _checkoutApartmentLabel() {
-    return _t(ru: 'РљРІР°СЂС‚РёСЂР° / РѕС„РёСЃ', en: 'Apartment / Office');
+    return _t(ru: 'Квартира / офис', en: 'Apartment / Office');
   }
 
   String _checkoutCommentLabel() {
     return _t(
-      ru: 'РљРѕРјРјРµРЅС‚Р°СЂРёР№ Рє Р·Р°РєР°Р·Сѓ',
+      ru: 'Комментарий к заказу',
       en: 'Order Comment',
     );
   }
 
   String _checkoutLoyaltyTitle() {
     return _t(
-      ru: 'РџСЂРµРёРјСѓС‰РµСЃС‚РІР° Р»РѕСЏР»СЊРЅРѕСЃС‚Рё',
+      ru: 'Преимущества лояльности',
       en: 'LOYALTY BENEFITS',
     );
   }
 
   String _checkoutDiscountTitle() {
     return _t(
-      ru: 'РџСЂРёРјРµРЅРёС‚СЊ СЃРєРёРґРєСѓ СѓСЂРѕРІРЅСЏ',
+      ru: 'Применить скидку уровня',
       en: 'Apply tier discount',
     );
   }
 
   String _checkoutDiscountSubtitle(LoyaltyProfileSnapshot loyalty) {
     return _t(
-      ru: 'РЎРµР№С‡Р°СЃ РґРѕСЃС‚СѓРїРЅРѕ ${_discountLabel(loyalty.currentTier.discountRate)} РЅР° СЌС‚РѕС‚ Р·Р°РєР°Р·.',
+      ru: 'Сейчас доступно ${_discountLabel(loyalty.currentTier.discountRate)} на этот заказ.',
       en: '${_discountLabel(loyalty.currentTier.discountRate)} is available for this order.',
     );
   }
 
   String _checkoutBonusTitle() {
     return _t(
-      ru: 'РСЃРїРѕР»СЊР·РѕРІР°С‚СЊ Р±РѕРЅСѓСЃРЅС‹Р№ Р±Р°Р»Р°РЅСЃ',
+      ru: 'Использовать бонусный баланс',
       en: 'Use bonus balance',
     );
   }
 
   String _checkoutBonusSubtitle(LoyaltyProfileSnapshot loyalty) {
     return _t(
-      ru: 'Р”РѕСЃС‚СѓРїРЅРѕ ${formatCurrency(loyalty.bonusBalance)} РґР»СЏ РѕРїР»Р°С‚С‹.',
+      ru: 'Доступно ${formatCurrency(loyalty.bonusBalance)} для оплаты.',
       en: '${formatCurrency(loyalty.bonusBalance)} can be applied to the payment.',
     );
   }
 
   String _checkoutMethodTitle() {
-    return _t(ru: 'РЎРїРѕСЃРѕР± РїРѕР»СѓС‡РµРЅРёСЏ', en: 'FULFILLMENT METHOD');
+    return _t(ru: 'Способ получения', en: 'FULFILLMENT METHOD');
   }
 
   String _checkoutMethodLabel() {
-    return _t(ru: 'РЎРїРѕСЃРѕР±', en: 'METHOD');
+    return _t(ru: 'Способ', en: 'METHOD');
   }
 
   String _paymentFormTitle() {
@@ -2155,62 +2155,62 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
 
   String _trackingWaitingMessage() {
     return _t(
-      ru: 'Р–РґС‘Рј СЃРёРЅС…СЂРѕРЅРёР·Р°С†РёСЋ Р·Р°РєР°Р·Р°.',
+      ru: 'Ждём синхронизацию заказа.',
       en: 'Waiting for order synchronization.',
     );
   }
 
   String _trackingOrderHeading(OrderModel order) {
-    return '${_t(ru: 'Р—Р°РєР°Р·', en: 'ORDER')} #${order.shortId}';
+    return '${_t(ru: 'Заказ', en: 'ORDER')} #${order.shortId}';
   }
 
   String _trackingStatusLine(OrderModel order) {
-    return '${_t(ru: 'РЎС‚Р°С‚СѓСЃ', en: 'STATUS')} / ${order.status.clientLabelFor(_language)}';
+    return '${_t(ru: 'Статус', en: 'STATUS')} / ${order.status.clientLabelFor(_language)}';
   }
 
   String _trackingDetailsTitle() {
-    return _t(ru: 'Р”РµС‚Р°Р»Рё Р·Р°РєР°Р·Р°', en: 'ORDER DETAILS');
+    return _t(ru: 'Детали заказа', en: 'ORDER DETAILS');
   }
 
   String _trackingClientCommentTitle() {
     return _t(
-      ru: 'РљРѕРјРјРµРЅС‚Р°СЂРёР№ РєР»РёРµРЅС‚Р°',
+      ru: 'Комментарий клиента',
       en: 'CLIENT COMMENT',
     );
   }
 
   String _trackingCommentLabel() {
-    return _t(ru: 'РљРѕРјРјРµРЅС‚Р°СЂРёР№', en: 'Comment');
+    return _t(ru: 'Комментарий', en: 'Comment');
   }
 
   String _trackingFranchiseNoteTitle() {
     return _t(
-      ru: 'РљРѕРјРјРµРЅС‚Р°СЂРёР№ С„СЂР°РЅС€РёР·С‹',
+      ru: 'Комментарий франшизы',
       en: 'FRANCHISE NOTE',
     );
   }
 
   String _trackingStatusFieldLabel() {
-    return _t(ru: 'РЎС‚Р°С‚СѓСЃ', en: 'Status');
+    return _t(ru: 'Статус', en: 'Status');
   }
 
   String _trackingFactoryNoteTitle() {
     return _t(
-      ru: 'РљРѕРјРјРµРЅС‚Р°СЂРёР№ РїСЂРѕРёР·РІРѕРґСЃС‚РІР°',
+      ru: 'Комментарий производства',
       en: 'FACTORY NOTE',
     );
   }
 
   String _trackingFactoryLabel() {
-    return _t(ru: 'РџСЂРѕРёР·РІРѕРґСЃС‚РІРѕ', en: 'Factory');
+    return _t(ru: 'Производство', en: 'Factory');
   }
 
   String _trackingBackLabel() {
-    return _t(ru: 'РќР°Р·Р°Рґ', en: 'BACK');
+    return _t(ru: 'Назад', en: 'BACK');
   }
 
   String _trackingCatalogLabel() {
-    return _t(ru: 'РљР°С‚Р°Р»РѕРі', en: 'CATALOG');
+    return _t(ru: 'Каталог', en: 'CATALOG');
   }
 
   void _applyCatalogSource(List<CatalogProduct> products) {
@@ -2351,16 +2351,16 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               const <OrderModel>[]);
     final pricing = _checkoutPricing(product, profile: profile, orders: orders);
     final lines = <String>[
-      '${_t(ru: 'Р В¦Р Р†Р ВµРЎвЂљ', en: 'Color')}: ${_selectedColor ?? product.defaultColor}',
-      '${_t(ru: 'Р С™Р С•Р В»Р С‘РЎвЂЎР ВµРЎРѓРЎвЂљР Р†Р С•', en: 'Quantity')}: $_quantity',
+      '${_t(ru: 'Цвет', en: 'Color')}: ${_selectedColor ?? product.defaultColor}',
+      '${_t(ru: 'Количество', en: 'Quantity')}: $_quantity',
       if (pricing.discountAmount > 0)
-        '${_t(ru: 'Р РЋР С”Р С‘Р Т‘Р С”Р В° Р В»Р С•РЎРЏР В»РЎРЉР Р…Р С•РЎРѓРЎвЂљР С‘', en: 'Loyalty discount', kk: 'Р С’Р Т‘Р В°Р В»Р Т‘РЎвЂ№РўвЂє Р В¶Р ВµРўР€РЎвЂ“Р В»Р Т‘РЎвЂ“Р С–РЎвЂ“')}: ${formatCurrency(pricing.discountAmount)}',
+        '${_t(ru: 'Скидка лояльности', en: 'Loyalty discount', kk: 'Адалдық жеңілдігі')}: ${formatCurrency(pricing.discountAmount)}',
       if (pricing.bonusRedeemed > 0)
-        '${_t(ru: 'Р РЋР С—Р С‘РЎРѓР В°Р Р…Р С• Р В±Р С•Р Р…РЎС“РЎРѓР С•Р Р†', en: 'Bonuses used', kk: 'Р СџР В°Р в„–Р Т‘Р В°Р В»Р В°Р Р…РЎвЂ№Р В»РўвЂњР В°Р Р… Р В±Р С•Р Р…РЎС“РЎРѓ')}: ${formatCurrency(pricing.bonusRedeemed)}',
+        '${_t(ru: 'Списано бонусов', en: 'Bonuses used', kk: 'Пайдаланылған бонус')}: ${formatCurrency(pricing.bonusRedeemed)}',
       if (pricing.earnedBonus > 0)
-        '${_t(ru: 'Р СњР В°РЎвЂЎР С‘РЎРѓР В»Р С‘РЎвЂљРЎРѓРЎРЏ Р В±Р С•Р Р…РЎС“РЎРѓР В°Р СР С‘', en: 'Bonuses to earn', kk: 'Р СћРўР‡РЎРѓР ВµРЎвЂљРЎвЂ“Р Р… Р В±Р С•Р Р…РЎС“РЎРѓ')}: ${formatCurrency(pricing.earnedBonus)}',
+        '${_t(ru: 'Начислится бонусами', en: 'Bonuses to earn', kk: 'Түсетін бонус')}: ${formatCurrency(pricing.earnedBonus)}',
       if (customerNote.isNotEmpty)
-        '${_t(ru: 'Р С™Р С•Р СР СР ВµР Р…РЎвЂљР В°РЎР‚Р С‘Р в„– Р С”Р В»Р С‘Р ВµР Р…РЎвЂљР В°', en: 'Client Comment', kk: 'Р С™Р В»Р С‘Р ВµР Р…РЎвЂљ Р С—РЎвЂ“Р С”РЎвЂ“РЎР‚РЎвЂ“')}: $customerNote',
+        '${_t(ru: 'Комментарий клиента', en: 'Client Comment', kk: 'Клиент пікірі')}: $customerNote',
     ];
     return lines.join('\n');
   }
@@ -2372,64 +2372,64 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
   }) {
     return [
       OrderInfoRowData(
-        label: _t(ru: 'Р ВР В·Р Т‘Р ВµР В»Р С‘Р Вµ', en: 'Product'),
+        label: _t(ru: 'Изделие', en: 'Product'),
         value: product.title,
       ),
       OrderInfoRowData(
-        label: _t(ru: 'Р В¦Р Р†Р ВµРЎвЂљ', en: 'Color'),
+        label: _t(ru: 'Цвет', en: 'Color'),
         value: _selectedColor ?? product.defaultColor,
       ),
       OrderInfoRowData(
-        label: _t(ru: 'Р В Р В°Р В·Р СР ВµРЎР‚', en: 'Size'),
+        label: _t(ru: 'Размер', en: 'Size'),
         value: _selectedSize ?? product.defaultSize,
       ),
       OrderInfoRowData(
         label: _t(
-          ru: 'Р С™Р С•Р В»Р С‘РЎвЂЎР ВµРЎРѓРЎвЂљР Р†Р С•',
+          ru: 'Количество',
           en: 'Quantity',
         ),
         value: '$_quantity',
       ),
       OrderInfoRowData(
-        label: _t(ru: 'Р РЋРЎвЂљР С•Р С‘Р СР С•РЎРѓРЎвЂљРЎРЉ', en: 'Subtotal'),
+        label: _t(ru: 'Стоимость', en: 'Subtotal'),
         value: formatCurrency(pricing.subtotal),
       ),
       OrderInfoRowData(
-        label: _t(ru: 'Р вЂќР С•РЎРѓРЎвЂљР В°Р Р†Р С”Р В°', en: 'Delivery'),
+        label: _t(ru: 'Доставка', en: 'Delivery'),
         value:
             '${_deliveryMethod.labelFor(_language)} / ${formatCurrency(pricing.deliveryFee)}',
       ),
       if (pricing.courierSavings > 0)
         OrderInfoRowData(
           label: _t(
-            ru: 'Р В­Р С”Р С•Р Р…Р С•Р СР С‘РЎРЏ Р Р…Р В° Р Т‘Р С•РЎРѓРЎвЂљР В°Р Р†Р С”Р Вµ',
+            ru: 'Экономия на доставке',
             en: 'Courier savings',
-            kk: 'Р вЂ“Р ВµРЎвЂљР С”РЎвЂ“Р В·РЎС“ РўР‡Р Р…Р ВµР СРЎвЂ“',
+            kk: 'Жеткізу үнемі',
           ),
           value: '- ${formatCurrency(pricing.courierSavings)}',
         ),
       if (pricing.discountAmount > 0)
         OrderInfoRowData(
           label: _t(
-            ru: 'Р РЋР С”Р С‘Р Т‘Р С”Р В° РЎС“РЎР‚Р С•Р Р†Р Р…РЎРЏ',
+            ru: 'Скидка уровня',
             en: 'Tier discount',
-            kk: 'Р вЂќР ВµРўР€Р С–Р ВµР в„– Р В¶Р ВµРўР€РЎвЂ“Р В»Р Т‘РЎвЂ“Р С–РЎвЂ“',
+            kk: 'Деңгей жеңілдігі',
           ),
           value: '- ${formatCurrency(pricing.discountAmount)}',
         ),
       if (pricing.bonusRedeemed > 0)
         OrderInfoRowData(
           label: _t(
-            ru: 'Р РЋР С—Р С‘РЎРѓР В°Р Р…Р С• Р В±Р С•Р Р…РЎС“РЎРѓР С•Р Р†',
+            ru: 'Списано бонусов',
             en: 'Bonuses used',
-            kk: 'Р СџР В°Р в„–Р Т‘Р В°Р В»Р В°Р Р…РЎвЂ№Р В»РўвЂњР В°Р Р… Р В±Р С•Р Р…РЎС“РЎРѓ',
+            kk: 'Пайдаланылған бонус',
           ),
           value: '- ${formatCurrency(pricing.bonusRedeemed)}',
         ),
       if (product.preorder && _selectedDate != null)
         OrderInfoRowData(
           label: _t(
-            ru: 'Р вЂќР В°РЎвЂљР В° Р С–Р С•РЎвЂљР С•Р Р†Р Р…Р С•РЎРѓРЎвЂљР С‘',
+            ru: 'Дата готовности',
             en: 'Ready Date',
           ),
           value: formatDate(_selectedDate!),
@@ -2437,17 +2437,17 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       if (pricing.earnedBonus > 0)
         OrderInfoRowData(
           label: _t(
-            ru: 'Р вЂ™Р ВµРЎР‚Р Р…Р ВµРЎвЂљРЎРѓРЎРЏ Р В±Р С•Р Р…РЎС“РЎРѓР В°Р СР С‘',
+            ru: 'Вернется бонусами',
             en: 'Bonuses to earn',
-            kk: 'Р вЂР С•Р Р…РЎС“РЎРѓР С—Р ВµР Р… РўвЂєР В°Р в„–РЎвЂљР В°Р Т‘РЎвЂ№',
+            kk: 'Бонуспен қайтады',
           ),
           value: formatCurrency(pricing.earnedBonus),
         ),
       OrderInfoRowData(
         label: _t(
-          ru: 'Р ВРЎвЂљР С•Р С–Р С•',
+          ru: 'Итого',
           en: 'Total',
-          kk: 'Р вЂ“Р С‘РЎвЂ№Р Р…РЎвЂ№',
+          kk: 'Жиыны',
         ),
         value: formatCurrency(pricing.total),
       ),
@@ -2457,18 +2457,18 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
   List<_DeliveryAddressPreset>
   get _deliveryAddressPresets => const <_DeliveryAddressPreset>[
     _DeliveryAddressPreset(
-      labelRu: 'Р вЂќР С•Р С / Р вЂќР С•РЎРѓРЎвЂљРЎвЂ№Р С”',
+      labelRu: 'Дом / Достык',
       labelEn: 'Home / Dostyk',
-      labelKk: 'РўВ®Р в„– / Р вЂќР С•РЎРѓРЎвЂљРЎвЂ№РўвЂє',
-      city: 'Р С’Р В»Р СР В°РЎвЂљРЎвЂ№',
-      address: 'Р С—РЎР‚. Р вЂќР С•РЎРѓРЎвЂљРЎвЂ№Р С”, 25',
+      labelKk: 'Үй / Достық',
+      city: 'Алматы',
+      address: 'пр. Достык, 25',
       apartment: '12',
     ),
     _DeliveryAddressPreset(
       labelRu: 'Esentai',
       labelEn: 'Esentai',
       labelKk: 'Esentai',
-      city: 'Р С’Р В»Р СР В°РЎвЂљРЎвЂ№',
+      city: 'Алматы',
       address: 'Esentai Mall',
       apartment: 'Boutique',
     ),
@@ -2476,9 +2476,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       labelRu: 'Mega Alma-Ata',
       labelEn: 'Mega Alma-Ata',
       labelKk: 'Mega Alma-Ata',
-      city: 'Р С’Р В»Р СР В°РЎвЂљРЎвЂ№',
+      city: 'Алматы',
       address:
-          'РЎС“Р В». Р В Р С•Р В·РЎвЂ№Р В±Р В°Р С”Р С‘Р ВµР Р†Р В°, 247Р С’',
+          'ул. Розыбакиева, 247А',
       apartment: '1',
     ),
   ];
@@ -2555,36 +2555,36 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     final statusValue = hasDestination
         ? isPickup
               ? _t(
-                  ru: 'Р СћР С•РЎвЂЎР С”Р В° Р Р†РЎвЂ№Р Т‘Р В°РЎвЂЎР С‘ Р В·Р В°Р С”РЎР‚Р ВµР С—Р В»Р ВµР Р…Р В°',
+                  ru: 'Точка выдачи закреплена',
                   en: 'Pickup point pinned',
                 )
               : _t(
-                  ru: 'Р С’Р Т‘РЎР‚Р ВµРЎРѓ Р Т‘Р С•РЎРѓРЎвЂљР В°Р Р†Р С”Р С‘ Р В·Р В°Р С”РЎР‚Р ВµР С—Р В»РЎвЂР Р…',
+                  ru: 'Адрес доставки закреплён',
                   en: 'Destination pinned',
                 )
         : _t(
-            ru: 'Р вЂќР С•Р В±Р В°Р Р†РЎРЉРЎвЂљР Вµ Р В°Р Т‘РЎР‚Р ВµРЎРѓ',
+            ru: 'Добавьте адрес',
             en: 'Add destination',
           );
 
     final etaValue = product.preorder && _selectedDate != null
         ? formatDate(_selectedDate!)
         : isPickup
-        ? _t(ru: '20 Р СљР ВР Сњ', en: '20 MIN')
-        : _t(ru: '45 Р СљР ВР Сњ', en: '45 MIN');
+        ? _t(ru: '20 МИН', en: '20 MIN')
+        : _t(ru: '45 МИН', en: '45 MIN');
 
     final note = hasDestination
         ? isPickup
               ? _t(
-                  ru: 'Р С™Р В°РЎР‚РЎвЂљР В° Р С—Р С•Р С”Р В°Р В·РЎвЂ№Р Р†Р В°Р ВµРЎвЂљ Р В·Р В°Р С”РЎР‚Р ВµР С—Р В»РЎвЂР Р…Р Р…РЎС“РЎР‹ РЎвЂљР С•РЎвЂЎР С”РЎС“ РЎРѓР В°Р СР С•Р Р†РЎвЂ№Р Р†Р С•Р В·Р В°. Р СџРЎР‚Р С‘ Р С‘Р В·Р СР ВµР Р…Р ВµР Р…Р С‘Р С‘ Р В°Р Т‘РЎР‚Р ВµРЎРѓР В° Р С—РЎР‚Р ВµР Р†РЎРЉРЎР‹ Р С•Р В±Р Р…Р С•Р Р†Р С‘РЎвЂљРЎРѓРЎРЏ РЎРѓРЎР‚Р В°Р В·РЎС“.',
+                  ru: 'Карта показывает закреплённую точку самовывоза. При изменении адреса превью обновится сразу.',
                   en: 'The map shows the selected pickup point. Update the address fields and the preview will refresh instantly.',
                 )
               : _t(
-                  ru: 'Р СљР В°РЎР‚РЎв‚¬РЎР‚РЎС“РЎвЂљ Р С—Р С•РЎРѓРЎвЂљРЎР‚Р С•Р ВµР Р… Р Р…Р В° Р С•РЎРѓР Р…Р С•Р Р†Р Вµ Р Р†Р Р†Р ВµР Т‘РЎвЂР Р…Р Р…Р С•Р С–Р С• Р С–Р С•РЎР‚Р С•Р Т‘Р В° Р С‘ Р В°Р Т‘РЎР‚Р ВµРЎРѓР В°. Р вЂ™РЎвЂ№ Р СР С•Р В¶Р ВµРЎвЂљР Вµ Р С‘Р В·Р СР ВµР Р…Р С‘РЎвЂљРЎРЉ Р С—Р С•Р В»РЎРЏ Р Р†РЎР‚РЎС“РЎвЂЎР Р…РЎС“РЎР‹ Р Р† Р В»РЎР‹Р В±Р С•Р в„– Р СР С•Р СР ВµР Р…РЎвЂљ.',
+                  ru: 'Маршрут построен на основе введённого города и адреса. Вы можете изменить поля вручную в любой момент.',
                   en: 'The route is built from the current city and address fields. You can still type your own destination at any time.',
                 )
         : _t(
-            ru: 'Р вЂ™Р Р†Р ВµР Т‘Р С‘РЎвЂљР Вµ Р С–Р С•РЎР‚Р С•Р Т‘ Р С‘ Р В°Р Т‘РЎР‚Р ВµРЎРѓ Р Т‘Р С•РЎРѓРЎвЂљР В°Р Р†Р С”Р С‘, РЎвЂЎРЎвЂљР С•Р В±РЎвЂ№ Р С”Р В°РЎР‚РЎвЂљР В° РЎРѓРЎР‚Р В°Р В·РЎС“ Р С—Р С•Р С”Р В°Р В·Р В°Р В»Р В° РЎвЂљР С•РЎвЂЎР С”РЎС“ Р Р…Р В°Р В·Р Р…Р В°РЎвЂЎР ВµР Р…Р С‘РЎРЏ.',
+            ru: 'Введите город и адрес доставки, чтобы карта сразу показала точку назначения.',
             en: 'Enter the city and delivery address to pin the destination on the map.',
           );
 
@@ -2609,7 +2609,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
 
     return OrderDeliveryMapCard(
       sectionLabel: _t(
-        ru: 'Р С™Р С’Р В Р СћР С’ Р вЂќР С›Р РЋР СћР С’Р вЂ™Р С™Р В',
+        ru: 'КАРТА ДОСТАВКИ',
         en: 'DELIVERY MAP',
       ),
       badgeLabel: !hasDestination
@@ -2627,21 +2627,21 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               en: 'PREVIEW ACTIVE',
             ),
 
-      statusLabel: _t(ru: 'Р РЋР СћР С’Р СћР Р€Р РЋ', en: 'STATUS'),
+      statusLabel: _t(ru: 'СТАТУС', en: 'STATUS'),
       statusValue: resolvedStatusValue,
       etaLabel: product.preorder && _selectedDate != null
           ? _t(
-              ru: 'Р вЂќР С’Р СћР С’ Р вЂњР С›Р СћР С›Р вЂ™Р СњР С›Р РЋР СћР В',
+              ru: 'ДАТА ГОТОВНОСТИ',
               en: 'READY DATE',
             )
           : _t(
-              ru: 'Р С›Р вЂ“Р ВР вЂќР С’Р вЂўР СљР С›Р вЂў Р вЂ™Р В Р вЂўР СљР Р‡',
+              ru: 'ОЖИДАЕМОЕ ВРЕМЯ',
               en: 'EXPECTED TIME',
             ),
       etaValue: etaValue,
-      locationLabel: _t(ru: 'Р вЂєР С›Р С™Р С’Р В¦Р ВР Р‡', en: 'LOCATION'),
+      locationLabel: _t(ru: 'ЛОКАЦИЯ', en: 'LOCATION'),
       locationValue: _composeDeliveryLocation(city, address, apartment),
-      amountLabel: _t(ru: 'Р ВР СћР С›Р вЂњР С›', en: 'TOTAL'),
+      amountLabel: _t(ru: 'ИТОГО', en: 'TOTAL'),
       amountValue: formatCurrency(_totalPrice(product)),
       helperText: resolvedNote,
       footerLabel: isPickup
@@ -2651,7 +2651,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
           ? _t(ru: 'PICKUP MODE', en: 'PICKUP MODE')
           : _t(ru: 'ROUTE PREVIEW', en: 'ROUTE PREVIEW'),
       cityLabel:
-          (city.isEmpty ? _t(ru: 'Р вЂњР С›Р В Р С›Р вЂќ', en: 'CITY') : city)
+          (city.isEmpty ? _t(ru: 'ГОРОД', en: 'CITY') : city)
               .toUpperCase(),
       originLabel: _t(ru: 'ATELIER', en: 'ATELIER'),
       destinationLabel: isPickup
@@ -2688,37 +2688,37 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     return OrderDeliveryMapCard(
       sectionLabel: isPickup
           ? _t(
-              ru: 'Р С™Р С’Р В Р СћР С’ Р вЂ™Р В«Р вЂќР С’Р В§Р В',
+              ru: 'КАРТА ВЫДАЧИ',
               en: 'PICKUP MAP',
             )
           : _t(
-              ru: 'Р С™Р С’Р В Р СћР С’ Р вЂќР С›Р РЋР СћР С’Р вЂ™Р С™Р В',
+              ru: 'КАРТА ДОСТАВКИ',
               en: 'DELIVERY MAP',
             ),
       badgeLabel: _trackingMapBadge(order),
-      statusLabel: _t(ru: 'Р РЋР СћР С’Р СћР Р€Р РЋ', en: 'STATUS'),
+      statusLabel: _t(ru: 'СТАТУС', en: 'STATUS'),
       statusValue: _trackingMapStatus(order),
       etaLabel: _trackingEtaLabel(order),
       etaValue: _trackingEtaValue(order),
       locationLabel: isPickup
           ? _t(
-              ru: 'Р СћР С›Р В§Р С™Р С’ Р вЂ™Р В«Р вЂќР С’Р В§Р В',
+              ru: 'ТОЧКА ВЫДАЧИ',
               en: 'PICKUP POINT',
             )
-          : _t(ru: 'Р вЂєР С›Р С™Р С’Р В¦Р ВР Р‡', en: 'LOCATION'),
+          : _t(ru: 'ЛОКАЦИЯ', en: 'LOCATION'),
       locationValue: _composeDeliveryLocation(
         order.deliveryCity,
         order.deliveryAddress,
         order.apartment,
       ),
-      amountLabel: _t(ru: 'Р РЋР Р€Р СљР СљР С’', en: 'TOTAL'),
+      amountLabel: _t(ru: 'СУММА', en: 'TOTAL'),
       amountValue: formatCurrency(order.totalAmount),
       helperText: _trackingMapNote(order),
       footerLabel: _trackingMapFooter(order),
       modeLabel: _trackingModeTag(order),
       cityLabel:
           (order.deliveryCity.isEmpty
-                  ? _t(ru: 'Р вЂњР С›Р В Р С›Р вЂќ', en: 'CITY')
+                  ? _t(ru: 'ГОРОД', en: 'CITY')
                   : order.deliveryCity)
               .toUpperCase(),
       originLabel: isPickup
@@ -2747,7 +2747,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
   ) {
     if (city.isEmpty && address.isEmpty) {
       return _t(
-        ru: 'Р СћР С•РЎвЂЎР С”Р В° Р Р…Р В°Р В·Р Р…Р В°РЎвЂЎР ВµР Р…Р С‘РЎРЏ Р С—Р С•РЎРЏР Р†Р С‘РЎвЂљРЎРѓРЎРЏ Р С—Р С•РЎРѓР В»Р Вµ Р Р†Р Р†Р С•Р Т‘Р В° Р В°Р Т‘РЎР‚Р ВµРЎРѓР В°.',
+        ru: 'Точка назначения появится после ввода адреса.',
         en: 'The destination will appear once the address is entered.',
       );
     }
@@ -2842,37 +2842,37 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
   String _trackingEtaLabel(OrderModel order) {
     if (order.status == OrderStatus.completed) {
       return _t(
-        ru: 'Р вЂ”Р С’Р вЂ™Р вЂўР В Р РЃР вЂўР СњР С› Р вЂ™',
+        ru: 'ЗАВЕРШЕНО В',
         en: 'COMPLETED AT',
       );
     }
     if (order.status == OrderStatus.cancelled) {
       return _t(
-        ru: 'Р С›Р вЂР СњР С›Р вЂ™Р вЂєР вЂўР СњР ВР вЂў',
+        ru: 'ОБНОВЛЕНИЕ',
         en: 'UPDATE',
       );
     }
     if (order.deliveryMethod == DeliveryMethod.pickup) {
       return _t(
-        ru: 'Р С›Р С™Р СњР С› Р вЂ™Р В«Р вЂќР С’Р В§Р В',
+        ru: 'ОКНО ВЫДАЧИ',
         en: 'PICKUP WINDOW',
       );
     }
     return _t(
-      ru: 'Р С›Р вЂ“Р ВР вЂќР С’Р вЂўР СљР С›Р вЂў Р вЂ™Р В Р вЂўР СљР Р‡',
+      ru: 'ОЖИДАЕМОЕ ВРЕМЯ',
       en: 'EXPECTED TIME',
     );
   }
 
   String _trackingEtaValue(OrderModel order) {
     if (order.status == OrderStatus.cancelled) {
-      return _t(ru: 'Р С›Р СћР СљР вЂўР СњР РѓР Сњ', en: 'CANCELLED');
+      return _t(ru: 'ОТМЕНЁН', en: 'CANCELLED');
     }
 
     final eta = _trackingEta(order);
     if (eta == null) {
       return _t(
-        ru: 'Р Р€Р СћР С›Р В§Р СњР Р‡Р вЂўР СћР РЋР Р‡',
+        ru: 'УТОЧНЯЕТСЯ',
         en: 'UPDATING',
       );
     }
@@ -2883,52 +2883,52 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     switch (order.status) {
       case OrderStatus.newOrder:
         return _t(
-          ru: 'Р СљР В°РЎР‚РЎв‚¬РЎР‚РЎС“РЎвЂљ РЎвЂћР С•РЎР‚Р СР С‘РЎР‚РЎС“Р ВµРЎвЂљРЎРѓРЎРЏ',
+          ru: 'Маршрут формируется',
           en: 'Route is forming',
         );
       case OrderStatus.accepted:
         return order.deliveryMethod == DeliveryMethod.pickup
             ? _t(
-                ru: 'Р СџР С•Р Т‘Р С–Р С•РЎвЂљР С•Р Р†Р С”Р В° Р С” Р Р†РЎвЂ№Р Т‘Р В°РЎвЂЎР Вµ',
+                ru: 'Подготовка к выдаче',
                 en: 'Preparing pickup',
               )
             : _t(
-                ru: 'Р СњР В°Р В·Р Р…Р В°РЎвЂЎР В°Р ВµР С Р С”РЎС“РЎР‚РЎРЉР ВµРЎР‚Р В°',
+                ru: 'Назначаем курьера',
                 en: 'Assigning courier',
               );
       case OrderStatus.inProduction:
         return order.deliveryMethod == DeliveryMethod.pickup
             ? _t(
-                ru: 'Р РЋР В±Р С•РЎР‚Р С”Р В° Р В·Р В°Р С”Р В°Р В·Р В°',
+                ru: 'Сборка заказа',
                 en: 'Preparing the order',
               )
             : _t(
-                ru: 'Р Р€Р С—Р В°Р С”Р С•Р Р†Р С”Р В° Р С—Р ВµРЎР‚Р ВµР Т‘ Р Р†РЎвЂ№Р ВµР В·Р Т‘Р С•Р С',
+                ru: 'Упаковка перед выездом',
                 en: 'Packing before dispatch',
               );
       case OrderStatus.ready:
         return order.deliveryMethod == DeliveryMethod.pickup
             ? _t(
-                ru: 'Р вЂњР С•РЎвЂљР С•Р Р† Р С” РЎРѓР В°Р СР С•Р Р†РЎвЂ№Р Р†Р С•Р В·РЎС“',
+                ru: 'Готов к самовывозу',
                 en: 'Ready for pickup',
               )
             : _t(
-                ru: 'Р С™РЎС“РЎР‚РЎРЉР ВµРЎР‚ Р Р† Р С—РЎС“РЎвЂљР С‘',
+                ru: 'Курьер в пути',
                 en: 'Courier en route',
               );
       case OrderStatus.completed:
         return order.deliveryMethod == DeliveryMethod.pickup
             ? _t(
-                ru: 'Р вЂ™РЎвЂ№Р Т‘Р В°Р Р…Р С• Р С”Р В»Р С‘Р ВµР Р…РЎвЂљРЎС“',
+                ru: 'Выдано клиенту',
                 en: 'Picked up',
               )
             : _t(
-                ru: 'Р вЂќР С•РЎРѓРЎвЂљР В°Р Р†Р В»Р ВµР Р…Р С•',
+                ru: 'Доставлено',
                 en: 'Delivered',
               );
       case OrderStatus.cancelled:
         return _t(
-          ru: 'Р вЂ”Р В°Р С”Р В°Р В· Р С•РЎвЂљР СР ВµР Р…РЎвЂР Р…',
+          ru: 'Заказ отменён',
           en: 'Order cancelled',
         );
     }
@@ -2936,15 +2936,15 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
 
   String _trackingMapBadge(OrderModel order) {
     if (order.status == OrderStatus.completed) {
-      return _t(ru: 'Р вЂ”Р С’Р вЂ™Р вЂўР В Р РЃР РѓР Сњ', en: 'COMPLETE');
+      return _t(ru: 'ЗАВЕРШЁН', en: 'COMPLETE');
     }
     if (order.status == OrderStatus.cancelled) {
-      return _t(ru: 'Р С’Р В Р ТђР ВР вЂ™', en: 'ARCHIVED');
+      return _t(ru: 'АРХИВ', en: 'ARCHIVED');
     }
     if (order.deliveryMethod == DeliveryMethod.pickup &&
         order.status == OrderStatus.ready) {
       return _t(
-        ru: 'Р вЂ™Р В«Р вЂќР С’Р В§Р С’ Р С›Р СћР С™Р В Р В«Р СћР С’',
+        ru: 'ВЫДАЧА ОТКРЫТА',
         en: 'PICKUP OPEN',
       );
     }
@@ -2953,7 +2953,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       return _t(ru: 'LIVE UPDATE', en: 'LIVE UPDATE');
     }
     return _t(
-      ru: 'Р РЋР ВР СњР ТђР В Р С›Р СњР ВР вЂ”Р С’Р В¦Р ВР Р‡',
+      ru: 'СИНХРОНИЗАЦИЯ',
       en: 'SYNCED',
     );
   }
@@ -2981,30 +2981,30 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
   String _trackingMapNote(OrderModel order) {
     if (order.status == OrderStatus.completed) {
       return _t(
-        ru: 'Р вЂќР С•РЎРѓРЎвЂљР В°Р Р†Р С”Р В° Р В·Р В°Р Р†Р ВµРЎР‚РЎв‚¬Р ВµР Р…Р В°. Р СњР В° Р С”Р В°РЎР‚РЎвЂљР Вµ РЎРѓР С•РЎвЂ¦РЎР‚Р В°Р Р…РЎвЂР Р… РЎвЂћР С‘Р Р…Р В°Р В»РЎРЉР Р…РЎвЂ№Р в„– Р СР В°РЎР‚РЎв‚¬РЎР‚РЎС“РЎвЂљ Р С‘ Р С‘РЎвЂљР С•Р С–Р С•Р Р†Р В°РЎРЏ РЎРѓРЎС“Р СР СР В° Р В·Р В°Р С”Р В°Р В·Р В° Р Р† РЎвЂљР ВµР Р…Р С–Р Вµ.',
+        ru: 'Доставка завершена. На карте сохранён финальный маршрут и итоговая сумма заказа в тенге.',
         en: 'The delivery is complete. The map keeps the final route and the total order amount in tenge.',
       );
     }
     if (order.status == OrderStatus.cancelled) {
       return _t(
-        ru: 'Р вЂ”Р В°Р С”Р В°Р В· Р С•РЎвЂљР СР ВµР Р…РЎвЂР Р…, Р С—Р С•РЎРЊРЎвЂљР С•Р СРЎС“ live-Р СР В°РЎР‚РЎв‚¬РЎР‚РЎС“РЎвЂљ Р В±Р С•Р В»РЎРЉРЎв‚¬Р Вµ Р Р…Р Вµ Р С•Р В±Р Р…Р С•Р Р†Р В»РЎРЏР ВµРЎвЂљРЎРѓРЎРЏ.',
+        ru: 'Заказ отменён, поэтому live-маршрут больше не обновляется.',
         en: 'The order was cancelled, so the live route is no longer updating.',
       );
     }
     if (order.deliveryMethod == DeliveryMethod.pickup) {
       return _t(
-        ru: 'Р СћР С•РЎвЂЎР С”Р В° Р Р†РЎвЂ№Р Т‘Р В°РЎвЂЎР С‘ Р В·Р В°Р С”РЎР‚Р ВµР С—Р В»Р ВµР Р…Р В° Р Р† Р В·Р В°Р С”Р В°Р В·Р Вµ. Р С™Р В°Р С” РЎвЂљР С•Р В»РЎРЉР С”Р С• Р С‘Р В·Р Т‘Р ВµР В»Р С‘Р Вµ Р В±РЎС“Р Т‘Р ВµРЎвЂљ Р С–Р С•РЎвЂљР С•Р Р†Р С•, Р С•Р С”Р Р…Р С• РЎРѓР В°Р СР С•Р Р†РЎвЂ№Р Р†Р С•Р В·Р В° Р С•РЎРѓРЎвЂљР В°Р Р…Р ВµРЎвЂљРЎРѓРЎРЏ Р В·Р Т‘Р ВµРЎРѓРЎРЉ.',
+        ru: 'Точка выдачи закреплена в заказе. Как только изделие будет готово, окно самовывоза останется здесь.',
         en: 'The pickup point is fixed in the order. Once the garment is ready, the pickup window will stay visible here.',
       );
     }
     if (order.status == OrderStatus.ready) {
       return _t(
-        ru: 'Р С™РЎС“РЎР‚РЎРЉР ВµРЎР‚ РЎС“Р В¶Р Вµ Р Р…Р В° Р СР В°РЎР‚РЎв‚¬РЎР‚РЎС“РЎвЂљР Вµ. ETA Р С•Р В±Р Р…Р С•Р Р†Р В»РЎРЏР ВµРЎвЂљРЎРѓРЎРЏ Р С•РЎвЂљ Р С—Р С•РЎРѓР В»Р ВµР Т‘Р Р…Р ВµР в„– Р С—Р ВµРЎР‚Р ВµР Т‘Р В°РЎвЂЎР С‘ Р В·Р В°Р С”Р В°Р В·Р В° Р Р† Р Т‘Р С•РЎРѓРЎвЂљР В°Р Р†Р С”РЎС“.',
+        ru: 'Курьер уже на маршруте. ETA обновляется от последней передачи заказа в доставку.',
         en: 'The courier is already on the route. ETA updates from the latest handoff to delivery.',
       );
     }
     return _t(
-      ru: 'Р СљР В°РЎР‚РЎв‚¬РЎР‚РЎС“РЎвЂљ Р С—Р С•Р Т‘Р С–Р С•РЎвЂљР С•Р Р†Р В»Р ВµР Р… Р В·Р В°РЎР‚Р В°Р Р…Р ВµР Вµ: Р С”Р В°Р С” РЎвЂљР С•Р В»РЎРЉР С”Р С• Р В·Р В°Р С”Р В°Р В· Р С—Р ВµРЎР‚Р ВµР в„–Р Т‘РЎвЂРЎвЂљ Р Р† Р Т‘Р С•РЎРѓРЎвЂљР В°Р Р†Р С”РЎС“, Р С”Р В°РЎР‚РЎвЂљР В° Р В°Р Р†РЎвЂљР С•Р СР В°РЎвЂљР С‘РЎвЂЎР ВµРЎРѓР С”Р С‘ РЎРѓРЎвЂљР В°Р Р…Р ВµРЎвЂљ live.',
+      ru: 'Маршрут подготовлен заранее: как только заказ перейдёт в доставку, карта автоматически станет live.',
       en: 'The route is prepared in advance. As soon as the order enters delivery, the map will switch to live mode.',
     );
   }
@@ -3202,7 +3202,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             children: [
               Expanded(
                 child: Text(
-                  '${_t(ru: 'Р РЋР С›Р В Р СћР ВР В Р С›Р вЂ™Р С’Р СћР В¬', en: 'SORT', kk: 'Р РЋРўВ°Р В Р В«Р СџР СћР С’Р Р€')}: ${_sortOption.labelFor(_language).toUpperCase()}',
+                  '${_t(ru: 'СОРТИРОВАТЬ', en: 'SORT', kk: 'СҰРЫПТАУ')}: ${_sortOption.labelFor(_language).toUpperCase()}',
                   style: AppTypography.button.copyWith(letterSpacing: 2.2),
                 ),
               ),
@@ -3222,9 +3222,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       children: [
         Text(
           _t(
-            ru: 'Р В Р С’Р вЂ”Р СљР вЂўР В  Р С™Р С’Р В Р СћР С›Р В§Р вЂўР С™',
+            ru: 'РАЗМЕР КАРТОЧЕК',
             en: 'CARD SIZE',
-            kk: 'Р С™Р С’Р В Р СћР С›Р В§Р С™Р С’ РЈРЃР вЂєР РЃР вЂўР СљР вЂ ',
+            kk: 'КАРТОЧКА ӨЛШЕМІ',
           ),
           style: AppTypography.eyebrow,
         ),
@@ -3250,18 +3250,18 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                     ),
                     child: Text(
                       '${catalogCardSizeLabel(size)} / ${_t(ru: size == CatalogCardSize.compact
-                          ? 'Р СљР вЂўР СњР В¬Р РЃР вЂў'
+                          ? 'МЕНЬШЕ'
                           : size == CatalogCardSize.standard
-                          ? 'Р вЂР С’Р вЂєР С’Р СњР РЋ'
-                          : 'Р С™Р В Р Р€Р СџР СњР вЂўР вЂў', en: size == CatalogCardSize.compact
+                          ? 'БАЛАНС'
+                          : 'КРУПНЕЕ', en: size == CatalogCardSize.compact
                           ? 'SMALL'
                           : size == CatalogCardSize.standard
                           ? 'BALANCED'
                           : 'LARGE', kk: size == CatalogCardSize.compact
-                          ? 'Р С™Р вЂ Р РЃР вЂ Р В Р вЂўР С™'
+                          ? 'КІШІРЕК'
                           : size == CatalogCardSize.standard
-                          ? 'Р СћР вЂўРўСћР вЂњР вЂўР В Р вЂ Р вЂєР вЂњР вЂўР Сњ'
-                          : 'Р вЂ Р В Р вЂ Р В Р вЂўР С™')}',
+                          ? 'ТЕҢГЕРІЛГЕН'
+                          : 'ІРІРЕК')}',
                       textAlign: TextAlign.center,
                       style: AppTypography.button.copyWith(
                         color: isActive ? AppColors.white : AppColors.black,
@@ -3298,9 +3298,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             children: [
               _selectionPill(
                 label: _t(
-                  ru: 'Р вЂ™РЎРѓР Вµ',
+                  ru: 'Все',
                   en: 'All',
-                  kk: 'Р вЂР В°РЎР‚Р В»РЎвЂ№РўвЂњРЎвЂ№',
+                  kk: 'Барлығы',
                 ),
                 selected: selectedValue == null,
                 onTap: () => onChanged(null),
@@ -3604,9 +3604,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                     right: 12,
                     child: _metaChip(
                       _t(
-                        ru: 'Р СњР С•Р Р†Р С‘Р Р…Р С”Р В°',
+                        ru: 'Новинка',
                         en: 'New',
-                        kk: 'Р вЂ“Р В°РўР€Р В°',
+                        kk: 'Жаңа',
                       ),
                     ),
                   ),
@@ -3682,9 +3682,9 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               _metaChip(product.defaultSize),
               _metaChip(
                 _t(
-                  ru: '${product.colors.length} РЎвЂ Р Р†Р ВµРЎвЂљР В°',
+                  ru: '${product.colors.length} цвета',
                   en: '${product.colors.length} colors',
-                  kk: '${product.colors.length} РЎвЂљРўР‡РЎРѓ',
+                  kk: '${product.colors.length} түс',
                 ),
               ),
             ],
@@ -3708,7 +3708,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             children: [
               Expanded(
                 child: Text(
-                  '${_t(ru: 'Р вЂ”Р С’Р С™Р С’Р вЂ”', en: 'ORDER', kk: 'Р СћР С’Р СџР РЋР В«Р В Р В«Р РЋ')} #${order.shortId}',
+                  '${_t(ru: 'ЗАКАЗ', en: 'ORDER', kk: 'ТАПСЫРЫС')} #${order.shortId}',
                   style: AppTypography.eyebrow,
                 ),
               ),
@@ -3822,16 +3822,16 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                       children: [
                         Text(
                           _t(
-                            ru: 'Р В Р С’Р вЂ”Р вЂќР вЂўР вЂєР В« Р С™Р С’Р СћР С’Р вЂєР С›Р вЂњР С’',
+                            ru: 'РАЗДЕЛЫ КАТАЛОГА',
                             en: 'CATALOG SECTIONS',
-                            kk: 'Р С™Р С’Р СћР С’Р вЂєР С›Р вЂњ Р вЂРЈРЃР вЂєР вЂ Р СљР вЂќР вЂўР В Р вЂ ',
+                            kk: 'КАТАЛОГ БӨЛІМДЕРІ',
                           ),
                           style: AppTypography.eyebrow,
                         ),
                         const SizedBox(height: 8),
                         Text(
                           _t(
-                            ru: 'Р вЂРЎвЂ№РЎРѓРЎвЂљРЎР‚РЎвЂ№Р в„– Р С—Р ВµРЎР‚Р ВµРЎвЂ¦Р С•Р Т‘ Р С—Р С• Р С”Р С•Р В»Р В»Р ВµР С”РЎвЂ Р С‘РЎРЏР С Р Р† Р СР С•Р В±Р С‘Р В»РЎРЉР Р…Р С•Р в„– Р В°Р Т‘Р В°Р С—РЎвЂљР В°РЎвЂ Р С‘Р С‘.',
+                            ru: 'Быстрый переход по коллекциям в мобильной адаптации.',
                             en: 'Fast navigation between collections in mobile mode.',
                           ),
                           style: Theme.of(dialogContext).textTheme.bodyMedium,
@@ -3852,7 +3852,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                         const SizedBox(height: 14),
                         AvishuButton(
                           text: _t(
-                            ru: 'Р СњР С’Р РЋР СћР В Р С›Р в„ўР С™Р В',
+                            ru: 'НАСТРОЙКИ',
                             en: 'SETTINGS',
                           ),
                           expanded: true,
@@ -3921,7 +3921,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                               Expanded(
                                 child: Text(
                                   _t(
-                                    ru: 'Р В Р С’Р вЂ”Р СљР вЂўР В Р СњР С’Р Р‡ Р РЋР вЂўР СћР С™Р С’',
+                                    ru: 'РАЗМЕРНАЯ СЕТКА',
                                     en: 'SIZE GUIDE',
                                   ),
                                   style: Theme.of(
@@ -3960,13 +3960,13 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
 
   Widget _sizeGuideTable(SizeGuideGroup group) {
     final title = switch (group.title) {
-      'Р вЂР В°Р В·Р С•Р Р†РЎвЂ№Р Вµ РЎР‚Р В°Р В·Р СР ВµРЎР‚РЎвЂ№' => _t(
-        ru: 'Р вЂР С’Р вЂ”Р С›Р вЂ™Р В«Р вЂў Р В Р С’Р вЂ”Р СљР вЂўР В Р В«',
+      'Базовые размеры' => _t(
+        ru: 'БАЗОВЫЕ РАЗМЕРЫ',
         en: 'BASE SIZES',
       ),
-      'Р В Р В°Р В·Р СР ВµРЎР‚РЎвЂ№ Plus (+20% Р С” РЎРѓРЎвЂљР С•Р С‘Р СР С•РЎРѓРЎвЂљР С‘)' =>
+      'Размеры Plus (+20% к стоимости)' =>
         _t(
-          ru: 'Р В Р С’Р вЂ”Р СљР вЂўР В Р В« PLUS (+20% Р С™ Р РЋР СћР С›Р ВР СљР С›Р РЋР СћР В)',
+          ru: 'РАЗМЕРЫ PLUS (+20% К СТОИМОСТИ)',
           en: 'PLUS SIZES (+20% PRICE)',
         ),
       _ => group.title.toUpperCase(),
@@ -4022,21 +4022,21 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                         ),
                         _measurementRow(
                           _t(
-                            ru: 'Р С›Р В±РЎвЂ¦Р Р†Р В°РЎвЂљ Р С–РЎР‚РЎС“Р Т‘Р С‘',
+                            ru: 'Обхват груди',
                             en: 'Bust',
                           ),
                           group.columns.map((column) => column.chest).toList(),
                         ),
                         _measurementRow(
                           _t(
-                            ru: 'Р С›Р В±РЎвЂ¦Р Р†Р В°РЎвЂљ РЎвЂљР В°Р В»Р С‘Р С‘',
+                            ru: 'Обхват талии',
                             en: 'Waist',
                           ),
                           group.columns.map((column) => column.waist).toList(),
                         ),
                         _measurementRow(
                           _t(
-                            ru: 'Р С›Р В±РЎвЂ¦Р Р†Р В°РЎвЂљ Р В±Р ВµР Т‘Р ВµРЎР‚',
+                            ru: 'Обхват бедер',
                             en: 'Hips',
                           ),
                           group.columns.map((column) => column.hips).toList(),
@@ -4105,7 +4105,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               children: [
                 _sizeGuideMetricRow(
                   _t(
-                    ru: 'Р С›Р В±РЎвЂ¦Р Р†Р В°РЎвЂљ Р С–РЎР‚РЎС“Р Т‘Р С‘',
+                    ru: 'Обхват груди',
                     en: 'Bust',
                   ),
                   column.chest,
@@ -4115,7 +4115,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                 const SizedBox(height: 10),
                 _sizeGuideMetricRow(
                   _t(
-                    ru: 'Р С›Р В±РЎвЂ¦Р Р†Р В°РЎвЂљ РЎвЂљР В°Р В»Р С‘Р С‘',
+                    ru: 'Обхват талии',
                     en: 'Waist',
                   ),
                   column.waist,
@@ -4125,7 +4125,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                 const SizedBox(height: 10),
                 _sizeGuideMetricRow(
                   _t(
-                    ru: 'Р С›Р В±РЎвЂ¦Р Р†Р В°РЎвЂљ Р В±Р ВµР Т‘Р ВµРЎР‚',
+                    ru: 'Обхват бедер',
                     en: 'Hips',
                   ),
                   column.hips,
