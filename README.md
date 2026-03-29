@@ -481,6 +481,36 @@ lib/features/orders/presentation/client/dashboard_sections/
 
 Это сделано специально: секции уже вынесены, но orchestration экрана пока остаётся в одном месте и по-прежнему читается сверху вниз.
 
+### Why Avishu presentation
+
+После рефакторинга экран ценности франшизы живёт в отдельном срезе:
+
+```text
+lib/features/franchise_value/presentation/why_avishu/
+  atoms/
+    why_avishu_metric_box.dart
+    why_avishu_surface_card.dart
+  molecules/
+    why_avishu_flow_step_row.dart
+    why_avishu_value_card.dart
+  organisms/
+    why_avishu_closing_section.dart
+    why_avishu_flow_section.dart
+    why_avishu_hero_section.dart
+    why_avishu_live_summary_section.dart
+    why_avishu_value_blocks_section.dart
+  content/
+    why_avishu_content.dart
+  models/
+    why_avishu_metrics.dart
+  screen/
+    why_avishu_body.dart
+    why_avishu_screen.dart
+  why_avishu.dart
+```
+
+Старые файлы `presentation/why_avishu_screen.dart`, `presentation/why_avishu_content.dart` и `presentation/why_avishu_metrics.dart` оставлены как совместимые barrel-файлы, чтобы роутер, тесты и существующие импорты не ломались.
+
 ## Договорённости по коду
 
 Это важнее любой схемы папок.
