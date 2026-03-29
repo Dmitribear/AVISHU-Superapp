@@ -18,6 +18,11 @@ import '../../../orders/domain/enums/order_status.dart';
 import '../../../orders/domain/models/order_model.dart';
 import '../../../orders/domain/services/order_analytics_service.dart';
 import '../../../orders/domain/services/order_map_location_resolver.dart';
+import '../../../products/data/product_repository.dart';
+import '../../../products/domain/enums/product_status.dart';
+import '../../../products/domain/models/product_model.dart';
+import '../../../products/presentation/franchisee_product_studio/franchisee_product_editor_view.dart';
+import '../../../products/presentation/franchisee_product_studio/franchisee_product_studio_view.dart';
 import '../../../users/data/user_profile_repository.dart';
 import '../../../users/domain/models/user_profile.dart';
 import '../shared/order_digital_twin_card.dart';
@@ -39,7 +44,11 @@ final franchiseeAnalyticsOrdersProvider = StreamProvider<List<OrderModel>>((
   return ref.watch(orderRepositoryProvider).franchiseeOrders();
 });
 
-enum FranchiseeTab { dashboard, queue, ready, profile }
+final franchiseeProductsProvider = StreamProvider<List<ProductModel>>((ref) {
+  return ref.watch(productRepositoryProvider).watchAllProducts();
+});
+
+enum FranchiseeTab { dashboard, queue, ready, catalog, profile }
 
 class FranchiseeDashboard extends ConsumerStatefulWidget {
   const FranchiseeDashboard({super.key});
@@ -52,8 +61,10 @@ class FranchiseeDashboard extends ConsumerStatefulWidget {
 class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
   FranchiseeTab _tab = FranchiseeTab.dashboard;
   OrderModel? _selectedOrder;
+  ProductModel? _selectedProduct;
   bool _isSubmitting = false;
   bool _isCourierSyncing = false;
+  bool _isProductSaving = false;
   bool _hasReadyBadge = false;
   final _noteController = TextEditingController();
 
@@ -69,6 +80,50 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
     return tr(_language, ru: ru, en: en, kk: kk);
   }
 
+  String get _metaLabel {
+    if (_selectedOrder != null) {
+      return _t(
+        ru: 'ФРАНЧАЙЗИ / КАРТОЧКА',
+        en: 'FRANCHISEE / DETAIL',
+        kk: 'ФРАНЧАЙЗИ / КАРТОЧКА',
+      );
+    }
+    if (_selectedProduct != null) {
+      return _t(
+        ru: 'ФРАНЧАЙЗИ / ТОВАР',
+        en: 'FRANCHISEE / PRODUCT',
+        kk: 'ФРАНЧАЙЗИ / ТАУАР',
+      );
+    }
+    return switch (_tab) {
+      FranchiseeTab.dashboard => _t(
+        ru: 'ФРАНЧАЙЗИ / ЗАКАЗЫ',
+        en: 'FRANCHISEE / ORDERS',
+        kk: 'ФРАНЧАЙЗИ / ТАПСЫРЫСТАР',
+      ),
+      FranchiseeTab.queue => _t(
+        ru: 'ФРАНЧАЙЗИ / ПОТОК',
+        en: 'FRANCHISEE / FLOW',
+        kk: 'ФРАНЧАЙЗИ / АҒЫН',
+      ),
+      FranchiseeTab.ready => _t(
+        ru: 'ФРАНЧАЙЗИ / ГОТОВО',
+        en: 'FRANCHISEE / READY',
+        kk: 'ФРАНЧАЙЗИ / ДАЙЫН',
+      ),
+      FranchiseeTab.catalog => _t(
+        ru: 'ФРАНЧАЙЗИ / ТОВАРЫ',
+        en: 'FRANCHISEE / PRODUCTS',
+        kk: 'ФРАНЧАЙЗИ / ТАУАР',
+      ),
+      FranchiseeTab.profile => _t(
+        ru: 'ФРАНЧАЙЗИ / ПРОФИЛЬ',
+        en: 'FRANCHISEE / PROFILE',
+        kk: 'ФРАНЧАЙЗИ / ПРОФИЛЬ',
+      ),
+    };
+  }
+
   List<AvishuNavItem> get _navItems => [
     AvishuNavItem(
       label: _t(ru: 'ПАНЕЛЬ', en: 'HOME', kk: 'ПАНЕЛЬ'),
@@ -82,6 +137,10 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
       label: _t(ru: 'ГОТОВО', en: 'READY', kk: 'ДАЙЫН'),
       icon: Icons.inventory_2_outlined,
       badge: _hasReadyBadge,
+    ),
+    AvishuNavItem(
+      label: _t(ru: 'ТОВАРЫ', en: 'PRODUCTS', kk: 'ТАУАР'),
+      icon: Icons.sell_outlined,
     ),
     AvishuNavItem(
       label: _t(ru: 'ПРОФИЛЬ', en: 'PROFILE', kk: 'ПРОФИЛЬ'),
@@ -105,24 +164,20 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
 
     return AvishuMobileFrame(
       title: 'AVISHU',
-      metaLabel: _selectedOrder == null
-          ? _t(
-              ru: 'ФРАНЧАЙЗИ / ЗАКАЗЫ',
-              en: 'FRANCHISEE / ORDERS',
-              kk: 'ФРАНЧАЙЗИ / ТАПСЫРЫСТАР',
-            )
-          : _t(
-              ru: 'ФРАНЧАЙЗИ / КАРТОЧКА',
-              en: 'FRANCHISEE / DETAIL',
-              kk: 'ФРАНЧАЙЗИ / КАРТОЧКА',
-            ),
-      leadingIcon: _selectedOrder == null ? Icons.menu : Icons.arrow_back,
+      metaLabel: _metaLabel,
+      leadingIcon: _selectedOrder == null && _selectedProduct == null
+          ? Icons.menu
+          : Icons.arrow_back,
       actionIcon: null,
       currentIndex: _tab.index,
       navItems: _navItems,
       onLeadingTap: () {
         if (_selectedOrder == null) {
-          showAppSettingsSheet(context);
+          if (_selectedProduct == null) {
+            showAppSettingsSheet(context);
+          } else {
+            setState(() => _selectedProduct = null);
+          }
         } else {
           setState(() => _selectedOrder = null);
         }
@@ -132,6 +187,7 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
         setState(() {
           _tab = FranchiseeTab.values[index];
           _selectedOrder = null;
+          _selectedProduct = null;
           if (_tab == FranchiseeTab.ready) _hasReadyBadge = false;
         });
       },
@@ -148,16 +204,24 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
               if (mounted) setState(() => _hasReadyBadge = false);
             });
           }
+          final products =
+              ref.watch(franchiseeProductsProvider).value ??
+              const <ProductModel>[];
           final selectedOrder = _resolveSelectedOrder(orders);
+          final selectedProduct = _resolveSelectedProduct(products);
           return SingleChildScrollView(
             key: PageStorageKey(
-              'franchisee-${_tab.index}-${_selectedOrder?.id ?? 'none'}',
+              'franchisee-${_tab.index}-${_selectedOrder?.id ?? _selectedProduct?.id ?? 'none'}',
             ),
             padding: const EdgeInsets.fromLTRB(18, 18, 18, 22),
             child: _selectedOrder != null
                 ? _detailView(
                     selectedOrder ?? _selectedOrder!,
                     profiles: profiles,
+                  )
+                : _selectedProduct != null
+                ? _buildProductStudioEditor(
+                    selectedProduct ?? _selectedProduct!,
                   )
                 : _rootView(orders, profiles: profiles, analytics: analytics),
           );
@@ -331,6 +395,7 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
           ),
         ],
       ),
+      FranchiseeTab.catalog => _buildProductStudioTab(),
       FranchiseeTab.profile => _buildProfileTab(),
     };
   }
@@ -427,6 +492,90 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
         ),
       ],
     );
+  }
+
+  Widget _buildProductStudioTab() {
+    final products =
+        ref.watch(franchiseeProductsProvider).value ?? const <ProductModel>[];
+
+    return FranchiseeProductStudioView(
+      language: _language,
+      products: products,
+      onCreateProduct: () {
+        setState(
+          () => _selectedProduct = ProductModel(
+            id: '',
+            name: '',
+            slug: '',
+            description: '',
+            shortDescription: '',
+            category: '',
+            material: '',
+            silhouette: '',
+            atelierNote: '',
+            sections: const <String>[],
+            colors: const <String>[],
+            sizes: const <String>[],
+            defaultColor: '',
+            defaultSize: '',
+            specifications: const <ProductSpecEntry>[],
+            care: const <String>[],
+            price: 0,
+            currency: 'KZT',
+            coverImage: '',
+            gallery: const <String>[],
+            isPreorderAvailable: false,
+            defaultProductionDays: 0,
+            status: ProductStatus.active,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          ),
+        );
+      },
+      onEditProduct: (product) {
+        setState(() => _selectedProduct = product);
+      },
+    );
+  }
+
+  Widget _buildProductStudioEditor(ProductModel product) {
+    final isDraftProduct = product.id.isEmpty && product.name.isEmpty;
+
+    return FranchiseeProductEditorView(
+      language: _language,
+      initialProduct: isDraftProduct ? null : product,
+      isSaving: _isProductSaving,
+      onCancel: () {
+        setState(() => _selectedProduct = null);
+      },
+      onSave: _saveProduct,
+    );
+  }
+
+  Future<void> _saveProduct(ProductModel product) async {
+    if (_isProductSaving) {
+      return;
+    }
+
+    setState(() => _isProductSaving = true);
+    try {
+      await ref.read(productRepositoryProvider).upsertProduct(product);
+      if (!mounted) {
+        return;
+      }
+      setState(() => _selectedProduct = null);
+      _showSnack(
+        _t(
+          ru: 'Карточка товара сохранена.',
+          en: 'Product card saved.',
+          kk: 'Тауар карточкасы сақталды.',
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isProductSaving = false);
+      }
+    }
   }
 
   Widget _detailView(
@@ -985,9 +1134,29 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
     return selectedOrder;
   }
 
+  ProductModel? _resolveSelectedProduct(List<ProductModel> products) {
+    final selectedProduct = _selectedProduct;
+    if (selectedProduct == null || selectedProduct.id.isEmpty) {
+      return selectedProduct;
+    }
+
+    for (final product in products) {
+      if (product.id == selectedProduct.id) {
+        return product;
+      }
+    }
+    return selectedProduct;
+  }
+
   void _openOrder(OrderModel order) {
     _noteController.text = order.franchiseeNote;
     setState(() => _selectedOrder = order);
+  }
+
+  void _showSnack(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _syncCourierLocation(OrderModel order, double progress) async {

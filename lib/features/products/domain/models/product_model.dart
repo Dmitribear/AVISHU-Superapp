@@ -38,6 +38,8 @@ class ProductModel {
   final List<String> care;
   final double price;
   final String currency;
+  final bool isInStock;
+  final Map<String, bool> sizeAvailability;
   final String coverImage;
   final List<String> gallery;
   final bool isPreorderAvailable;
@@ -65,6 +67,8 @@ class ProductModel {
     required this.care,
     required this.price,
     required this.currency,
+    this.isInStock = true,
+    this.sizeAvailability = const <String, bool>{},
     required this.coverImage,
     required this.gallery,
     required this.isPreorderAvailable,
@@ -100,9 +104,15 @@ class ProductModel {
     final care = stringListFromFirestoreValue(data['care']);
     final colors = stringListFromFirestoreValue(data['colors']);
     final sizes = stringListFromFirestoreValue(data['sizes']);
+    final sizeAvailability = stringBoolMapFromFirestoreValue(
+      data['sizeAvailability'],
+    );
     final sections = stringListFromFirestoreValue(data['sections']);
     final description = stringFromFirestoreValue(data['description']);
     final rawShortDesc = stringFromFirestoreValue(data['shortDescription']);
+    final isPreorderAvailable = boolFromFirestoreValue(
+      data['isPreorderAvailable'],
+    );
 
     return ProductModel(
       id: stringFromFirestoreValue(data['id'], fallback: doc.id),
@@ -131,11 +141,16 @@ class ProductModel {
       care: care,
       price: doubleFromFirestoreValue(data['price']),
       currency: stringFromFirestoreValue(data['currency'], fallback: 'KZT'),
+      isInStock: boolFromFirestoreValue(
+        data['isInStock'],
+        fallback: !isPreorderAvailable,
+      ),
+      sizeAvailability: sizeAvailability,
       coverImage: coverImage,
       gallery: gallery.isEmpty && coverImage.isNotEmpty
           ? <String>[coverImage]
           : gallery,
-      isPreorderAvailable: boolFromFirestoreValue(data['isPreorderAvailable']),
+      isPreorderAvailable: isPreorderAvailable,
       defaultProductionDays: intFromFirestoreValue(
         data['defaultProductionDays'],
       ),
@@ -165,6 +180,8 @@ class ProductModel {
       'care': care,
       'price': price,
       'currency': currency,
+      'isInStock': isInStock,
+      'sizeAvailability': sizeAvailability,
       'coverImage': coverImage,
       'gallery': gallery,
       'isPreorderAvailable': isPreorderAvailable,
@@ -173,6 +190,74 @@ class ProductModel {
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
     };
+  }
+
+  bool isSizeAvailable(String size) {
+    if (sizeAvailability.isEmpty) {
+      return true;
+    }
+    return sizeAvailability[size] ?? true;
+  }
+
+  ProductModel copyWith({
+    String? id,
+    String? name,
+    String? slug,
+    String? description,
+    String? shortDescription,
+    String? category,
+    String? material,
+    String? silhouette,
+    String? atelierNote,
+    List<String>? sections,
+    List<String>? colors,
+    List<String>? sizes,
+    String? defaultColor,
+    String? defaultSize,
+    List<ProductSpecEntry>? specifications,
+    List<String>? care,
+    double? price,
+    String? currency,
+    bool? isInStock,
+    Map<String, bool>? sizeAvailability,
+    String? coverImage,
+    List<String>? gallery,
+    bool? isPreorderAvailable,
+    int? defaultProductionDays,
+    ProductStatus? status,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return ProductModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      slug: slug ?? this.slug,
+      description: description ?? this.description,
+      shortDescription: shortDescription ?? this.shortDescription,
+      category: category ?? this.category,
+      material: material ?? this.material,
+      silhouette: silhouette ?? this.silhouette,
+      atelierNote: atelierNote ?? this.atelierNote,
+      sections: sections ?? this.sections,
+      colors: colors ?? this.colors,
+      sizes: sizes ?? this.sizes,
+      defaultColor: defaultColor ?? this.defaultColor,
+      defaultSize: defaultSize ?? this.defaultSize,
+      specifications: specifications ?? this.specifications,
+      care: care ?? this.care,
+      price: price ?? this.price,
+      currency: currency ?? this.currency,
+      isInStock: isInStock ?? this.isInStock,
+      sizeAvailability: sizeAvailability ?? this.sizeAvailability,
+      coverImage: coverImage ?? this.coverImage,
+      gallery: gallery ?? this.gallery,
+      isPreorderAvailable: isPreorderAvailable ?? this.isPreorderAvailable,
+      defaultProductionDays:
+          defaultProductionDays ?? this.defaultProductionDays,
+      status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
   }
 
   static String _truncate(String text, int maxLength) {

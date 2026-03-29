@@ -28,6 +28,8 @@ void main() {
       sizes: const ['S', 'M'],
       defaultColor: 'Black',
       defaultSize: 'S',
+      isInStock: true,
+      sizeAvailability: const {'S': false, 'M': true},
       sections: const ['Юбки'],
       silhouette: 'A-Line',
       material: 'Wool',
@@ -42,5 +44,10 @@ void main() {
     expect(catalogProduct.price, 35500);
     expect(catalogProduct.sections, contains('Юбки'));
     expect(catalogProduct.imageUrls.first, 'https://example.com/cover.jpg');
+    expect(catalogProduct.inStock, isTrue);
+    expect(catalogProduct.defaultSize, 'M');
+    expect(catalogProduct.isSizeAvailable('S'), isFalse);
+    expect(catalogProduct.isSizeAvailable('M'), isTrue);
+    expect(catalogProduct.firstAvailableSize, 'M');
   });
 }

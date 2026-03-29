@@ -58,6 +58,7 @@ class CatalogProduct {
   final String defaultColor;
   final List<String> sizes;
   final String defaultSize;
+  final Map<String, bool> sizeAvailability;
   final List<String> imageUrls;
   final List<ProductSpec> specifications;
   final List<String> care;
@@ -81,6 +82,7 @@ class CatalogProduct {
     required this.defaultColor,
     required this.sizes,
     required this.defaultSize,
+    this.sizeAvailability = const <String, bool>{},
     required this.imageUrls,
     required this.specifications,
     required this.care,
@@ -93,7 +95,50 @@ class CatalogProduct {
 
   String get availabilityLabel => availabilityLabelFor(AppLanguage.russian);
 
+  bool isSizeAvailable(String size) {
+    if (sizeAvailability.isEmpty) {
+      return true;
+    }
+    return sizeAvailability[size] ?? true;
+  }
+
+  bool get hasAvailableSizes {
+    for (final size in sizes) {
+      if (isSizeAvailable(size)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  String get firstAvailableSize {
+    for (final size in sizes) {
+      if (isSizeAvailable(size)) {
+        return size;
+      }
+    }
+    return '';
+  }
+
+  int get unavailableSizeCount {
+    var unavailableCount = 0;
+    for (final size in sizes) {
+      if (!isSizeAvailable(size)) {
+        unavailableCount++;
+      }
+    }
+    return unavailableCount;
+  }
+
   String availabilityLabelFor(AppLanguage language) {
+    if (!hasAvailableSizes) {
+      return tr(
+        language,
+        ru: 'Размеры недоступны',
+        en: 'Sizes Unavailable',
+        kk: 'Өлшемдер қолжетімсіз',
+      );
+    }
     return localizedAvailabilityLabel(
       language,
       inStock: inStock,
@@ -547,6 +592,7 @@ CatalogProduct catalogProductFromFirestore(ProductModel product) {
   final sizes = product.sizes.isNotEmpty
       ? product.sizes
       : (fallback?.sizes ?? _defaultSizes(categoryLabel));
+  final sizeAvailability = _normalizedSizeAvailability(product, sizes);
 
   final imageUrls = product.gallery.isNotEmpty
       ? product.gallery
@@ -589,7 +635,9 @@ CatalogProduct catalogProductFromFirestore(ProductModel product) {
               ProductSpec(label: 'Артикул', value: product.slug.toUpperCase()),
               ProductSpec(
                 label: 'Пошив',
-                value: product.isPreorderAvailable ? productionDays : 'В наличии',
+                value: product.isPreorderAvailable
+                    ? productionDays
+                    : 'В наличии',
               ),
             ]);
 
@@ -608,6 +656,9 @@ CatalogProduct catalogProductFromFirestore(ProductModel product) {
   final defaultSize = product.defaultSize.isNotEmpty
       ? product.defaultSize
       : (fallback?.defaultSize ?? (sizes.isNotEmpty ? sizes.first : ''));
+  final resolvedDefaultSize = sizeAvailability[defaultSize] == false
+      ? _firstAvailableSize(sizes, sizeAvailability)
+      : defaultSize;
 
   return CatalogProduct(
     id: product.id,
@@ -620,13 +671,14 @@ CatalogProduct catalogProductFromFirestore(ProductModel product) {
     sku: product.slug.toUpperCase(),
     price: product.price,
     preorder: product.isPreorderAvailable,
-    inStock: !product.isPreorderAvailable,
+    inStock: product.isInStock,
     shortDescription: shortDescription,
     description: description,
     colors: colors,
     defaultColor: defaultColor,
     sizes: sizes,
-    defaultSize: defaultSize,
+    defaultSize: resolvedDefaultSize,
+    sizeAvailability: sizeAvailability,
     imageUrls: imageUrls.isNotEmpty
         ? imageUrls
         : const <String>[
@@ -746,4 +798,31 @@ String _shortDescription(String description) {
     return compact;
   }
   return '${compact.substring(0, 107).trim()}...';
+}
+
+Map<String, bool> _normalizedSizeAvailability(
+  ProductModel product,
+  List<String> sizes,
+) {
+  if (sizes.isEmpty) {
+    return const <String, bool>{};
+  }
+
+  final normalized = <String, bool>{};
+  for (final size in sizes) {
+    normalized[size] = product.sizeAvailability[size] ?? true;
+  }
+  return normalized;
+}
+
+String _firstAvailableSize(
+  List<String> sizes,
+  Map<String, bool> sizeAvailability,
+) {
+  for (final size in sizes) {
+    if (sizeAvailability[size] ?? true) {
+      return size;
+    }
+  }
+  return sizes.isNotEmpty ? sizes.first : '';
 }
