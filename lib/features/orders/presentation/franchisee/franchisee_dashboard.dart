@@ -872,13 +872,17 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
 
   Widget _metricCard(String label, String value) {
     return _surfaceCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: AppTypography.eyebrow),
-          const SizedBox(height: 10),
-          Text(value, style: Theme.of(context).textTheme.titleLarge),
-        ],
+      child: SizedBox(
+        height: 100,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(label, style: AppTypography.eyebrow),
+            const SizedBox(height: 10),
+            Text(value, style: Theme.of(context).textTheme.titleLarge),
+          ],
+        ),
       ),
     );
   }
@@ -981,6 +985,7 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
 
   Widget _analyticsMetricCell(String label, String value) {
     return Container(
+      height: 88,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppColors.surfaceLow,
@@ -988,6 +993,7 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(label, style: AppTypography.eyebrow),
           const SizedBox(height: 8),
