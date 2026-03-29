@@ -195,7 +195,6 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
       },
       body: ordersAsync.when(
         data: (orders) {
-          // Show badge when there are ready orders the user hasn't seen yet
           final hasReady = orders.any((o) => o.status == OrderStatus.ready);
           if (hasReady && _tab != FranchiseeTab.ready && !_hasReadyBadge) {
             WidgetsBinding.instance.addPostFrameCallback((_) {

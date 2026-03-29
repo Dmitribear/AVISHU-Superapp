@@ -3,13 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/theme/colors.dart';
-import '../../../../core/theme/typography.dart';
 import '../../../../shared/i18n/app_localization.dart';
 import '../../../../shared/providers/app_settings.dart';
 import '../../../../shared/providers/global_state.dart';
 import '../../../../shared/widgets/app_settings_sheet.dart';
-import '../../../../shared/widgets/avishu_button.dart';
 import '../../../../shared/widgets/avishu_mobile_frame.dart';
 import '../../../auth/data/auth_repository.dart';
 import '../../../auth/domain/user_role.dart';
@@ -19,8 +16,8 @@ import '../../../orders/domain/models/order_model.dart';
 import '../../../orders/domain/services/order_analytics_service.dart';
 import '../../../users/data/user_profile_repository.dart';
 import '../../../users/domain/models/user_profile.dart';
+import 'dashboard_sections/production_dashboard_sections.dart';
 import '../shared/desk_help/desk_help.dart';
-import '../shared/order_digital_twin_card.dart';
 import '../shared/order_panels.dart';
 
 final productionAllOrdersProvider = StreamProvider<List<OrderModel>>((ref) {
@@ -130,7 +127,7 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
           final selectedOrder = _resolveSelectedOrder(orders);
           return SingleChildScrollView(
             key: PageStorageKey(
-              'production-${_tab.index}-${_selectedOrder?.id ?? 'none'}',
+              'production-${_tab.index}-${_selectedOrder?.id ?? "none"}',
             ),
             padding: const EdgeInsets.fromLTRB(18, 18, 18, 22),
             child: _selectedOrder != null
@@ -171,419 +168,370 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
     final current = inProduction.isNotEmpty
         ? inProduction.first
         : (accepted.isNotEmpty ? accepted.first : null);
+    final openTaskLabel = _t(
+      ru: 'ОТКРЫТЬ ЗАДАЧУ',
+      en: 'OPEN TASK',
+      kk: 'ТАПСЫРМАНЫ АШУ',
+    );
 
     return switch (_tab) {
       ProductionTab.dashboard => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _hero(
-            title: _t(
-              ru: 'ОЧЕРЕДЬ ЗАДАЧ',
-              en: 'TASK QUEUE',
-              kk: 'ТАПСЫРМАЛАР КЕЗЕГІ',
-            ),
-            subtitle: _t(
-              ru: 'После подтверждения заказ попадает в очередь цеха и проходит этапы пошива до готовности.',
-              en: 'After acceptance, the order enters the factory queue and moves through production until ready.',
-              kk: 'Қабылданғаннан кейін тапсырыс цех кезегіне түседі және дайын болғанға дейін тігу кезеңдерінен өтеді.',
-            ),
-            accent: _t(
+          ProductionHeroSection(
+            compact: compact,
+            eyebrow: _t(
               ru: 'АКТИВНЫХ ЗАДАЧ: ${accepted.length + inProduction.length}',
               en: 'ACTIVE TASKS: ${accepted.length + inProduction.length}',
               kk: 'БЕЛСЕНДІ ТАПСЫРМАЛАР: ${accepted.length + inProduction.length}',
             ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _metricCard(
-                  _t(ru: 'К пошиву', en: 'To Tailor', kk: 'Тігінге'),
-                  '${accepted.length}',
-                ),
+            title: _t(ru: 'ЦЕХ СЕГОДНЯ', en: 'FACTORY TODAY', kk: 'ЦЕХ БҮГІН'),
+            subtitle: _t(
+              ru: 'На экране только очередь, текущая задача и следующий шаг.',
+              en: 'Only the queue, the current task, and the next step stay on screen.',
+              kk: 'Экранда тек кезек, ағымдағы тапсырма және келесі қадам қалады.',
+            ),
+            metrics: [
+              ProductionMetricCardData(
+                label: _t(ru: 'К ПОШИВУ', en: 'TO START', kk: 'БАСТАУДА'),
+                value: '${accepted.length}',
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _metricCard(
-                  _t(ru: 'В работе', en: 'In Progress', kk: 'Жұмыста'),
-                  '${inProduction.length}',
-                ),
+              ProductionMetricCardData(
+                label: _t(ru: 'В РАБОТЕ', en: 'IN WORK', kk: 'ЖҰМЫСТА'),
+                value: '${inProduction.length}',
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _metricCard(
-                  _t(ru: 'Готово', en: 'Ready', kk: 'Дайын'),
-                  '${ready.length}',
-                ),
+              ProductionMetricCardData(
+                label: _t(ru: 'ГОТОВО', en: 'READY', kk: 'ДАЙЫН'),
+                value: '${ready.length}',
               ),
             ],
           ),
           const SizedBox(height: 12),
-          _factoryAnalyticsCard(analytics),
-          if (current != null) ...[
-            const SizedBox(height: 12),
-            _taskCard(
-              current,
-              clientDisplayName: _clientDisplayName(profiles, current),
+          ProductionTaskSection(
+            sectionLabel: _t(
+              ru: 'ФОКУС СЕЙЧАС',
+              en: 'RIGHT NOW',
+              kk: 'ҚАЗІРГІ ФОКУС',
             ),
-          ],
-          if (analytics.productMetrics.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            _slowProductsCard(analytics),
-          ],
+            emptyMessage: _t(
+              ru: 'Очередь пуста. Новая задача появится здесь сразу после подтверждения заказа.',
+              en: 'The queue is empty. The next task will appear here as soon as an order is confirmed.',
+              kk: 'Кезек бос. Жаңа тапсырма тапсырыс расталған сәтте осында шығады.',
+            ),
+            compact: compact,
+            tasks: current == null
+                ? const <ProductionTaskCardData>[]
+                : <ProductionTaskCardData>[
+                    _taskCardData(
+                      current,
+                      clientDisplayName: _clientDisplayName(profiles, current),
+                      footerLabel: openTaskLabel,
+                    ),
+                  ],
+          ),
+          const SizedBox(height: 12),
+          ProductionAnalyticsSection(
+            sectionLabel: _t(
+              ru: 'РИТМ ЦЕХА',
+              en: 'FACTORY RHYTHM',
+              kk: 'ЦЕХ ЫРҒАҒЫ',
+            ),
+            title: _t(
+              ru: 'Ключевые цифры без лишнего текста.',
+              en: 'Key numbers without extra text.',
+              kk: 'Артық мәтінсіз негізгі сандар.',
+            ),
+            summary: _t(
+              ru: 'Смотрим только запуск, пошив, доставку и риск задержки.',
+              en: 'Only start, tailoring, delivery, and delay risk stay in view.',
+              kk: 'Көз алдында тек бастау, тігу, жеткізу және кешігу қаупі қалады.',
+            ),
+            footerText: _t(
+              ru: 'Сегодня готово ${analytics.readyToday} заказов.',
+              en: '${analytics.readyToday} orders became ready today.',
+              kk: 'Бүгін ${analytics.readyToday} тапсырыс дайын болды.',
+            ),
+            slowSectionLabel: _t(
+              ru: 'ЧТО ШЬЁТСЯ ДОЛЬШЕ',
+              en: 'LONGER TASKS',
+              kk: 'ҰЗАҒЫРАҚ ТІГІЛЕТІНІ',
+            ),
+            compact: compact,
+            metrics: _analyticsTileData(analytics),
+            slowProducts: _slowTailoringFacts(analytics),
+          ),
         ],
       ),
       ProductionTab.queue => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionLabel(_t(ru: 'К ПОШИВУ', en: 'TO TAILOR', kk: 'ТІГІНГЕ')),
-          const SizedBox(height: 12),
-          if (accepted.isEmpty)
-            _emptyCard(
-              _t(
-                ru: 'Новых задач в очереди пока нет.',
-                en: 'No new tasks in queue yet.',
-                kk: 'Кезекте әзірге жаңа тапсырмалар жоқ.',
-              ),
+          ProductionTaskSection(
+            sectionLabel: _t(ru: 'К ПОШИВУ', en: 'TO START', kk: 'БАСТАУДА'),
+            emptyMessage: _t(
+              ru: 'Новых задач в очереди пока нет.',
+              en: 'No new tasks in queue yet.',
+              kk: 'Кезекте жаңа тапсырма әзірге жоқ.',
             ),
-          ...accepted.map(
-            (order) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: _taskCard(
-                order,
-                clientDisplayName: _clientDisplayName(profiles, order),
-              ),
-            ),
+            compact: compact,
+            tasks: _taskCards(accepted, profiles, openTaskLabel),
           ),
-          const SizedBox(height: 4),
-          _sectionLabel(_t(ru: 'В РАБОТЕ', en: 'IN PROGRESS', kk: 'ЖҰМЫСТА')),
           const SizedBox(height: 12),
-          if (inProduction.isEmpty)
-            _emptyCard(
-              _t(
-                ru: 'После запуска пошива заказ перейдет в этот раздел.',
-                en: 'Once production starts, the order will appear in this section.',
-                kk: 'Тігу басталғаннан кейін тапсырыс осы бөлімге ауысады.',
-              ),
+          ProductionTaskSection(
+            sectionLabel: _t(ru: 'В РАБОТЕ', en: 'IN WORK', kk: 'ЖҰМЫСТА'),
+            emptyMessage: _t(
+              ru: 'Как только пошив стартует, задача появится здесь.',
+              en: 'As soon as production starts, the task appears here.',
+              kk: 'Тігу басталған сәтте тапсырма осында шығады.',
             ),
-          ...inProduction.map(
-            (order) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: _taskCard(
-                order,
-                clientDisplayName: _clientDisplayName(profiles, order),
-              ),
-            ),
+            compact: compact,
+            tasks: _taskCards(inProduction, profiles, openTaskLabel),
           ),
         ],
       ),
       ProductionTab.ready => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionLabel(
-            _t(ru: 'ЗАВЕРШЕННЫЕ', en: 'COMPLETED READY', kk: 'АЯҚТАЛҒАНДАР'),
-          ),
-          const SizedBox(height: 12),
-          if (ready.isEmpty)
-            _emptyCard(
-              _t(
-                ru: 'Завершенные заказы пока отсутствуют.',
-                en: 'No completed ready orders yet.',
-                kk: 'Аяқталған тапсырыстар әзірге жоқ.',
-              ),
+          ProductionTaskSection(
+            sectionLabel: _t(
+              ru: 'ГОТОВО К ВЫДАЧЕ',
+              en: 'READY TO HANDOFF',
+              kk: 'БЕРУГЕ ДАЙЫН',
             ),
-          ...ready.map(
-            (order) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: _taskCard(
-                order,
-                clientDisplayName: _clientDisplayName(profiles, order),
-              ),
+            emptyMessage: _t(
+              ru: 'Готовых заказов пока нет.',
+              en: 'No ready orders yet.',
+              kk: 'Дайын тапсырыс әзірге жоқ.',
             ),
+            compact: compact,
+            tasks: _taskCards(ready, profiles, openTaskLabel),
           ),
         ],
       ),
-      ProductionTab.station => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _surfaceCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _t(ru: 'РАБОЧЕЕ МЕСТО', en: 'WORKSTATION', kk: 'ЖҰМЫС ОРНЫ'),
-                  style: AppTypography.eyebrow,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  _t(
-                    ru: 'Интерфейс мастера',
-                    en: 'Operator Interface',
-                    kk: 'Шебер интерфейсі',
-                  ),
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 10),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.black,
-                    border: Border.all(color: AppColors.black),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          '${_t(ru: 'РОЛЬ', en: 'ROLE')}: ${localizedRoleLabel(UserRole.production, _language)}',
-                          style: AppTypography.button.copyWith(
-                            color: AppColors.white,
-                            letterSpacing: 3,
-                          ),
-                        ),
-                      ),
-                      Text(
-                        _t(ru: 'ТЕКУЩАЯ', en: 'CURRENT'),
-                        style: AppTypography.eyebrow.copyWith(
-                          color: AppColors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  _t(
-                    ru: 'Экран показывает текущую задачу, статус заказа и следующее доступное действие.',
-                    en: 'This screen shows the current task, order status, and the next available action.',
-                    kk: 'Экран ағымдағы тапсырманы, тапсырыс мәртебесін және келесі қолжетімді әрекетті көрсетеді.',
-                  ),
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              ],
-            ),
+      ProductionTab.station => ProductionStationSection(
+        compact: compact,
+        eyebrow: _t(ru: 'РАБОЧЕЕ МЕСТО', en: 'WORKSTATION', kk: 'ЖҰМЫС ОРНЫ'),
+        title: _t(
+          ru: 'Планшет мастера',
+          en: 'Master tablet',
+          kk: 'Шебер планшеті',
+        ),
+        summary: _t(
+          ru: 'Один экран для очереди, статуса и завершения этапа.',
+          en: 'One screen for the queue, status, and stage completion.',
+          kk: 'Кезекке, мәртебеге және кезеңді аяқтауға арналған бір экран.',
+        ),
+        roleLabel: _t(
+          ru: 'Роль на текущей станции',
+          en: 'Current station role',
+          kk: 'Ағымдағы бекет рөлі',
+        ),
+        roleValue: localizedRoleLabel(UserRole.production, _language),
+        guideSection: DeskHelpGuideSection(
+          compact: compact,
+          eyebrow: _t(
+            ru: 'КАК РАБОТАТЬ',
+            en: 'HOW TO WORK',
+            kk: 'ҚАЛАЙ ЖҰМЫС ІСТЕУ КЕРЕК',
           ),
-          const SizedBox(height: 12),
-          DeskHelpGuideSection(
-            compact: compact,
-            eyebrow: _t(
-              ru: 'КАК РАБОТАТЬ НА СТАНЦИИ',
-              en: 'HOW TO WORK AT THE STATION',
-              kk: 'БЕКЕТТЕ ҚАЛАЙ ЖҰМЫС ІСТЕУ КЕРЕК',
-            ),
-            title: _t(
-              ru: 'Рабочий ритм держится на понятных шагах.',
-              en: 'The workstation stays fast when every step is clear.',
-              kk: 'Әр қадам анық болса, жұмыс ырғағы жоғалмайды.',
-            ),
-            description: _t(
-              ru: 'Станция помогает быстро взять задачу, видеть статус и отмечать готовность без лишних переходов.',
-              en: 'The station helps you pick up a task quickly, see its status, and mark it ready without extra navigation.',
-              kk: 'Бекет тапсырманы тез алуға, мәртебені көруге және дайындықты артық өтусіз белгілеуге көмектеседі.',
-            ),
-            points: [
-              DeskHelpGuidePoint(
-                title: _t(
-                  ru: 'Начинайте с ближайшей задачи',
-                  en: 'Start with the nearest task',
-                  kk: 'Ең жақын тапсырмадан бастаңыз',
-                ),
-                description: _t(
-                  ru: 'Очередь показывает, какие заказы ждут запуска и что уже находится в работе.',
-                  en: 'The queue shows which orders are waiting to start and which ones are already in progress.',
-                  kk: 'Кезек қай тапсырыстар іске қосуды күтіп тұрғанын және қайсысы жұмыста екенін көрсетеді.',
-                ),
-              ),
-              DeskHelpGuidePoint(
-                title: _t(
-                  ru: 'Обновляйте этапы сразу по факту',
-                  en: 'Update stages as soon as they happen',
-                  kk: 'Кезеңдерді бірден жаңартып отырыңыз',
-                ),
-                description: _t(
-                  ru: 'Так франчайзи и клиент видят реальный статус, а очередь не расползается по срокам.',
-                  en: 'This keeps franchisee and client status accurate and prevents the queue from drifting out of sync.',
-                  kk: 'Осылай франчайзи мен клиент нақты мәртебені көреді және кезек мерзімнен ауытқымайды.',
-                ),
-              ),
-              DeskHelpGuidePoint(
-                title: _t(
-                  ru: 'Отмечайте готовность без паузы',
-                  en: 'Mark ready without delay',
-                  kk: 'Дайындықты кідіріссіз белгілеңіз',
-                ),
-                description: _t(
-                  ru: 'Когда вещь собрана, сразу переводите ее в готово, чтобы выдача не задерживалась.',
-                  en: 'Once the garment is complete, move it to ready immediately so handoff is not delayed.',
-                  kk: 'Бұйым дайын болған сәтте оны бірден ready мәртебесіне өткізіңіз, сонда беру кешікпейді.',
-                ),
-              ),
-            ],
+          title: _t(
+            ru: 'Каждый шаг должен быть виден сразу.',
+            en: 'Every next step should be visible at once.',
+            kk: 'Әр келесі қадам бірден көрініп тұруы керек.',
           ),
-          const SizedBox(height: 12),
-          DeskHelpSystemFlowSection(
-            compact: compact,
-            eyebrow: _t(
-              ru: 'СИСТЕМНЫЙ ПОТОК',
-              en: 'SYSTEM FLOW',
-              kk: 'ЖҮЙЕЛІК АҒЫН',
-            ),
-            steps: [
-              DeskHelpFlowStep(
-                title: localizedRoleLabel(UserRole.client, _language),
-                details: _t(
-                  ru: 'Клиент создает заказ и передает в систему все данные по изделию, размеру и доставке.',
-                  en: 'The client creates the order and sends the system the garment, size, and delivery details.',
-                  kk: 'Клиент тапсырыс жасап, жүйеге бұйым, өлшем және жеткізу бойынша барлық деректі береді.',
-                ),
-              ),
-              DeskHelpFlowStep(
-                title: localizedRoleLabel(UserRole.franchisee, _language),
-                details: _t(
-                  ru: 'Франчайзи принимает заказ, подтверждает его и отправляет в работу с сохранением всех заметок.',
-                  en: 'The franchisee accepts the order, confirms it, and sends it into work while keeping all notes attached.',
-                  kk: 'Франчайзи тапсырысты қабылдап, растап, барлық ескертпелерді сақтай отырып жұмысқа жібереді.',
-                ),
-              ),
-              DeskHelpFlowStep(
-                title: localizedRoleLabel(UserRole.production, _language),
-                details: _t(
-                  ru: 'Производство берет задачу в цех, обновляет этапы и отвечает за перевод заказа в готово.',
-                  en: 'Production takes the task into the workshop, updates the stages, and moves the order into ready.',
-                  kk: 'Өндіріс тапсырманы цехқа алып, кезеңдерді жаңартады және тапсырысты дайын мәртебесіне өткізеді.',
-                ),
-              ),
-              DeskHelpFlowStep(
-                title: localizedRoleLabel(UserRole.client, _language),
-                details: _t(
-                  ru: 'Клиент получает обновление в трекинге и завершает путь получением готового заказа.',
-                  en: 'The client receives the update in tracking and completes the journey by receiving the finished order.',
-                  kk: 'Клиент бақылауда жаңартуды алып, дайын тапсырысты алу арқылы процесті аяқтайды.',
-                ),
-              ),
-            ],
+          description: _t(
+            ru: 'Очередь не перегружает экран и оставляет только то, что нужно мастеру сейчас.',
+            en: 'The queue keeps only the information the operator needs right now.',
+            kk: 'Кезек шеберге дәл қазір керек ақпаратты ғана экранда қалдырады.',
           ),
-          const SizedBox(height: 12),
-          DeskHelpSupportSection(
-            compact: compact,
-            eyebrow: _t(
-              ru: 'ПОМОЩЬ И ПОДДЕРЖКА',
-              en: 'HELP & SUPPORT',
-              kk: 'КӨМЕК ЖӘНЕ ҚОЛДАУ',
+          points: [
+            DeskHelpGuidePoint(
+              title: _t(
+                ru: 'Берите верхнюю задачу',
+                en: 'Take the top task',
+                kk: 'Жоғарғы тапсырманы алыңыз',
+              ),
+              description: _t(
+                ru: 'Так очередь движется без ручной сортировки.',
+                en: 'This keeps the queue moving without manual sorting.',
+                kk: 'Осылай кезек қолмен сұрыптаусыз жүреді.',
+              ),
             ),
-            title: _t(
-              ru: 'Подготовьте эскалацию без лишней переписки.',
-              en: 'Prepare an escalation without extra back-and-forth.',
-              kk: 'Эскалацияны артық хат алмасусыз дайындаңыз.',
+            DeskHelpGuidePoint(
+              title: _t(
+                ru: 'Обновляйте статус сразу',
+                en: 'Update status immediately',
+                kk: 'Мәртебені бірден жаңартыңыз',
+              ),
+              description: _t(
+                ru: 'Франчайзи и клиент увидят реальный этап без задержки.',
+                en: 'Franchisee and client see the real stage without delay.',
+                kk: 'Франчайзи мен клиент нақты кезеңді кідіріссіз көреді.',
+              ),
             ),
-            description: _t(
-              ru: 'Если задача заблокирована, можно быстро скопировать нужные данные и передать их в поддержку.',
-              en: 'If a task is blocked, you can quickly copy the right details and pass them to support.',
-              kk: 'Егер тапсырма тоқтап қалса, қажетті деректі тез көшіріп, оны қолдауға беруге болады.',
+            DeskHelpGuidePoint(
+              title: _t(
+                ru: 'Готово отмечайте без паузы',
+                en: 'Mark ready without delay',
+                kk: 'Дайынды кідіріссіз белгілеңіз',
+              ),
+              description: _t(
+                ru: 'Это ускоряет выдачу и освобождает очередь.',
+                en: 'This speeds up handoff and frees the queue.',
+                kk: 'Бұл беруді жылдамдатады және кезекті босатады.',
+              ),
             ),
-            actions: [
-              DeskHelpSupportAction(
-                title: _t(
-                  ru: 'Скопировать email аккаунта',
-                  en: 'Copy account email',
-                  kk: 'Аккаунт email-ын көшіру',
-                ),
-                description: _t(
-                  ru: 'Нужно, если поддержке требуется быстро найти рабочую учетную запись.',
-                  en: 'Useful when support needs to identify your working account quickly.',
-                  kk: 'Қолдау қызметіне жұмыс аккаунтыңызды тез табу керек болса қажет.',
-                ),
-                actionLabel: _t(ru: 'КОПИЯ', en: 'COPY', kk: 'КОПИЯ'),
-                onTap: () => _copyToClipboard(
-                  user?.email ?? '',
-                  _t(
-                    ru: 'Email аккаунта скопирован.',
-                    en: 'Account email copied.',
-                    kk: 'Аккаунт email-ы көшірілді.',
-                  ),
+          ],
+        ),
+        flowSection: DeskHelpSystemFlowSection(
+          compact: compact,
+          eyebrow: _t(
+            ru: 'СИСТЕМНЫЙ ПОТОК',
+            en: 'SYSTEM FLOW',
+            kk: 'ЖҮЙЕЛІК АҒЫН',
+          ),
+          steps: [
+            DeskHelpFlowStep(
+              title: localizedRoleLabel(UserRole.client, _language),
+              details: _t(
+                ru: 'Клиент оформляет заказ.',
+                en: 'The client places the order.',
+                kk: 'Клиент тапсырыс береді.',
+              ),
+            ),
+            DeskHelpFlowStep(
+              title: localizedRoleLabel(UserRole.franchisee, _language),
+              details: _t(
+                ru: 'Франчайзи подтверждает и передает в цех.',
+                en: 'The franchisee confirms and sends it to production.',
+                kk: 'Франчайзи растап, цехқа жібереді.',
+              ),
+            ),
+            DeskHelpFlowStep(
+              title: localizedRoleLabel(UserRole.production, _language),
+              details: _t(
+                ru: 'Цех берет задачу и переводит ее в готово.',
+                en: 'Production takes the task and moves it to ready.',
+                kk: 'Цех тапсырманы алып, оны дайынға өткізеді.',
+              ),
+            ),
+            DeskHelpFlowStep(
+              title: localizedRoleLabel(UserRole.client, _language),
+              details: _t(
+                ru: 'Клиент получает обновление в трекинге.',
+                en: 'The client sees the update in tracking.',
+                kk: 'Клиент жаңартуды трекингтен көреді.',
+              ),
+            ),
+          ],
+        ),
+        supportSection: DeskHelpSupportSection(
+          compact: compact,
+          eyebrow: _t(
+            ru: 'ПОМОЩЬ И ПОДДЕРЖКА',
+            en: 'HELP & SUPPORT',
+            kk: 'КӨМЕК ЖӘНЕ ҚОЛДАУ',
+          ),
+          title: _t(
+            ru: 'Подготовьте обращение за пару нажатий.',
+            en: 'Prepare a support request in a few taps.',
+            kk: 'Қолдау сұрауын бірнеше батырмамен дайындаңыз.',
+          ),
+          description: _t(
+            ru: 'Если задача встала, нужные данные можно сразу скопировать.',
+            en: 'If a task is blocked, the right details can be copied immediately.',
+            kk: 'Тапсырма тоқтаса, керекті деректі бірден көшіруге болады.',
+          ),
+          actions: [
+            DeskHelpSupportAction(
+              title: _t(
+                ru: 'Скопировать email аккаунта',
+                en: 'Copy account email',
+                kk: 'Аккаунт email-ын көшіру',
+              ),
+              description: _t(
+                ru: 'Нужно для быстрого поиска рабочего аккаунта.',
+                en: 'Useful for finding the working account quickly.',
+                kk: 'Жұмыс аккаунтын тез табу үшін керек.',
+              ),
+              actionLabel: _t(ru: 'КОПИЯ', en: 'COPY', kk: 'КОПИЯ'),
+              onTap: () => _copyToClipboard(
+                user?.email ?? '',
+                _t(
+                  ru: 'Email аккаунта скопирован.',
+                  en: 'Account email copied.',
+                  kk: 'Аккаунт email-ы көшірілді.',
                 ),
               ),
-              DeskHelpSupportAction(
-                title: _t(
-                  ru: 'Скопировать активную задачу',
-                  en: 'Copy active task',
-                  kk: 'Белсенді тапсырманы көшіру',
-                ),
-                description: _t(
-                  ru: 'Так поддержка сразу увидит, какой заказ сейчас требует внимания.',
-                  en: 'This lets support see which order currently needs attention.',
-                  kk: 'Осылай қолдау қай тапсырысқа дәл қазір назар керек екенін бірден көреді.',
-                ),
-                actionLabel: _t(ru: 'КОПИЯ', en: 'COPY', kk: 'КОПИЯ'),
-                onTap: () => _copyToClipboard(
-                  current == null ? '' : '#${current.shortId}',
-                  _t(
-                    ru: 'Номер задачи скопирован.',
-                    en: 'Task number copied.',
-                    kk: 'Тапсырма нөмірі көшірілді.',
-                  ),
+            ),
+            DeskHelpSupportAction(
+              title: _t(
+                ru: 'Скопировать активную задачу',
+                en: 'Copy active task',
+                kk: 'Белсенді тапсырманы көшіру',
+              ),
+              description: _t(
+                ru: 'Поддержка сразу увидит нужный заказ.',
+                en: 'Support will see the exact order right away.',
+                kk: 'Қолдау бірден керек тапсырысты көреді.',
+              ),
+              actionLabel: _t(ru: 'КОПИЯ', en: 'COPY', kk: 'КОПИЯ'),
+              onTap: () => _copyToClipboard(
+                current == null ? '' : '#${current.shortId}',
+                _t(
+                  ru: 'Номер задачи скопирован.',
+                  en: 'Task number copied.',
+                  kk: 'Тапсырма нөмірі көшірілді.',
                 ),
               ),
-              DeskHelpSupportAction(
-                title: _t(
-                  ru: 'Скопировать бриф для поддержки',
-                  en: 'Copy support brief',
-                  kk: 'Қолдау мәтінін көшіру',
+            ),
+            DeskHelpSupportAction(
+              title: _t(
+                ru: 'Скопировать brief для поддержки',
+                en: 'Copy support brief',
+                kk: 'Қолдау brief-ін көшіру',
+              ),
+              description: _t(
+                ru: 'Шаблон уже содержит роль, email и очередь.',
+                en: 'The template already includes role, email, and queue status.',
+                kk: 'Шаблонда рөл, email және кезек күйі бар.',
+              ),
+              actionLabel: _t(ru: 'КОПИЯ', en: 'COPY', kk: 'КОПИЯ'),
+              onTap: () => _copyToClipboard(
+                _productionSupportBrief(
+                  userEmail: user?.email ?? '',
+                  acceptedCount: accepted.length,
+                  inProductionCount: inProduction.length,
+                  readyCount: ready.length,
+                  currentOrder: current,
                 ),
-                description: _t(
-                  ru: 'Шаблон включает роль, email и текущее состояние очереди.',
-                  en: 'The template includes your role, email, and the current queue status.',
-                  kk: 'Шаблонда рөліңіз, email және кезектің ағымдағы күйі бар.',
-                ),
-                actionLabel: _t(ru: 'КОПИЯ', en: 'COPY', kk: 'КОПИЯ'),
-                onTap: () => _copyToClipboard(
-                  _productionSupportBrief(
-                    userEmail: user?.email ?? '',
-                    acceptedCount: accepted.length,
-                    inProductionCount: inProduction.length,
-                    readyCount: ready.length,
-                    currentOrder: current,
-                  ),
-                  _t(
-                    ru: 'Бриф для поддержки скопирован.',
-                    en: 'Support brief copied.',
-                    kk: 'Қолдау мәтіні көшірілді.',
-                  ),
+                _t(
+                  ru: 'Brief для поддержки скопирован.',
+                  en: 'Support brief copied.',
+                  kk: 'Қолдау brief-і көшірілді.',
                 ),
               ),
-            ],
-            footerText: _t(
-              ru: 'Для быстрого ответа укажите, на каком этапе задача остановилась и приложите скрин экрана станции.',
-              en: 'To get help faster, mention at which stage the task stopped and attach a screenshot of the station screen.',
-              kk: 'Жауапты тезірек алу үшін тапсырма қай кезеңде тоқтағанын жазып, бекет экранының скринін тіркеңіз.',
             ),
+          ],
+          footerText: _t(
+            ru: 'Для быстрого ответа укажите этап и приложите скрин станции.',
+            en: 'For a faster reply, mention the stage and attach a station screenshot.',
+            kk: 'Жылдам жауап үшін кезеңді жазып, бекет скринын тіркеңіз.',
           ),
-          const SizedBox(height: 12),
-          AvishuButton(
-            text: _t(ru: 'ПОЧЕМУ AVISHU', en: 'WHY AVISHU', kk: 'НЕГЕ AVISHU'),
-            expanded: true,
-            variant: AvishuButtonVariant.filled,
-            icon: Icons.arrow_outward,
-            onPressed: () => context.push('/why-avishu'),
-          ),
-          const SizedBox(height: 12),
-          AvishuButton(
-            text: _t(
-              ru: 'ВЫЙТИ ИЗ АККАУНТА',
-              en: 'SIGN OUT',
-              kk: 'АККАУНТТАН ШЫҒУ',
-            ),
-            expanded: true,
-            variant: AvishuButtonVariant.outline,
-            icon: Icons.logout,
-            onPressed: () async {
-              await ref.read(authRepositoryProvider).signOut();
-            },
-          ),
-        ],
+        ),
+        primaryActionLabel: _t(
+          ru: 'ПОЧЕМУ AVISHU',
+          en: 'WHY AVISHU',
+          kk: 'НЕГЕ AVISHU',
+        ),
+        onPrimaryAction: () => context.push('/why-avishu'),
+        secondaryActionLabel: _t(
+          ru: 'ВЫЙТИ ИЗ АККАУНТА',
+          en: 'SIGN OUT',
+          kk: 'АККАУНТТАН ШЫҒУ',
+        ),
+        onSecondaryAction: () async {
+          await ref.read(authRepositoryProvider).signOut();
+        },
       ),
     };
   }
@@ -592,460 +540,227 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
     OrderModel order, {
     required Map<String, UserProfile> profiles,
   }) {
-    final isAccepted = order.status == OrderStatus.accepted;
-    final isInProduction = order.status == OrderStatus.inProduction;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        OrderDigitalTwinCard(
-          order: order,
-          clientDisplayName: _clientDisplayName(profiles, order),
-        ),
-        const SizedBox(height: 12),
-        if (order.id.isEmpty)
-          _surfaceCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${_t(ru: 'ЗАКАЗ', en: 'ORDER')} #${order.shortId}',
-                  style: AppTypography.eyebrow,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  order.productName,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  order.status.roleDescriptionFor(_language),
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 12),
-                LinearProgressIndicator(value: order.status.progressValue),
-                const SizedBox(height: 10),
-                Text(
-                  order.status.panelLabelFor(_language),
-                  style: AppTypography.code,
-                ),
-              ],
-            ),
-          ),
-        const SizedBox(height: 12),
-        OrderInfoCard(
-          title: _t(
-            ru: 'ТЕХНИЧЕСКАЯ КАРТОЧКА',
-            en: 'TECHNICAL SHEET',
-            kk: 'ТЕХНИКАЛЫҚ КАРТОЧКА',
-          ),
-          rows: OrderSummaryRows.forOrder(order, language: _language),
-        ),
-        if (order.clientNote.trim().isNotEmpty) ...[
-          const SizedBox(height: 12),
-          OrderInfoCard(
-            title: _t(
-              ru: 'КОММЕНТАРИЙ КЛИЕНТА',
-              en: 'CLIENT COMMENT',
-              kk: 'КЛИЕНТ ПІКІРІ',
-            ),
-            rows: [
-              OrderInfoRowData(
-                label: _t(ru: 'Комментарий', en: 'Comment', kk: 'Пікір'),
-                value: order.clientNote,
-              ),
-            ],
-          ),
-        ],
-        if (order.franchiseeNote.trim().isNotEmpty) ...[
-          const SizedBox(height: 12),
-          OrderInfoCard(
-            title: _t(
-              ru: 'ПОМЕТКА ФРАНЧАЙЗИ',
-              en: 'FRANCHISE NOTE',
-              kk: 'ФРАНЧАЙЗИ БЕЛГІСІ',
-            ),
-            rows: [
-              OrderInfoRowData(
-                label: _t(ru: 'Комментарий', en: 'Comment', kk: 'Пікір'),
-                value: order.franchiseeNote,
-              ),
-            ],
-          ),
-        ],
-        const SizedBox(height: 12),
-        _surfaceCard(
-          child: TextField(
-            controller: _noteController,
-            maxLines: 3,
-            decoration: InputDecoration(
-              labelText: _t(
-                ru: 'Комментарий производства',
-                en: 'Factory Comment',
-                kk: 'Өндіріс пікірі',
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        if (isAccepted)
-          AvishuButton(
-            text: _t(
-              ru: 'ВЗЯТЬ В ПОШИВ',
-              en: 'START PRODUCTION',
-              kk: 'ТІГУДІ БАСТАУ',
-            ),
-            expanded: true,
-            variant: AvishuButtonVariant.filled,
-            onPressed: _isSubmitting
-                ? null
-                : () async {
-                    if (_isSubmitting) return;
-                    setState(() => _isSubmitting = true);
-                    try {
-                      final currentUserId =
-                          ref.read(currentUserProvider).value?.uid ?? '';
-                      await ref
-                          .read(orderRepositoryProvider)
-                          .startProduction(
-                            order.id,
-                            note: _noteController.text.trim(),
-                            changedByUserId: currentUserId,
-                          );
-                      if (mounted) {
-                        setState(() => _selectedOrder = null);
-                      }
-                    } finally {
-                      if (mounted) setState(() => _isSubmitting = false);
-                    }
-                  },
-          ),
-        if (isInProduction)
-          AvishuButton(
-            text: _t(
-              ru: 'ЗАВЕРШИТЬ ПОШИВ',
-              en: 'FINISH PRODUCTION',
-              kk: 'ТІГУДІ АЯҚТАУ',
-            ),
-            expanded: true,
-            variant: AvishuButtonVariant.filled,
-            onPressed: _isSubmitting
-                ? null
-                : () async {
-                    if (_isSubmitting) return;
-                    setState(() => _isSubmitting = true);
-                    try {
-                      final currentUserId =
-                          ref.read(currentUserProvider).value?.uid ?? '';
-                      await ref
-                          .read(orderRepositoryProvider)
-                          .completeOrder(
-                            order.id,
-                            note: _noteController.text.trim(),
-                            changedByUserId: currentUserId,
-                          );
-                      if (mounted) {
-                        setState(() => _selectedOrder = null);
-                      }
-                    } finally {
-                      if (mounted) setState(() => _isSubmitting = false);
-                    }
-                  },
-          ),
-        if (order.status == OrderStatus.ready)
-          _surfaceCard(
-            child: Row(
-              children: [
-                const Icon(Icons.check_circle_outline, size: 16),
-                const SizedBox(width: 10),
-                Text(
-                  _t(
-                    ru: 'ГОТОВО. ОЖИДАЕТ ВЫДАЧИ ФРАНЧАЙЗИ.',
-                    en: 'READY. AWAITING FRANCHISEE HANDOFF.',
-                    kk: 'ДАЙЫН. ФРАНЧАЙЗИДІҢ БЕРУІН КҮТУДЕ.',
-                  ),
-                  style: AppTypography.code,
-                ),
-              ],
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _hero({
-    required String title,
-    required String subtitle,
-    required String accent,
-  }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      color: AppColors.black,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            accent,
-            style: AppTypography.eyebrow.copyWith(color: AppColors.surfaceDim),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            style: Theme.of(
-              context,
-            ).textTheme.headlineMedium?.copyWith(color: AppColors.white),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            subtitle,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: AppColors.surfaceHighest),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _metricCard(String label, String value) {
-    return _surfaceCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: AppTypography.eyebrow),
-          const SizedBox(height: 10),
-          Text(value, style: Theme.of(context).textTheme.titleLarge),
-        ],
-      ),
-    );
-  }
-
-  Widget _factoryAnalyticsCard(ProductionAnalyticsSnapshot analytics) {
-    return _surfaceCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            _t(
-              ru: 'КАК ИДЁТ ЦЕХ',
-              en: 'FACTORY SNAPSHOT',
-              kk: 'ЦЕХ ҚАЛАЙ ЖҰМЫС ІСТЕП ЖАТЫР',
-            ),
-            style: AppTypography.eyebrow,
-          ),
-          const SizedBox(height: 10),
-          Text(
-            _t(
-              ru: 'Показываем только то, что реально помогает держать ритм: когда стартуем, сколько шьём и где есть риск задержки.',
-              en: 'Only the metrics that help keep the rhythm: when work starts, how long tailoring takes, and where delays may appear.',
-              kk: 'Ритмді ұстап тұруға көмектесетін ғана метрикалар: қашан бастаймыз, тігу қанша уақыт алады және қай жерде кешігу қаупі бар.',
-            ),
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 14),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final itemWidth = (constraints.maxWidth - 12) / 2;
-              return Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: [
-                  SizedBox(
-                    width: itemWidth,
-                    child: _analyticsMetricCell(
-                      _t(ru: 'До старта', en: 'Start in', kk: 'Бастау уақыты'),
-                      _formatAnalyticsDuration(
-                        analytics.averageQueueToStartTime,
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: itemWidth,
-                    child: _analyticsMetricCell(
-                      _t(ru: 'Пошив', en: 'Tailoring', kk: 'Тігу уақыты'),
-                      _formatAnalyticsDuration(analytics.averageTailoringTime),
-                    ),
-                  ),
-                  SizedBox(
-                    width: itemWidth,
-                    child: _analyticsMetricCell(
-                      _t(ru: 'Доставка', en: 'Delivery', kk: 'Жеткізу'),
-                      _formatAnalyticsDuration(
-                        analytics.averageCourierDeliveryTime,
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: itemWidth,
-                    child: _analyticsMetricCell(
-                      _t(
-                        ru: 'Риск задержки',
-                        en: 'At risk',
-                        kk: 'Кешігу қаупі',
-                      ),
-                      '${analytics.overdueOrders}',
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-          const SizedBox(height: 14),
-          Text(
-            _t(
-              ru: 'Сегодня готово ${analytics.readyToday} заказов.',
-              en: '${analytics.readyToday} orders became ready today.',
-              kk: 'Бүгін ${analytics.readyToday} тапсырыс дайын болды.',
-            ),
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _slowProductsCard(ProductionAnalyticsSnapshot analytics) {
-    final visibleMetrics = analytics.productMetrics.take(3).toList();
-    return _surfaceCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            _t(
-              ru: 'ЧТО ШЬЁТСЯ ДОЛЬШЕ',
-              en: 'WHAT TAKES LONGER',
-              kk: 'НЕ ҰЗАҒЫРАҚ ТІГІЛЕДІ',
-            ),
-            style: AppTypography.eyebrow,
-          ),
-          const SizedBox(height: 10),
-          ...visibleMetrics.map(
-            (metric) => Padding(
-              padding: EdgeInsets.only(
-                bottom: metric == visibleMetrics.last ? 0 : 12,
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(
-                      metric.productName,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        _formatAnalyticsDuration(metric.averageTailoringTime),
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _t(
-                          ru: '${metric.orderCount} заказа',
-                          en: '${metric.orderCount} orders',
-                          kk: '${metric.orderCount} тапсырыс',
-                        ),
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _analyticsMetricCell(String label, String value) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceLow,
-        border: Border.all(color: AppColors.outlineVariant),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: AppTypography.eyebrow),
-          const SizedBox(height: 8),
-          Text(value, style: Theme.of(context).textTheme.titleMedium),
-        ],
-      ),
-    );
-  }
-
-  Widget _taskCard(OrderModel order, {required String clientDisplayName}) {
-    return _surfaceCard(
-      onTap: () => _openOrder(order),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  '${_t(ru: 'ЗАКАЗ', en: 'ORDER')} #${order.shortId}',
-                  style: AppTypography.eyebrow,
-                ),
-              ),
-              Text(
-                order.status.panelLabelFor(_language),
-                style: AppTypography.code,
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            order.productName,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '${_t(ru: 'Клиент', en: 'Client', kk: 'Клиент')}: $clientDisplayName',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 6),
-          Text(order.sizeLabel, style: Theme.of(context).textTheme.bodyMedium),
-          const SizedBox(height: 12),
-          LinearProgressIndicator(value: order.status.progressValue),
-          const SizedBox(height: 10),
-          Text(
-            _t(ru: 'ОТКРЫТЬ', en: 'OPEN', kk: 'АШУ'),
-            style: AppTypography.button,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _surfaceCard({required Widget child, VoidCallback? onTap}) {
     final compact = ref.watch(appSettingsProvider).compactCards;
-    final card = Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(compact ? 12 : 16),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceLowest,
-        border: Border.all(color: AppColors.outlineVariant),
+
+    return ProductionOrderDetailSection(
+      order: order,
+      clientDisplayName: _clientDisplayName(profiles, order),
+      orderLabel:
+          '${_t(ru: 'ЗАКАЗ', en: 'ORDER', kk: 'ТАПСЫРЫС')} #${order.shortId}',
+      statusLabel: order.status.panelLabelFor(_language),
+      statusSummary: order.status.roleDescriptionFor(_language),
+      noteFieldLabel: _t(
+        ru: 'Комментарий производства',
+        en: 'Factory comment',
+        kk: 'Өндіріс пікірі',
       ),
-      child: child,
+      technicalSheetTitle: _t(
+        ru: 'ТЕХНИЧЕСКАЯ КАРТОЧКА',
+        en: 'TECHNICAL SHEET',
+        kk: 'ТЕХНИКАЛЫҚ КАРТОЧКА',
+      ),
+      clientNoteTitle: _t(
+        ru: 'КОММЕНТАРИЙ КЛИЕНТА',
+        en: 'CLIENT COMMENT',
+        kk: 'КЛИЕНТ ПІКІРІ',
+      ),
+      franchiseeNoteTitle: _t(
+        ru: 'ПОМЕТКА ФРАНЧАЙЗИ',
+        en: 'FRANCHISE NOTE',
+        kk: 'ФРАНЧАЙЗИ БЕЛГІСІ',
+      ),
+      noteRowLabel: _t(ru: 'Комментарий', en: 'Comment', kk: 'Пікір'),
+      readyLabel: _t(
+        ru: 'ГОТОВО. МОЖНО ПЕРЕДАВАТЬ ФРАНЧАЙЗИ.',
+        en: 'READY. IT CAN BE HANDED TO THE FRANCHISEE.',
+        kk: 'ДАЙЫН. ФРАНЧАЙЗИГЕ БЕРУГЕ БОЛАДЫ.',
+      ),
+      primaryActionLabel: _primaryActionLabel(order),
+      onPrimaryAction: _primaryAction(order),
+      compact: compact,
+      isSubmitting: _isSubmitting,
+      noteController: _noteController,
+      summaryRows: OrderSummaryRows.forOrder(order, language: _language),
     );
-    return onTap == null ? card : InkWell(onTap: onTap, child: card);
   }
 
-  Widget _emptyCard(String text) {
-    return _surfaceCard(
-      child: Text(text, style: Theme.of(context).textTheme.bodyMedium),
+  List<ProductionTaskCardData> _taskCards(
+    List<OrderModel> orders,
+    Map<String, UserProfile> profiles,
+    String footerLabel,
+  ) {
+    return orders
+        .map(
+          (order) => _taskCardData(
+            order,
+            clientDisplayName: _clientDisplayName(profiles, order),
+            footerLabel: footerLabel,
+          ),
+        )
+        .toList();
+  }
+
+  ProductionTaskCardData _taskCardData(
+    OrderModel order, {
+    required String clientDisplayName,
+    required String footerLabel,
+  }) {
+    return ProductionTaskCardData(
+      orderLabel:
+          '${_t(ru: 'ЗАКАЗ', en: 'ORDER', kk: 'ТАПСЫРЫС')} #${order.shortId}',
+      statusLabel: order.status.panelLabelFor(_language),
+      productName: order.productName,
+      facts: _taskFacts(order, clientDisplayName),
+      footerLabel: footerLabel,
+      onTap: () => _openOrder(order),
     );
   }
 
-  Widget _sectionLabel(String label) {
-    return Text(label, style: AppTypography.eyebrow.copyWith(letterSpacing: 3));
+  List<String> _taskFacts(OrderModel order, String clientDisplayName) {
+    return <String>[
+      clientDisplayName,
+      order.sizeLabel,
+      _taskMetaLabel(order),
+    ].where((item) => item.trim().isNotEmpty).toList();
+  }
+
+  String _taskMetaLabel(OrderModel order) {
+    if (order.estimatedReadyAt != null) {
+      return _t(
+        ru: 'ГОТОВО К ${_shortDate(order.estimatedReadyAt!)}',
+        en: 'READY BY ${_shortDate(order.estimatedReadyAt!)}',
+        kk: '${_shortDate(order.estimatedReadyAt!)} ДАЙЫН',
+      );
+    }
+    if (order.deliveryCity.trim().isNotEmpty) {
+      return order.deliveryCity.trim();
+    }
+    return order.isPreorder
+        ? _t(ru: 'ПРЕДЗАКАЗ', en: 'PREORDER', kk: 'АЛДЫН АЛА ТАПСЫРЫС')
+        : _t(ru: 'В НАЛИЧИИ', en: 'IN STOCK', kk: 'ҚОЛДА БАР');
+  }
+
+  String _shortDate(DateTime value) {
+    final day = value.day.toString().padLeft(2, '0');
+    final month = value.month.toString().padLeft(2, '0');
+    return '$day.$month';
+  }
+
+  List<ProductionAnalyticsTileData> _analyticsTileData(
+    ProductionAnalyticsSnapshot analytics,
+  ) {
+    return [
+      ProductionAnalyticsTileData(
+        label: _t(ru: 'ДО СТАРТА', en: 'START IN', kk: 'БАСТАУҒА ДЕЙІН'),
+        value: _formatAnalyticsDuration(analytics.averageQueueToStartTime),
+      ),
+      ProductionAnalyticsTileData(
+        label: _t(ru: 'ПОШИВ', en: 'TAILORING', kk: 'ТІГУ'),
+        value: _formatAnalyticsDuration(analytics.averageTailoringTime),
+      ),
+      ProductionAnalyticsTileData(
+        label: _t(ru: 'ДОСТАВКА', en: 'DELIVERY', kk: 'ЖЕТКІЗУ'),
+        value: _formatAnalyticsDuration(analytics.averageCourierDeliveryTime),
+      ),
+      ProductionAnalyticsTileData(
+        label: _t(ru: 'РИСК ЗАДЕРЖКИ', en: 'AT RISK', kk: 'КЕШІГУ ҚАУПІ'),
+        value: '${analytics.overdueOrders}',
+      ),
+    ];
+  }
+
+  List<ProductionTailoringFact> _slowTailoringFacts(
+    ProductionAnalyticsSnapshot analytics,
+  ) {
+    return analytics.productMetrics.take(3).map((metric) {
+      return ProductionTailoringFact(
+        productName: metric.productName,
+        durationLabel: _formatAnalyticsDuration(metric.averageTailoringTime),
+        orderCountLabel: _t(
+          ru: '${metric.orderCount} заказа',
+          en: '${metric.orderCount} orders',
+          kk: '${metric.orderCount} тапсырыс',
+        ),
+      );
+    }).toList();
+  }
+
+  String? _primaryActionLabel(OrderModel order) {
+    return switch (order.status) {
+      OrderStatus.accepted => _t(
+        ru: 'ВЗЯТЬ В ПОШИВ',
+        en: 'START PRODUCTION',
+        kk: 'ТІГУДІ БАСТАУ',
+      ),
+      OrderStatus.inProduction => _t(
+        ru: 'ЗАВЕРШИТЬ ПОШИВ',
+        en: 'FINISH PRODUCTION',
+        kk: 'ТІГУДІ АЯҚТАУ',
+      ),
+      _ => null,
+    };
+  }
+
+  VoidCallback? _primaryAction(OrderModel order) {
+    return switch (order.status) {
+      OrderStatus.accepted => () {
+        _startProduction(order);
+      },
+      OrderStatus.inProduction => () {
+        _finishProduction(order);
+      },
+      _ => null,
+    };
+  }
+
+  Future<void> _startProduction(OrderModel order) async {
+    if (_isSubmitting) {
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+    try {
+      final currentUserId = ref.read(currentUserProvider).value?.uid ?? '';
+      await ref
+          .read(orderRepositoryProvider)
+          .startProduction(
+            order.id,
+            note: _noteController.text.trim(),
+            changedByUserId: currentUserId,
+          );
+      if (mounted) {
+        setState(() => _selectedOrder = null);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
+  }
+
+  Future<void> _finishProduction(OrderModel order) async {
+    if (_isSubmitting) {
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+    try {
+      final currentUserId = ref.read(currentUserProvider).value?.uid ?? '';
+      await ref
+          .read(orderRepositoryProvider)
+          .completeOrder(
+            order.id,
+            note: _noteController.text.trim(),
+            changedByUserId: currentUserId,
+          );
+      if (mounted) {
+        setState(() => _selectedOrder = null);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
   }
 
   String _clientDisplayName(
@@ -1157,8 +872,8 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
       'AVISHU SUPPORT BRIEF',
       'ROLE: PRODUCTION',
       'ACCOUNT: $accountEmail',
-      'TO TAILOR: $acceptedCount',
-      'IN PROGRESS: $inProductionCount',
+      'TO START: $acceptedCount',
+      'IN WORK: $inProductionCount',
       'READY: $readyCount',
       'CURRENT TASK: $currentOrderLabel',
       'ISSUE:',
