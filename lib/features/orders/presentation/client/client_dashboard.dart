@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/theme/colors.dart';
 import '../../../../core/theme/typography.dart';
@@ -108,6 +111,9 @@ class ClientDashboard extends ConsumerStatefulWidget {
 }
 
 class _ClientDashboardState extends ConsumerState<ClientDashboard> {
+  static const _favoriteProductIdsKey = 'client.favorite_product_ids';
+  static const double _priceFilterMin = 0;
+  static const double _priceFilterStep = 200;
   ClientTab _tab = ClientTab.dashboard;
   ClientView _view = ClientView.root;
   CatalogProduct? _selectedProduct;
@@ -151,9 +157,10 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
   @override
   void initState() {
     super.initState();
-    _priceRange = RangeValues(_catalogMinPrice, _catalogMaxPrice);
+    _priceRange = RangeValues(_priceFilterMin, _snappedCatalogMaxPrice);
     _pageController = PageController();
     _thumbnailScrollController = ScrollController();
+    _loadFavoriteProductIds();
   }
 
   @override
@@ -170,13 +177,15 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     super.dispose();
   }
 
-  double get _catalogMinPrice => _catalogProducts
-      .map((product) => product.price)
-      .reduce((a, b) => a < b ? a : b);
-
   double get _catalogMaxPrice => _catalogProducts
       .map((product) => product.price)
       .reduce((a, b) => a > b ? a : b);
+
+  double get _snappedCatalogMaxPrice =>
+      _snapPriceToStep(_catalogMaxPrice, roundUp: true);
+
+  int get _priceRangeDivisions =>
+      ((_snappedCatalogMaxPrice - _priceFilterMin) / _priceFilterStep).round();
 
   AppLanguage get _language => ref.read(appSettingsProvider).language;
 
@@ -278,8 +287,8 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     if (_showFavoritesOnly) {
       count++;
     }
-    if (_priceRange.start != _catalogMinPrice ||
-        _priceRange.end != _catalogMaxPrice) {
+    if (_priceRange.start != _priceFilterMin ||
+        _priceRange.end != _snappedCatalogMaxPrice) {
       count++;
     }
     return count;
@@ -754,32 +763,15 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                 style: AppTypography.eyebrow,
               ),
               const SizedBox(height: 10),
-              SliderTheme(
-                data: SliderTheme.of(context).copyWith(
-                  activeTrackColor: AppColors.black,
-                  inactiveTrackColor: AppColors.surfaceDim,
-                  thumbColor: AppColors.black,
-                  overlayColor: AppColors.black.withValues(alpha: 0.08),
-                  rangeThumbShape: const RoundRangeSliderThumbShape(
-                    enabledThumbRadius: 8,
-                  ),
-                ),
-                child: RangeSlider(
-                  min: _catalogMinPrice,
-                  max: _catalogMaxPrice,
-                  divisions: 10,
-                  values: _priceRange,
-                  onChanged: (values) {
-                    setState(() => _priceRange = values);
-                  },
-                ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(formatCurrency(_priceRange.start)),
-                  Text(formatCurrency(_priceRange.end)),
-                ],
+              _CatalogPriceRangeSlider(
+                min: _priceFilterMin,
+                max: _snappedCatalogMaxPrice,
+                divisions: _priceRangeDivisions,
+                values: _priceRange,
+                onChangedEnd: (values) {
+                  setState(() => _priceRange = values);
+                },
+                valueFormatter: formatCurrency,
               ),
             ],
           ),
@@ -922,32 +914,15 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               ),
               Text('ЦЕНА', style: AppTypography.eyebrow),
               const SizedBox(height: 10),
-              SliderTheme(
-                data: SliderTheme.of(context).copyWith(
-                  activeTrackColor: AppColors.black,
-                  inactiveTrackColor: AppColors.surfaceDim,
-                  thumbColor: AppColors.black,
-                  overlayColor: AppColors.black.withValues(alpha: 0.08),
-                  rangeThumbShape: const RoundRangeSliderThumbShape(
-                    enabledThumbRadius: 8,
-                  ),
-                ),
-                child: RangeSlider(
-                  min: _catalogMinPrice,
-                  max: _catalogMaxPrice,
-                  divisions: 10,
-                  values: _priceRange,
-                  onChanged: (values) {
-                    setState(() => _priceRange = values);
-                  },
-                ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(formatCurrency(_priceRange.start)),
-                  Text(formatCurrency(_priceRange.end)),
-                ],
+              _CatalogPriceRangeSlider(
+                min: _priceFilterMin,
+                max: _snappedCatalogMaxPrice,
+                divisions: _priceRangeDivisions,
+                values: _priceRange,
+                onChangedEnd: (values) {
+                  setState(() => _priceRange = values);
+                },
+                valueFormatter: formatCurrency,
               ),
             ],
           ),
@@ -1186,7 +1161,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
               Expanded(
                 child: Text(
                   _t(
-                    ru: 'Любимые модели',
+                    ru: 'Понравившиеся',
                     en: 'Favorite Models',
                     kk: 'Таңдаулы модельдер',
                   ),
@@ -1194,7 +1169,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                 ),
               ),
               Text(
-                _favoriteProductIds.length.toString().padLeft(2, '0'),
+                _favoriteProductIds.length.toString(),
                 style: Theme.of(context).textTheme.titleLarge,
               ),
             ],
@@ -2048,12 +2023,12 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
 
     _catalogProducts = products;
 
-    final minPrice = _catalogMinPrice;
-    final maxPrice = _catalogMaxPrice;
+    final minPrice = _priceFilterMin;
+    final maxPrice = _snappedCatalogMaxPrice;
     if (_priceRange.start < minPrice ||
         _priceRange.end > maxPrice ||
         _priceRange.start > _priceRange.end) {
-      _priceRange = RangeValues(minPrice, maxPrice);
+      _priceRange = _normalizePriceRange(RangeValues(minPrice, maxPrice));
     }
 
     if (_selectedProduct != null) {
@@ -2089,9 +2064,53 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
   void _toggleFavorite(String productId) {
     if (_favoriteProductIds.contains(productId)) {
       _favoriteProductIds.remove(productId);
+      unawaited(_saveFavoriteProductIds());
       return;
     }
     _favoriteProductIds.add(productId);
+    unawaited(_saveFavoriteProductIds());
+  }
+
+  Future<void> _loadFavoriteProductIds() async {
+    final prefs = await SharedPreferences.getInstance();
+    final storedIds = prefs.getStringList(_favoriteProductIdsKey) ?? const <String>[];
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _favoriteProductIds
+        ..clear()
+        ..addAll(storedIds);
+    });
+  }
+
+  Future<void> _saveFavoriteProductIds() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+      _favoriteProductIdsKey,
+      _favoriteProductIds.toList()..sort(),
+    );
+  }
+
+  double _snapPriceToStep(double value, {bool roundUp = false}) {
+    final ratio = value / _priceFilterStep;
+    final snappedSteps = roundUp ? ratio.ceil() : ratio.round();
+    return snappedSteps * _priceFilterStep;
+  }
+
+  RangeValues _normalizePriceRange(RangeValues values) {
+    final start = _snapPriceToStep(values.start).clamp(
+      _priceFilterMin,
+      _snappedCatalogMaxPrice,
+    );
+    final end = _snapPriceToStep(values.end).clamp(
+      _priceFilterMin,
+      _snappedCatalogMaxPrice,
+    );
+    return RangeValues(
+      start <= end ? start : end,
+      end >= start ? end : start,
+    );
   }
 
   void _selectSection(String section) {
@@ -2105,7 +2124,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     _sizeFilter = null;
     _colorFilter = null;
     _sortOption = CatalogSortOption.defaultOrder;
-    _priceRange = RangeValues(_catalogMinPrice, _catalogMaxPrice);
+    _priceRange = RangeValues(_priceFilterMin, _snappedCatalogMaxPrice);
   }
 
   String get _cardLast4 {
@@ -3990,4 +4009,84 @@ class _DeliveryAddressPreset {
     required this.address,
     required this.apartment,
   });
+}
+
+class _CatalogPriceRangeSlider extends StatefulWidget {
+  const _CatalogPriceRangeSlider({
+    required this.min,
+    required this.max,
+    required this.divisions,
+    required this.values,
+    required this.onChangedEnd,
+    required this.valueFormatter,
+  });
+
+  final double min;
+  final double max;
+  final int divisions;
+  final RangeValues values;
+  final ValueChanged<RangeValues> onChangedEnd;
+  final String Function(double value) valueFormatter;
+
+  @override
+  State<_CatalogPriceRangeSlider> createState() =>
+      _CatalogPriceRangeSliderState();
+}
+
+class _CatalogPriceRangeSliderState extends State<_CatalogPriceRangeSlider> {
+  late RangeValues _localValues;
+
+  @override
+  void initState() {
+    super.initState();
+    _localValues = widget.values;
+  }
+
+  @override
+  void didUpdateWidget(covariant _CatalogPriceRangeSlider oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.values != widget.values ||
+        oldWidget.min != widget.min ||
+        oldWidget.max != widget.max ||
+        oldWidget.divisions != widget.divisions) {
+      _localValues = widget.values;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SliderTheme(
+          data: SliderTheme.of(context).copyWith(
+            activeTrackColor: AppColors.black,
+            inactiveTrackColor: AppColors.surfaceDim,
+            thumbColor: AppColors.black,
+            overlayColor: AppColors.black.withValues(alpha: 0.08),
+            rangeThumbShape: const RoundRangeSliderThumbShape(
+              enabledThumbRadius: 8,
+            ),
+          ),
+          child: RangeSlider(
+            min: widget.min,
+            max: widget.max,
+            divisions: widget.divisions,
+            values: _localValues,
+            onChanged: (values) {
+              setState(() => _localValues = values);
+            },
+            onChangeEnd: widget.onChangedEnd,
+          ),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(widget.valueFormatter(_localValues.start)),
+            Text(widget.valueFormatter(_localValues.end)),
+          ],
+        ),
+      ],
+    );
+  }
 }
