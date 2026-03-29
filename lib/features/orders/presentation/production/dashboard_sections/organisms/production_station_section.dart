@@ -13,9 +13,7 @@ class ProductionStationSection extends StatelessWidget {
   final String roleLabel;
   final String roleValue;
   final bool compact;
-  final Widget guideSection;
-  final Widget flowSection;
-  final Widget supportSection;
+  final Widget helpLauncherSection;
   final String primaryActionLabel;
   final VoidCallback onPrimaryAction;
   final String secondaryActionLabel;
@@ -29,9 +27,7 @@ class ProductionStationSection extends StatelessWidget {
     required this.roleLabel,
     required this.roleValue,
     required this.compact,
-    required this.guideSection,
-    required this.flowSection,
-    required this.supportSection,
+    required this.helpLauncherSection,
     required this.primaryActionLabel,
     required this.onPrimaryAction,
     required this.secondaryActionLabel,
@@ -81,11 +77,7 @@ class ProductionStationSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        guideSection,
-        const SizedBox(height: 12),
-        flowSection,
-        const SizedBox(height: 12),
-        supportSection,
+        helpLauncherSection,
         const SizedBox(height: 12),
         AvishuButton(
           text: primaryActionLabel,

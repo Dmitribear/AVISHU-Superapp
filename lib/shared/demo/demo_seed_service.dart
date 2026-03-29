@@ -11,6 +11,12 @@ import '../../features/products/domain/models/product_model.dart';
 import '../../features/users/data/user_profile_repository.dart';
 
 class DemoSeedService {
+  static const _retiredProductIds = <String>[
+    'avishu-dress-zeta',
+    'avishu-suit-kappa',
+    'avishu-coat-omega',
+  ];
+
   final FirebaseAuth _auth;
   final FirebaseFirestore _firestore;
   final UserProfileRepository _userProfiles;
@@ -26,6 +32,7 @@ class DemoSeedService {
 
   Future<DemoSeedResult> seedAll() async {
     final users = await _seedUsers();
+    await _removeRetiredProducts();
     final products = _demoProducts();
     for (final product in products) {
       await _products.upsertProduct(product);
@@ -299,6 +306,12 @@ class DemoSeedService {
       }
 
       await doc.reference.delete();
+    }
+  }
+
+  Future<void> _removeRetiredProducts() async {
+    for (final productId in _retiredProductIds) {
+      await _products.deleteProduct(productId);
     }
   }
 

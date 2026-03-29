@@ -17,6 +17,7 @@ import '../../../../shared/providers/global_state.dart';
 import '../../../../shared/widgets/app_settings_sheet.dart';
 import '../../../../shared/widgets/avishu_button.dart';
 import '../../../../shared/widgets/avishu_mobile_frame.dart';
+import '../../../auth/domain/app_user.dart';
 import '../../../auth/domain/user_role.dart';
 import '../../../orders/data/order_repository.dart';
 import '../../../orders/domain/enums/delivery_method.dart';
@@ -1213,198 +1214,11 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
           ),
         ],
         const SizedBox(height: 12),
-        DeskHelpGuideSection(
+        _buildProfileHelpLauncher(
           compact: compact,
-          eyebrow: _t(
-            ru: 'КАК ПОЛЬЗОВАТЬСЯ',
-            en: 'HOW TO USE',
-            kk: 'ҚАЛАЙ ПАЙДАЛАНУ КЕРЕК',
-          ),
-          title: _t(
-            ru: 'Все важное по заказу собрано в одном ритме.',
-            en: 'Everything important about your order lives in one flow.',
-            kk: 'Тапсырыс бойынша маңыздының бәрі бір ағында жиналған.',
-          ),
-          description: _t(
-            ru: 'Каталог, оформление, оплата и трекинг связаны между собой, поэтому не нужно искать статус по разным экранам.',
-            en: 'Catalog, checkout, payment, and tracking are connected, so you do not need to search for status across different screens.',
-            kk: 'Каталог, рәсімдеу, төлем және бақылау бір жүйеге байланысқан, сондықтан мәртебені әр экраннан іздеудің қажеті жоқ.',
-          ),
-          points: [
-            DeskHelpGuidePoint(
-              title: _t(
-                ru: 'Выберите модель и доступный размер',
-                en: 'Pick a model and an available size',
-                kk: 'Модель мен қолжетімді өлшемді таңдаңыз',
-              ),
-              description: _t(
-                ru: 'В карточке сразу видно, какие размеры закрыты, а какие можно заказать без уточнений.',
-                en: 'The product card immediately shows which sizes are unavailable and which ones can be ordered right away.',
-                kk: 'Карточкада қай өлшем жабық екені және қайсысын бірден тапсырыс беруге болатыны бірден көрінеді.',
-              ),
-            ),
-            DeskHelpGuidePoint(
-              title: _t(
-                ru: 'Следите за статусом без звонков',
-                en: 'Track status without calls',
-                kk: 'Мәртебені қоңыраусыз бақылаңыз',
-              ),
-              description: _t(
-                ru: 'После оплаты заказ переходит в трекинг, где видны этап, адрес и движение по доставке.',
-                en: 'After payment, the order moves into tracking where you can see the stage, address, and delivery movement.',
-                kk: 'Төлемнен кейін тапсырыс бақылауға өтеді, онда кезең, мекенжай және жеткізу қозғалысы көрінеді.',
-              ),
-            ),
-            DeskHelpGuidePoint(
-              title: _t(
-                ru: 'Если нужно вмешательство, все под рукой',
-                en: 'If you need help, everything is ready',
-                kk: 'Көмек керек болса, бәрі дайын',
-              ),
-              description: _t(
-                ru: 'Внизу есть быстрые действия: можно скопировать email, номер заказа и готовый бриф для поддержки.',
-                en: 'Below you will find quick actions to copy your email, order number, and a ready support brief.',
-                kk: 'Төменде email, тапсырыс нөмірі және дайын қолдау мәтінін көшіруге арналған жедел әрекеттер бар.',
-              ),
-            ),
-          ],
+          user: user,
+          supportOrder: supportOrder,
         ),
-        const SizedBox(height: 12),
-        DeskHelpSystemFlowSection(
-          compact: compact,
-          eyebrow: _t(
-            ru: 'СИСТЕМНЫЙ ПОТОК',
-            en: 'SYSTEM FLOW',
-            kk: 'ЖҮЙЕЛІК АҒЫН',
-          ),
-          steps: [
-            DeskHelpFlowStep(
-              title: localizedRoleLabel(UserRole.client, _language),
-              details: _t(
-                ru: 'Клиент выбирает модель, проверяет доступный размер, подтверждает адрес и оплачивает заказ.',
-                en: 'The client chooses a model, checks the available size, confirms the address, and pays for the order.',
-                kk: 'Клиент модельді таңдап, қолжетімді өлшемді тексеріп, мекенжайды растап, тапсырысты төлейді.',
-              ),
-            ),
-            DeskHelpFlowStep(
-              title: localizedRoleLabel(UserRole.franchisee, _language),
-              details: _t(
-                ru: 'Франчайзи получает заказ сразу после оплаты, проверяет детали и передает его в работу без лишних переписок.',
-                en: 'The franchisee receives the order right after payment, checks the details, and sends it into work without extra back-and-forth.',
-                kk: 'Франчайзи тапсырысты төлемнен кейін бірден алып, деректерді тексеріп, оны артық хат алмасусыз жұмысқа жібереді.',
-              ),
-            ),
-            DeskHelpFlowStep(
-              title: localizedRoleLabel(UserRole.production, _language),
-              details: _t(
-                ru: 'Производство принимает задачу, обновляет этапы пошива и отмечает готовность, когда вещь собрана.',
-                en: 'Production accepts the task, updates tailoring stages, and marks the item ready once everything is complete.',
-                kk: 'Өндіріс тапсырманы қабылдап, тігу кезеңдерін жаңартады және бұйым дайын болғанда мәртебені белгілейді.',
-              ),
-            ),
-            DeskHelpFlowStep(
-              title: localizedRoleLabel(UserRole.client, _language),
-              details: _t(
-                ru: 'Клиент видит обновление в трекинге, получает готовый статус и завершает цикл получением заказа.',
-                en: 'The client sees the update in tracking, receives the ready status, and completes the cycle by receiving the order.',
-                kk: 'Клиент жаңартуды бақылаудан көреді, дайын мәртебесін алады және тапсырысты алу арқылы циклды аяқтайды.',
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        DeskHelpSupportSection(
-          compact: compact,
-          eyebrow: _t(
-            ru: 'ПОМОЩЬ И ПОДДЕРЖКА',
-            en: 'HELP & SUPPORT',
-            kk: 'КӨМЕК ЖӘНЕ ҚОЛДАУ',
-          ),
-          title: _t(
-            ru: 'Подготовьте обращение за несколько секунд.',
-            en: 'Prepare a support message in a few seconds.',
-            kk: 'Қолдау хабарламасын бірнеше секундта дайындаңыз.',
-          ),
-          description: _t(
-            ru: 'Если нужно быстро решить вопрос по адресу, оплате или заказу, скопируйте готовые данные и отправьте их в ваш канал поддержки AVISHU.',
-            en: 'If you need to resolve an address, payment, or order issue quickly, copy the ready details and send them through your AVISHU support channel.',
-            kk: 'Егер мекенжай, төлем немесе тапсырыс бойынша сұрақты тез шешу керек болса, дайын деректерді көшіріп, оларды AVISHU қолдау арнасына жіберіңіз.',
-          ),
-          actions: [
-            DeskHelpSupportAction(
-              title: _t(
-                ru: 'Скопировать email профиля',
-                en: 'Copy profile email',
-                kk: 'Профиль email-ын көшіру',
-              ),
-              description: _t(
-                ru: 'Полезно, если поддержке нужно быстро найти ваш аккаунт.',
-                en: 'Useful when support needs to find your account quickly.',
-                kk: 'Қолдау қызметіне аккаунтыңызды тез табу керек болса пайдалы.',
-              ),
-              actionLabel: _t(ru: 'КОПИЯ', en: 'COPY', kk: 'КОПИЯ'),
-              onTap: () => _copyToClipboard(
-                user?.email ?? '',
-                _t(
-                  ru: 'Email профиля скопирован.',
-                  en: 'Profile email copied.',
-                  kk: 'Профиль email-ы көшірілді.',
-                ),
-              ),
-            ),
-            DeskHelpSupportAction(
-              title: _t(
-                ru: 'Скопировать номер заказа',
-                en: 'Copy order number',
-                kk: 'Тапсырыс нөмірін көшіру',
-              ),
-              description: _t(
-                ru: 'Добавьте номер заказа в сообщение, чтобы не тратить время на уточнение.',
-                en: 'Add the order number to your message so there is no delay in identifying the request.',
-                kk: 'Хабарламаға тапсырыс нөмірін қосыңыз, сонда сұрауды анықтауға уақыт кетпейді.',
-              ),
-              actionLabel: _t(ru: 'КОПИЯ', en: 'COPY', kk: 'КОПИЯ'),
-              onTap: () => _copyToClipboard(
-                supportOrder == null ? '' : '#${supportOrder.shortId}',
-                _t(
-                  ru: 'Номер заказа скопирован.',
-                  en: 'Order number copied.',
-                  kk: 'Тапсырыс нөмірі көшірілді.',
-                ),
-              ),
-            ),
-            DeskHelpSupportAction(
-              title: _t(
-                ru: 'Скопировать бриф для поддержки',
-                en: 'Copy support brief',
-                kk: 'Қолдау мәтінін көшіру',
-              ),
-              description: _t(
-                ru: 'Готовый шаблон обращения уже содержит аккаунт и заказ, чтобы вам осталось описать только саму ситуацию.',
-                en: 'The ready template already includes your account and order, so you only need to describe the issue itself.',
-                kk: 'Дайын шаблонда аккаунт пен тапсырыс бар, сондықтан сізге тек мәселенің өзін сипаттау қалады.',
-              ),
-              actionLabel: _t(ru: 'КОПИЯ', en: 'COPY', kk: 'КОПИЯ'),
-              onTap: () => _copyToClipboard(
-                _clientSupportBrief(
-                  userEmail: user?.email ?? '',
-                  order: supportOrder,
-                ),
-                _t(
-                  ru: 'Бриф для поддержки скопирован.',
-                  en: 'Support brief copied.',
-                  kk: 'Қолдау мәтіні көшірілді.',
-                ),
-              ),
-            ),
-          ],
-          footerText: _t(
-            ru: 'Чтобы получить ответ быстрее, добавьте в обращение размер, адрес доставки и скрин, если что-то отображается неверно.',
-            en: 'To get help faster, include your size, delivery address, and a screenshot if something looks wrong.',
-            kk: 'Жауапты тезірек алу үшін өлшемді, жеткізу мекенжайын және бірдеңе қате көрінсе скриншотты қосыңыз.',
-          ),
-        ),
-        const SizedBox(height: 16),
         const SizedBox(height: 16),
         AvishuButton(
           text: _t(ru: 'ПОЧЕМУ AVISHU', en: 'WHY AVISHU', kk: 'НЕГЕ AVISHU'),
@@ -1428,6 +1242,337 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
           },
         ),
       ],
+    );
+  }
+
+  Widget _buildProfileHelpLauncher({
+    required bool compact,
+    required AppUser? user,
+    required OrderModel? supportOrder,
+  }) {
+    return DeskHelpLauncherSection(
+      compact: compact,
+      eyebrow: _t(
+        ru: 'РРќРЎРўР РЈРљР¦РРЇ Р РџРћР”Р”Р•Р Р–РљРђ',
+        en: 'GUIDE & SUPPORT',
+        kk: 'РќРҰРЎТљРђРЈР›Р«Рљ РџР•Рќ ТљРћР›Р”РђРЈ',
+      ),
+      title: _t(
+        ru: 'РћС‚РєСЂРѕР№С‚Рµ РёРЅСЃС‚СЂСѓРєС†РёСЋ РёР»Рё С‡Р°С‚ РїРѕ РЅР°Р¶Р°С‚РёСЋ.',
+        en: 'Open the guide or support chat in one tap.',
+        kk: 'РќС±СЃТ›Р°СѓР»С‹Т›С‚С‹ РЅРµРјРµСЃРµ Т›РѕР»РґР°Сѓ С‡Р°С‚С‹РЅ Р±С–СЂ Р±Р°С‚С‹СЂРјР°РјРµРЅ Р°С€С‹ТЈС‹Р·.',
+      ),
+      description: _t(
+        ru: 'Р”Р»РёРЅРЅС‹Рµ Р±Р»РѕРєРё Р±РѕР»СЊС€Рµ РЅРµ Р·Р°РЅРёРјР°СЋС‚ СЌРєСЂР°РЅ: РёРЅСЃС‚СЂСѓРєС†РёСЏ, СЃРёСЃС‚РµРјРЅС‹Р№ РїРѕС‚РѕРє Рё РїРѕРґРґРµСЂР¶РєР° РѕС‚РєСЂС‹РІР°СЋС‚СЃСЏ РѕС‚РґРµР»СЊРЅРѕ.',
+        en: 'Long help blocks no longer take over the screen: the guide, system flow, and support open separately.',
+        kk: 'Р¦РµРЅС‚СЂР»С‹ Р±Р»РѕРєС‚Р°СЂ СЌРєСЂР°РЅРґС‹ Р°Р»РјР°Р№РґС‹: РЅС±СЃТ›Р°СѓР»С‹Т›, Р¶ТЇР№Рµ Р°Т“С‹РЅС‹ Р¶У™РЅРµ Т›РѕР»РґР°Сѓ Р±У©Р»РµРє Р°С€С‹Р»Р°РґС‹.',
+      ),
+      actions: [
+        DeskHelpLauncherAction(
+          icon: Icons.menu_book_outlined,
+          title: _t(
+            ru: 'РљР°Рє РїРѕР»СЊР·РѕРІР°С‚СЊСЃСЏ',
+            en: 'How to use',
+            kk: 'ТљР°Р»Р°Р№ РїР°Р№РґР°Р»Р°РЅСѓ РєРµСЂРµРє',
+          ),
+          description: _t(
+            ru: 'РћС‚РєСЂРѕР№С‚Рµ РєРѕСЂРѕС‚РєСѓСЋ РёРЅСЃС‚СЂСѓРєС†РёСЋ Рё СЃРёСЃС‚РµРјРЅС‹Р№ РїРѕС‚РѕРє Р·Р°РєР°Р·Р°.',
+            en: 'Open the quick guide and the full order flow.',
+            kk: 'ТљС‹СЃТ›Р° РЅС±СЃТ›Р°СѓР»С‹Т›С‚С‹ Р¶У™РЅРµ С‚Р°РїСЃС‹СЂС‹СЃ Р°Т“С‹РЅС‹РЅ Р°С€С‹ТЈС‹Р·.',
+          ),
+          actionLabel: _t(ru: 'OPEN', en: 'OPEN', kk: 'OPEN'),
+          onTap: () => showDeskHelpSheet(
+            context,
+            eyebrow: _t(
+              ru: 'РљРђРљ РџРћР›Р¬Р—РћР’РђРўР¬РЎРЇ',
+              en: 'HOW TO USE',
+              kk: 'ТљРђР›РђР™ РџРђР™Р”РђР›РђРќРЈ РљР•Р Р•Рљ',
+            ),
+            title: _t(
+              ru: 'Р’СЃСЏ Р»РѕРіРёРєР° Р·Р°РєР°Р·Р° РІ РѕРґРЅРѕРј РѕРєРЅРµ.',
+              en: 'The whole order flow lives in one place.',
+              kk: 'РўР°РїСЃС‹СЂС‹СЃ Р»РѕРіРёРєР°СЃС‹ Р±С–СЂ Р¶РµСЂРґРµ.',
+            ),
+            description: _t(
+              ru: 'Р—РґРµСЃСЊ РјРѕР¶РЅРѕ Р±С‹СЃС‚СЂРѕ РїРѕРЅСЏС‚СЊ РєР°Рє РёРґС‘С‚ РѕС„РѕСЂРјР»РµРЅРёРµ, С‚СЂРµРєРёРЅРі Рё РєС‚Рѕ РїРѕРґС…РІР°С‚С‹РІР°РµС‚ Р·Р°РєР°Р· РЅР° РєР°Р¶РґРѕРј СЌС‚Р°РїРµ.',
+              en: 'Use this sheet to understand checkout, tracking, and who takes over the order at each stage.',
+              kk: 'РћСЃС‹ Р±Р»РѕРєС‚Р° СЂУ™СЃС–РјРґРµСѓРґС–, Р±Р°Т›С‹Р»Р°СѓРґС‹ Р¶У™РЅРµ У™СЂ РєРµР·РµТЈРґРµ С‚Р°РїСЃС‹СЂС‹СЃС‚С‹ РєС–Рј Р°Р»Р°С‚С‹РЅС‹РЅ С‚РµР· С‚ТЇСЃС–РЅСѓРіРµ Р±РѕР»Р°РґС‹.',
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildProfileGuideSection(compact: compact),
+                const SizedBox(height: 12),
+                _buildProfileFlowSection(compact: compact),
+              ],
+            ),
+          ),
+        ),
+        DeskHelpLauncherAction(
+          icon: Icons.forum_outlined,
+          title: _t(
+            ru: 'Р§Р°С‚ СЃ РїРѕРґРґРµСЂР¶РєРѕР№',
+            en: 'Support chat',
+            kk: 'ТљРѕР»РґР°Сѓ С‡Р°С‚С‹',
+          ),
+          description: _t(
+            ru: 'РћС‚РєСЂРѕР№С‚Рµ Р±С‹СЃС‚СЂС‹Рµ РґРµР№СЃС‚РІРёСЏ Рё СЃРєРѕРїРёСЂСѓР№С‚Рµ РіРѕС‚РѕРІРѕРµ СЃРѕРѕР±С‰РµРЅРёРµ РґР»СЏ РїРѕРґРґРµСЂР¶РєРё.',
+            en: 'Open quick actions and copy a ready message for support.',
+            kk: 'РўРµР· У™СЂРµРєРµС‚С‚РµСЂРґС– Р°С€С‹Рї, Т›РѕР»РґР°СѓТ“Р° Р°СЂРЅР°Р»Т“Р°РЅ РґР°Р№С‹РЅ С…Р°Р±Р°СЂР»Р°РјР°РЅС‹ РєУ©С€С–СЂС–ТЈС–Р·.',
+          ),
+          actionLabel: _t(ru: 'CHAT', en: 'CHAT', kk: 'CHAT'),
+          emphasized: true,
+          onTap: () => showDeskHelpSheet(
+            context,
+            eyebrow: _t(
+              ru: 'РџРћРњРћР©Р¬ Р РџРћР”Р”Р•Р Р–РљРђ',
+              en: 'HELP & SUPPORT',
+              kk: 'РљУЁРњР•Рљ Р–УРќР• ТљРћР›Р”РђРЈ',
+            ),
+            title: _t(
+              ru: 'Р§Р°С‚ Рё РїРѕРґРґРµСЂР¶РєР° AVISHU',
+              en: 'AVISHU support chat',
+              kk: 'AVISHU Т›РѕР»РґР°Сѓ С‡Р°С‚С‹',
+            ),
+            description: _t(
+              ru: 'Р—РґРµСЃСЊ РјРѕР¶РЅРѕ Р±С‹СЃС‚СЂРѕ СЃРѕР±СЂР°С‚СЊ РіРѕС‚РѕРІРѕРµ СЃРѕРѕР±С‰РµРЅРёРµ РґР»СЏ Р°РґСЂРµСЃР°, РѕРїР»Р°С‚С‹ РёР»Рё РЅРѕРјРµСЂР° Р·Р°РєР°Р·Р°.',
+              en: 'Use this sheet to prepare a ready support message with your address, payment, or order details.',
+              kk: 'РћСЃС‹ Р¶РµСЂРґРµ РјРµРєРµРЅР¶Р°Р№, С‚У©Р»РµРј РЅРµРјРµСЃРµ С‚Р°РїСЃС‹СЂС‹СЃ РЅУ©РјС–СЂС– Р±Р°СЂ РґР°Р№С‹РЅ Т›РѕР»РґР°Сѓ С…Р°Р±Р°СЂР»Р°РјР°СЃС‹РЅ Р¶РёРЅР°СЃС‚С‹СЂСѓТ“Р° Р±РѕР»Р°РґС‹.',
+            ),
+            child: _buildProfileSupportSection(
+              compact: compact,
+              user: user,
+              supportOrder: supportOrder,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProfileGuideSection({required bool compact}) {
+    return DeskHelpGuideSection(
+      compact: compact,
+      eyebrow: _t(
+        ru: 'РљРђРљ РџРћР›Р¬Р—РћР’РђРўР¬РЎРЇ',
+        en: 'HOW TO USE',
+        kk: 'ТљРђР›РђР™ РџРђР™Р”РђР›РђРќРЈ РљР•Р Р•Рљ',
+      ),
+      title: _t(
+        ru: 'Р’СЃРµ РІР°Р¶РЅРѕРµ РїРѕ Р·Р°РєР°Р·Сѓ СЃРѕР±СЂР°РЅРѕ РІ РѕРґРЅРѕРј СЂРёС‚РјРµ.',
+        en: 'Everything important about your order lives in one flow.',
+        kk: 'РўР°РїСЃС‹СЂС‹СЃ Р±РѕР№С‹РЅС€Р° РјР°ТЈС‹Р·РґС‹РЅС‹ТЈ Р±У™СЂС– Р±С–СЂ Р°Т“С‹РЅРґР° Р¶РёРЅР°Р»Т“Р°РЅ.',
+      ),
+      description: _t(
+        ru: 'РљР°С‚Р°Р»РѕРі, РѕС„РѕСЂРјР»РµРЅРёРµ, РѕРїР»Р°С‚Р° Рё С‚СЂРµРєРёРЅРі СЃРІСЏР·Р°РЅС‹ РјРµР¶РґСѓ СЃРѕР±РѕР№, РїРѕСЌС‚РѕРјСѓ РЅРµ РЅСѓР¶РЅРѕ РёСЃРєР°С‚СЊ СЃС‚Р°С‚СѓСЃ РїРѕ СЂР°Р·РЅС‹Рј СЌРєСЂР°РЅР°Рј.',
+        en: 'Catalog, checkout, payment, and tracking are connected, so you do not need to search for status across different screens.',
+        kk: 'РљР°С‚Р°Р»РѕРі, СЂУ™СЃС–РјРґРµСѓ, С‚У©Р»РµРј Р¶У™РЅРµ Р±Р°Т›С‹Р»Р°Сѓ Р±С–СЂ Р¶ТЇР№РµРіРµ Р±Р°Р№Р»Р°РЅС‹СЃТ›Р°РЅ, СЃРѕРЅРґС‹Т›С‚Р°РЅ РјУ™СЂС‚РµР±РµРЅС– У™СЂ СЌРєСЂР°РЅРЅР°РЅ С–Р·РґРµСѓРґС–ТЈ Т›Р°Р¶РµС‚С– Р¶РѕТ›.',
+      ),
+      points: [
+        DeskHelpGuidePoint(
+          title: _t(
+            ru: 'Р’С‹Р±РµСЂРёС‚Рµ РјРѕРґРµР»СЊ Рё РґРѕСЃС‚СѓРїРЅС‹Р№ СЂР°Р·РјРµСЂ',
+            en: 'Pick a model and an available size',
+            kk: 'РњРѕРґРµР»СЊ РјРµРЅ Т›РѕР»Р¶РµС‚С–РјРґС– У©Р»С€РµРјРґС– С‚Р°ТЈРґР°ТЈС‹Р·',
+          ),
+          description: _t(
+            ru: 'Р’ РєР°СЂС‚РѕС‡РєРµ СЃСЂР°Р·Сѓ РІРёРґРЅРѕ, РєР°РєРёРµ СЂР°Р·РјРµСЂС‹ Р·Р°РєСЂС‹С‚С‹, Р° РєР°РєРёРµ РјРѕР¶РЅРѕ Р·Р°РєР°Р·Р°С‚СЊ Р±РµР· СѓС‚РѕС‡РЅРµРЅРёР№.',
+            en: 'The product card immediately shows which sizes are unavailable and which ones can be ordered right away.',
+            kk: 'РљР°СЂС‚РѕС‡РєР°РґР° Т›Р°Р№ У©Р»С€РµРј Р¶Р°Р±С‹Т› РµРєРµРЅС– Р¶У™РЅРµ Т›Р°Р№СЃС‹СЃС‹РЅ Р±С–СЂРґРµРЅ С‚Р°РїСЃС‹СЂС‹СЃ Р±РµСЂСѓРіРµ Р±РѕР»Р°С‚С‹РЅС‹ Р±С–СЂРґРµРЅ РєУ©СЂС–РЅРµРґС–.',
+          ),
+        ),
+        DeskHelpGuidePoint(
+          title: _t(
+            ru: 'РЎР»РµРґРёС‚Рµ Р·Р° СЃС‚Р°С‚СѓСЃРѕРј Р±РµР· Р·РІРѕРЅРєРѕРІ',
+            en: 'Track status without calls',
+            kk: 'РњУ™СЂС‚РµР±РµРЅС– Т›РѕТЈС‹СЂР°СѓСЃС‹Р· Р±Р°Т›С‹Р»Р°ТЈС‹Р·',
+          ),
+          description: _t(
+            ru: 'РџРѕСЃР»Рµ РѕРїР»Р°С‚С‹ Р·Р°РєР°Р· РїРµСЂРµС…РѕРґРёС‚ РІ С‚СЂРµРєРёРЅРі, РіРґРµ РІРёРґРЅС‹ СЌС‚Р°Рї, Р°РґСЂРµСЃ Рё РґРІРёР¶РµРЅРёРµ РїРѕ РґРѕСЃС‚Р°РІРєРµ.',
+            en: 'After payment, the order moves into tracking where you can see the stage, address, and delivery movement.',
+            kk: 'РўУ©Р»РµРјРЅРµРЅ РєРµР№С–РЅ С‚Р°РїСЃС‹СЂС‹СЃ Р±Р°Т›С‹Р»Р°СѓТ“Р° У©С‚РµРґС–, РѕРЅРґР° РєРµР·РµТЈ, РјРµРєРµРЅР¶Р°Р№ Р¶У™РЅРµ Р¶РµС‚РєС–Р·Сѓ Т›РѕР·Т“Р°Р»С‹СЃС‹ РєУ©СЂС–РЅРµРґС–.',
+          ),
+        ),
+        DeskHelpGuidePoint(
+          title: _t(
+            ru: 'Р•СЃР»Рё РЅСѓР¶РЅРѕ РІРјРµС€Р°С‚РµР»СЊСЃС‚РІРѕ, РІСЃРµ РїРѕРґ СЂСѓРєРѕР№',
+            en: 'If you need help, everything is ready',
+            kk: 'РљУ©РјРµРє РєРµСЂРµРє Р±РѕР»СЃР°, Р±У™СЂС– РґР°Р№С‹РЅ',
+          ),
+          description: _t(
+            ru: 'Р’РЅРёР·Сѓ РµСЃС‚СЊ Р±С‹СЃС‚СЂС‹Рµ РґРµР№СЃС‚РІРёСЏ: РјРѕР¶РЅРѕ СЃРєРѕРїРёСЂРѕРІР°С‚СЊ email, РЅРѕРјРµСЂ Р·Р°РєР°Р·Р° Рё РіРѕС‚РѕРІС‹Р№ Р±СЂРёС„ РґР»СЏ РїРѕРґРґРµСЂР¶РєРё.',
+            en: 'Below you will find quick actions to copy your email, order number, and a ready support brief.',
+            kk: 'РўУ©РјРµРЅРґРµ email, С‚Р°РїСЃС‹СЂС‹СЃ РЅУ©РјС–СЂС– Р¶У™РЅРµ РґР°Р№С‹РЅ Т›РѕР»РґР°Сѓ РјУ™С‚С–РЅС–РЅ РєУ©С€С–СЂСѓРіРµ Р°СЂРЅР°Р»Т“Р°РЅ Р¶РµРґРµР» У™СЂРµРєРµС‚С‚РµСЂ Р±Р°СЂ.',
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProfileFlowSection({required bool compact}) {
+    return DeskHelpSystemFlowSection(
+      compact: compact,
+      eyebrow: _t(
+        ru: 'РЎРРЎРўР•РњРќР«Р™ РџРћРўРћРљ',
+        en: 'SYSTEM FLOW',
+        kk: 'Р–Т®Р™Р•Р›Р†Рљ РђТ’Р«Рќ',
+      ),
+      steps: [
+        DeskHelpFlowStep(
+          title: localizedRoleLabel(UserRole.client, _language),
+          details: _t(
+            ru: 'РљР»РёРµРЅС‚ РІС‹Р±РёСЂР°РµС‚ РјРѕРґРµР»СЊ, РїСЂРѕРІРµСЂСЏРµС‚ РґРѕСЃС‚СѓРїРЅС‹Р№ СЂР°Р·РјРµСЂ, РїРѕРґС‚РІРµСЂР¶РґР°РµС‚ Р°РґСЂРµСЃ Рё РѕРїР»Р°С‡РёРІР°РµС‚ Р·Р°РєР°Р·.',
+            en: 'The client chooses a model, checks the available size, confirms the address, and pays for the order.',
+            kk: 'РљР»РёРµРЅС‚ РјРѕРґРµР»СЊРґС– С‚Р°ТЈРґР°Рї, Т›РѕР»Р¶РµС‚С–РјРґС– У©Р»С€РµРјРґС– С‚РµРєСЃРµСЂС–Рї, РјРµРєРµРЅР¶Р°Р№РґС‹ СЂР°СЃС‚Р°Рї, С‚Р°РїСЃС‹СЂС‹СЃС‚С‹ С‚У©Р»РµР№РґС–.',
+          ),
+        ),
+        DeskHelpFlowStep(
+          title: localizedRoleLabel(UserRole.franchisee, _language),
+          details: _t(
+            ru: 'Р¤СЂР°РЅС‡Р°Р№Р·Рё РїРѕР»СѓС‡Р°РµС‚ Р·Р°РєР°Р· СЃСЂР°Р·Сѓ РїРѕСЃР»Рµ РѕРїР»Р°С‚С‹, РїСЂРѕРІРµСЂСЏРµС‚ РґРµС‚Р°Р»Рё Рё РїРµСЂРµРґР°РµС‚ РµРіРѕ РІ СЂР°Р±РѕС‚Сѓ Р±РµР· Р»РёС€РЅРёС… РїРµСЂРµРїРёСЃРѕРє.',
+            en: 'The franchisee receives the order right after payment, checks the details, and sends it into work without extra back-and-forth.',
+            kk: 'Р¤СЂР°РЅС‡Р°Р№Р·Рё С‚Р°РїСЃС‹СЂС‹СЃС‚С‹ С‚У©Р»РµРјРЅРµРЅ РєРµР№С–РЅ Р±С–СЂРґРµРЅ Р°Р»С‹Рї, РґРµСЂРµРєС‚РµСЂРґС– С‚РµРєСЃРµСЂС–Рї, РѕРЅС‹ Р°СЂС‚С‹Т› С…Р°С‚ Р°Р»РјР°СЃСѓСЃС‹Р· Р¶Т±РјС‹СЃТ›Р° Р¶С–Р±РµСЂРµРґС–.',
+          ),
+        ),
+        DeskHelpFlowStep(
+          title: localizedRoleLabel(UserRole.production, _language),
+          details: _t(
+            ru: 'РџСЂРѕРёР·РІРѕРґСЃС‚РІРѕ РїСЂРёРЅРёРјР°РµС‚ Р·Р°РґР°С‡Сѓ, РѕР±РЅРѕРІР»СЏРµС‚ СЌС‚Р°РїС‹ РїРѕС€РёРІР° Рё РѕС‚РјРµС‡Р°РµС‚ РіРѕС‚РѕРІРЅРѕСЃС‚СЊ, РєРѕРіРґР° РІРµС‰СЊ СЃРѕР±СЂР°РЅР°.',
+            en: 'Production accepts the task, updates tailoring stages, and marks the item ready once everything is complete.',
+            kk: 'УЁРЅРґС–СЂС–СЃ С‚Р°РїСЃС‹СЂРјР°РЅС‹ Т›Р°Р±С‹Р»РґР°Рї, С‚С–РіСѓ РєРµР·РµТЈРґРµСЂС–РЅ Р¶Р°ТЈР°СЂС‚Р°РґС‹ Р¶У™РЅРµ Р±Т±Р№С‹Рј РґР°Р№С‹РЅ Р±РѕР»Т“Р°РЅРґР° РјУ™СЂС‚РµР±РµРЅС– Р±РµР»РіС–Р»РµР№РґС–.',
+          ),
+        ),
+        DeskHelpFlowStep(
+          title: localizedRoleLabel(UserRole.client, _language),
+          details: _t(
+            ru: 'РљР»РёРµРЅС‚ РІРёРґРёС‚ РѕР±РЅРѕРІР»РµРЅРёРµ РІ С‚СЂРµРєРёРЅРіРµ, РїРѕР»СѓС‡Р°РµС‚ РіРѕС‚РѕРІС‹Р№ СЃС‚Р°С‚СѓСЃ Рё Р·Р°РІРµСЂС€Р°РµС‚ С†РёРєР» РїРѕР»СѓС‡РµРЅРёРµРј Р·Р°РєР°Р·Р°.',
+            en: 'The client sees the update in tracking, receives the ready status, and completes the cycle by receiving the order.',
+            kk: 'РљР»РёРµРЅС‚ Р¶Р°ТЈР°СЂС‚СѓРґС‹ Р±Р°Т›С‹Р»Р°СѓРґР°РЅ РєУ©СЂРµРґС–, РґР°Р№С‹РЅ РјУ™СЂС‚РµР±РµСЃС–РЅ Р°Р»Р°РґС‹ Р¶У™РЅРµ С‚Р°РїСЃС‹СЂС‹СЃС‚С‹ Р°Р»Сѓ Р°СЂТ›С‹Р»С‹ С†РёРєР»РґС‹ Р°СЏТ›С‚Р°Р№РґС‹.',
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProfileSupportSection({
+    required bool compact,
+    required AppUser? user,
+    required OrderModel? supportOrder,
+  }) {
+    return DeskHelpSupportSection(
+      compact: compact,
+      eyebrow: _t(
+        ru: 'РџРћРњРћР©Р¬ Р РџРћР”Р”Р•Р Р–РљРђ',
+        en: 'HELP & SUPPORT',
+        kk: 'РљУЁРњР•Рљ Р–УРќР• ТљРћР›Р”РђРЈ',
+      ),
+      title: _t(
+        ru: 'РџРѕРґРіРѕС‚РѕРІСЊС‚Рµ РѕР±СЂР°С‰РµРЅРёРµ Р·Р° РЅРµСЃРєРѕР»СЊРєРѕ СЃРµРєСѓРЅРґ.',
+        en: 'Prepare a support message in a few seconds.',
+        kk: 'ТљРѕР»РґР°Сѓ С…Р°Р±Р°СЂР»Р°РјР°СЃС‹РЅ Р±С–СЂРЅРµС€Рµ СЃРµРєСѓРЅРґС‚Р° РґР°Р№С‹РЅРґР°ТЈС‹Р·.',
+      ),
+      description: _t(
+        ru: 'Р•СЃР»Рё РЅСѓР¶РЅРѕ Р±С‹СЃС‚СЂРѕ СЂРµС€РёС‚СЊ РІРѕРїСЂРѕСЃ РїРѕ Р°РґСЂРµСЃСѓ, РѕРїР»Р°С‚Рµ РёР»Рё Р·Р°РєР°Р·Сѓ, СЃРєРѕРїРёСЂСѓР№С‚Рµ РіРѕС‚РѕРІС‹Рµ РґР°РЅРЅС‹Рµ Рё РѕС‚РїСЂР°РІСЊС‚Рµ РёС… РІ РІР°С€ РєР°РЅР°Р» РїРѕРґРґРµСЂР¶РєРё AVISHU.',
+        en: 'If you need to resolve an address, payment, or order issue quickly, copy the ready details and send them through your AVISHU support channel.',
+        kk: 'Р•РіРµСЂ РјРµРєРµРЅР¶Р°Р№, С‚У©Р»РµРј РЅРµРјРµСЃРµ С‚Р°РїСЃС‹СЂС‹СЃ Р±РѕР№С‹РЅС€Р° СЃТ±СЂР°Т›С‚С‹ С‚РµР· С€РµС€Сѓ РєРµСЂРµРє Р±РѕР»СЃР°, РґР°Р№С‹РЅ РґРµСЂРµРєС‚РµСЂРґС– РєУ©С€С–СЂС–Рї, РѕР»Р°СЂРґС‹ AVISHU Т›РѕР»РґР°Сѓ Р°СЂРЅР°СЃС‹РЅР° Р¶С–Р±РµСЂС–ТЈС–Р·.',
+      ),
+      actions: [
+        DeskHelpSupportAction(
+          title: _t(
+            ru: 'РЎРєРѕРїРёСЂРѕРІР°С‚СЊ СЃРѕРѕР±С‰РµРЅРёРµ РґР»СЏ С‡Р°С‚Р°',
+            en: 'Copy chat message',
+            kk: 'С‡Р°С‚С‚Р° Р¶С–Р±РµСЂСѓРіРµ Р°СЂРЅР°Р»Т“Р°РЅ С…Р°Р±Р°СЂР»Р°РјР°РЅС‹ РєУ©С€С–СЂСѓ',
+          ),
+          description: _t(
+            ru: 'РћРґРЅРѕР№ РєРѕРїРёРµР№ РјРѕР¶РЅРѕ СЂР°Р·РѕРј РїРѕРґС‚СЏРЅСѓС‚СЊ email Рё РЅРѕРјРµСЂ Р·Р°РєР°Р·Р° РґР»СЏ С‡Р°С‚Р° РїРѕРґРґРµСЂР¶РєРё.',
+            en: 'One copy action prepares a ready message for the support chat with your email and order number.',
+            kk: 'Р‘С–СЂ РєУ©С€С–СЂСѓ Р°СЂТ›С‹Р»С‹ Рµmail РјРµРЅ С‚Р°РїСЃС‹СЂС‹СЃ РЅУ©РјС–СЂС– Р±Р°СЂ РґР°Р№С‹РЅ Т›РѕР»РґР°Сѓ С‡Р°С‚ С…Р°Р±Р°СЂР»Р°РјР°СЃС‹РЅ Р°Р»Р°СЃС‹Р·.',
+          ),
+          actionLabel: _t(ru: 'COPY', en: 'COPY', kk: 'COPY'),
+          onTap: () => _copyToClipboard(
+            _clientSupportBrief(
+              userEmail: user?.email ?? '',
+              order: supportOrder,
+            ),
+            _t(
+              ru: 'РЎРѕРѕР±С‰РµРЅРёРµ РґР»СЏ С‡Р°С‚Р° СЃРєРѕРїРёСЂРѕРІР°РЅРѕ.',
+              en: 'Chat message copied.',
+              kk: 'С‡Р°С‚ С…Р°Р±Р°СЂР»Р°РјР°СЃС‹ РєУ©С€С–СЂС–Р»РґС–.',
+            ),
+          ),
+        ),
+        DeskHelpSupportAction(
+          title: _t(
+            ru: 'РЎРєРѕРїРёСЂРѕРІР°С‚СЊ email РїСЂРѕС„РёР»СЏ',
+            en: 'Copy profile email',
+            kk: 'РџСЂРѕС„РёР»СЊ email-С‹РЅ РєУ©С€С–СЂСѓ',
+          ),
+          description: _t(
+            ru: 'РџРѕР»РµР·РЅРѕ, РµСЃР»Рё РїРѕРґРґРµСЂР¶РєРµ РЅСѓР¶РЅРѕ Р±С‹СЃС‚СЂРѕ РЅР°Р№С‚Рё РІР°С€ Р°РєРєР°СѓРЅС‚.',
+            en: 'Useful when support needs to find your account quickly.',
+            kk: 'ТљРѕР»РґР°Сѓ Т›С‹Р·РјРµС‚С–РЅРµ Р°РєРєР°СѓРЅС‚С‹ТЈС‹Р·РґС‹ С‚РµР· С‚Р°Р±Сѓ РєРµСЂРµРє Р±РѕР»СЃР° РїР°Р№РґР°Р»С‹.',
+          ),
+          actionLabel: _t(ru: 'COPY', en: 'COPY', kk: 'COPY'),
+          onTap: () => _copyToClipboard(
+            user?.email ?? '',
+            _t(
+              ru: 'Email РїСЂРѕС„РёР»СЏ СЃРєРѕРїРёСЂРѕРІР°РЅ.',
+              en: 'Profile email copied.',
+              kk: 'РџСЂРѕС„РёР»СЊ email-С‹ РєУ©С€С–СЂС–Р»РґС–.',
+            ),
+          ),
+        ),
+        DeskHelpSupportAction(
+          title: _t(
+            ru: 'РЎРєРѕРїРёСЂРѕРІР°С‚СЊ РЅРѕРјРµСЂ Р·Р°РєР°Р·Р°',
+            en: 'Copy order number',
+            kk: 'РўР°РїСЃС‹СЂС‹СЃ РЅУ©РјС–СЂС–РЅ РєУ©С€С–СЂСѓ',
+          ),
+          description: _t(
+            ru: 'Р”РѕР±Р°РІСЊС‚Рµ РЅРѕРјРµСЂ Р·Р°РєР°Р·Р° РІ СЃРѕРѕР±С‰РµРЅРёРµ, С‡С‚РѕР±С‹ РЅРµ С‚СЂР°С‚РёС‚СЊ РІСЂРµРјСЏ РЅР° СѓС‚РѕС‡РЅРµРЅРёРµ.',
+            en: 'Add the order number to your message so there is no delay in identifying the request.',
+            kk: 'РҐР°Р±Р°СЂР»Р°РјР°Т“Р° С‚Р°РїСЃС‹СЂС‹СЃ РЅУ©РјС–СЂС–РЅ Т›РѕСЃС‹ТЈС‹Р·, СЃРѕРЅРґР° СЃТ±СЂР°СѓРґС‹ Р°РЅС‹Т›С‚Р°СѓТ“Р° СѓР°Т›С‹С‚ РєРµС‚РїРµР№РґС–.',
+          ),
+          actionLabel: _t(ru: 'COPY', en: 'COPY', kk: 'COPY'),
+          onTap: () => _copyToClipboard(
+            supportOrder == null ? '' : '#${supportOrder.shortId}',
+            _t(
+              ru: 'РќРѕРјРµСЂ Р·Р°РєР°Р·Р° СЃРєРѕРїРёСЂРѕРІР°РЅ.',
+              en: 'Order number copied.',
+              kk: 'РўР°РїСЃС‹СЂС‹СЃ РЅУ©РјС–СЂС– РєУ©С€С–СЂС–Р»РґС–.',
+            ),
+          ),
+        ),
+        DeskHelpSupportAction(
+          title: _t(
+            ru: 'РЎРєРѕРїРёСЂРѕРІР°С‚СЊ Р±СЂРёС„ РґР»СЏ РїРѕРґРґРµСЂР¶РєРё',
+            en: 'Copy support brief',
+            kk: 'ТљРѕР»РґР°Сѓ РјУ™С‚С–РЅС–РЅ РєУ©С€С–СЂСѓ',
+          ),
+          description: _t(
+            ru: 'Р“РѕС‚РѕРІС‹Р№ С€Р°Р±Р»РѕРЅ РѕР±СЂР°С‰РµРЅРёСЏ СѓР¶Рµ СЃРѕРґРµСЂР¶РёС‚ Р°РєРєР°СѓРЅС‚ Рё Р·Р°РєР°Р·, С‡С‚РѕР±С‹ РІР°Рј РѕСЃС‚Р°Р»РѕСЃСЊ РѕРїРёСЃР°С‚СЊ С‚РѕР»СЊРєРѕ СЃР°РјСѓ СЃРёС‚СѓР°С†РёСЋ.',
+            en: 'The ready template already includes your account and order, so you only need to describe the issue itself.',
+            kk: 'Р”Р°Р№С‹РЅ С€Р°Р±Р»РѕРЅРґР° Р°РєРєР°СѓРЅС‚ РїРµРЅ С‚Р°РїСЃС‹СЂС‹СЃ Р±Р°СЂ, СЃРѕРЅРґС‹Т›С‚Р°РЅ СЃС–Р·РіРµ С‚РµРє РјУ™СЃРµР»РµРЅС–ТЈ У©Р·С–РЅ СЃРёРїР°С‚С‚Р°Сѓ Т›Р°Р»Р°РґС‹.',
+          ),
+          actionLabel: _t(ru: 'COPY', en: 'COPY', kk: 'COPY'),
+          onTap: () => _copyToClipboard(
+            _clientSupportBrief(
+              userEmail: user?.email ?? '',
+              order: supportOrder,
+            ),
+            _t(
+              ru: 'Р‘СЂРёС„ РґР»СЏ РїРѕРґРґРµСЂР¶РєРё СЃРєРѕРїРёСЂРѕРІР°РЅ.',
+              en: 'Support brief copied.',
+              kk: 'ТљРѕР»РґР°Сѓ РјУ™С‚С–РЅС– РєУ©С€С–СЂС–Р»РґС–.',
+            ),
+          ),
+        ),
+      ],
+      footerText: _t(
+        ru: 'Р§С‚РѕР±С‹ РїРѕР»СѓС‡РёС‚СЊ РѕС‚РІРµС‚ Р±С‹СЃС‚СЂРµРµ, РґРѕР±Р°РІСЊС‚Рµ РІ РѕР±СЂР°С‰РµРЅРёРµ СЂР°Р·РјРµСЂ, Р°РґСЂРµСЃ РґРѕСЃС‚Р°РІРєРё Рё СЃРєСЂРёРЅ, РµСЃР»Рё С‡С‚Рѕ-С‚Рѕ РѕС‚РѕР±СЂР°Р¶Р°РµС‚СЃСЏ РЅРµРІРµСЂРЅРѕ.',
+        en: 'To get help faster, include your size, delivery address, and a screenshot if something looks wrong.',
+        kk: 'Р–Р°СѓР°РїС‚С‹ С‚РµР·С–СЂРµРє Р°Р»Сѓ ТЇС€С–РЅ У©Р»С€РµРјРґС–, Р¶РµС‚РєС–Р·Сѓ РјРµРєРµРЅР¶Р°Р№С‹РЅ Р¶У™РЅРµ Р±С–СЂРґРµТЈРµ Т›Р°С‚Рµ РєУ©СЂС–РЅСЃРµ СЃРєСЂРёРЅС€РѕС‚С‚С‹ Т›РѕСЃС‹ТЈС‹Р·.',
+      ),
     );
   }
 
@@ -2334,7 +2479,8 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
 
   Future<void> _loadFavoriteProductIds() async {
     final prefs = await SharedPreferences.getInstance();
-    final storedIds = prefs.getStringList(_favoriteProductIdsKey) ?? const <String>[];
+    final storedIds =
+        prefs.getStringList(_favoriteProductIdsKey) ?? const <String>[];
     if (!mounted) {
       return;
     }
@@ -2360,18 +2506,13 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
   }
 
   RangeValues _normalizePriceRange(RangeValues values) {
-    final start = _snapPriceToStep(values.start).clamp(
-      _priceFilterMin,
-      _snappedCatalogMaxPrice,
-    );
-    final end = _snapPriceToStep(values.end).clamp(
-      _priceFilterMin,
-      _snappedCatalogMaxPrice,
-    );
-    return RangeValues(
-      start <= end ? start : end,
-      end >= start ? end : start,
-    );
+    final start = _snapPriceToStep(
+      values.start,
+    ).clamp(_priceFilterMin, _snappedCatalogMaxPrice);
+    final end = _snapPriceToStep(
+      values.end,
+    ).clamp(_priceFilterMin, _snappedCatalogMaxPrice);
+    return RangeValues(start <= end ? start : end, end >= start ? end : start);
   }
 
   String? _preferredSizeFor(CatalogProduct product) {

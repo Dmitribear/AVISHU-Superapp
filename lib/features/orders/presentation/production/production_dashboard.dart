@@ -8,6 +8,7 @@ import '../../../../shared/providers/app_settings.dart';
 import '../../../../shared/providers/global_state.dart';
 import '../../../../shared/widgets/app_settings_sheet.dart';
 import '../../../../shared/widgets/avishu_mobile_frame.dart';
+import '../../../auth/domain/app_user.dart';
 import '../../../auth/data/auth_repository.dart';
 import '../../../auth/domain/user_role.dart';
 import '../../../orders/data/order_repository.dart';
@@ -326,197 +327,13 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
           kk: 'Ағымдағы бекет рөлі',
         ),
         roleValue: localizedRoleLabel(UserRole.production, _language),
-        guideSection: DeskHelpGuideSection(
+        helpLauncherSection: _buildStationHelpLauncher(
           compact: compact,
-          eyebrow: _t(
-            ru: 'КАК РАБОТАТЬ',
-            en: 'HOW TO WORK',
-            kk: 'ҚАЛАЙ ЖҰМЫС ІСТЕУ КЕРЕК',
-          ),
-          title: _t(
-            ru: 'Каждый шаг должен быть виден сразу.',
-            en: 'Every next step should be visible at once.',
-            kk: 'Әр келесі қадам бірден көрініп тұруы керек.',
-          ),
-          description: _t(
-            ru: 'Очередь не перегружает экран и оставляет только то, что нужно мастеру сейчас.',
-            en: 'The queue keeps only the information the operator needs right now.',
-            kk: 'Кезек шеберге дәл қазір керек ақпаратты ғана экранда қалдырады.',
-          ),
-          points: [
-            DeskHelpGuidePoint(
-              title: _t(
-                ru: 'Берите верхнюю задачу',
-                en: 'Take the top task',
-                kk: 'Жоғарғы тапсырманы алыңыз',
-              ),
-              description: _t(
-                ru: 'Так очередь движется без ручной сортировки.',
-                en: 'This keeps the queue moving without manual sorting.',
-                kk: 'Осылай кезек қолмен сұрыптаусыз жүреді.',
-              ),
-            ),
-            DeskHelpGuidePoint(
-              title: _t(
-                ru: 'Обновляйте статус сразу',
-                en: 'Update status immediately',
-                kk: 'Мәртебені бірден жаңартыңыз',
-              ),
-              description: _t(
-                ru: 'Франчайзи и клиент увидят реальный этап без задержки.',
-                en: 'Franchisee and client see the real stage without delay.',
-                kk: 'Франчайзи мен клиент нақты кезеңді кідіріссіз көреді.',
-              ),
-            ),
-            DeskHelpGuidePoint(
-              title: _t(
-                ru: 'Готово отмечайте без паузы',
-                en: 'Mark ready without delay',
-                kk: 'Дайынды кідіріссіз белгілеңіз',
-              ),
-              description: _t(
-                ru: 'Это ускоряет выдачу и освобождает очередь.',
-                en: 'This speeds up handoff and frees the queue.',
-                kk: 'Бұл беруді жылдамдатады және кезекті босатады.',
-              ),
-            ),
-          ],
-        ),
-        flowSection: DeskHelpSystemFlowSection(
-          compact: compact,
-          eyebrow: _t(
-            ru: 'СИСТЕМНЫЙ ПОТОК',
-            en: 'SYSTEM FLOW',
-            kk: 'ЖҮЙЕЛІК АҒЫН',
-          ),
-          steps: [
-            DeskHelpFlowStep(
-              title: localizedRoleLabel(UserRole.client, _language),
-              details: _t(
-                ru: 'Клиент оформляет заказ.',
-                en: 'The client places the order.',
-                kk: 'Клиент тапсырыс береді.',
-              ),
-            ),
-            DeskHelpFlowStep(
-              title: localizedRoleLabel(UserRole.franchisee, _language),
-              details: _t(
-                ru: 'Франчайзи подтверждает и передает в цех.',
-                en: 'The franchisee confirms and sends it to production.',
-                kk: 'Франчайзи растап, цехқа жібереді.',
-              ),
-            ),
-            DeskHelpFlowStep(
-              title: localizedRoleLabel(UserRole.production, _language),
-              details: _t(
-                ru: 'Цех берет задачу и переводит ее в готово.',
-                en: 'Production takes the task and moves it to ready.',
-                kk: 'Цех тапсырманы алып, оны дайынға өткізеді.',
-              ),
-            ),
-            DeskHelpFlowStep(
-              title: localizedRoleLabel(UserRole.client, _language),
-              details: _t(
-                ru: 'Клиент получает обновление в трекинге.',
-                en: 'The client sees the update in tracking.',
-                kk: 'Клиент жаңартуды трекингтен көреді.',
-              ),
-            ),
-          ],
-        ),
-        supportSection: DeskHelpSupportSection(
-          compact: compact,
-          eyebrow: _t(
-            ru: 'ПОМОЩЬ И ПОДДЕРЖКА',
-            en: 'HELP & SUPPORT',
-            kk: 'КӨМЕК ЖӘНЕ ҚОЛДАУ',
-          ),
-          title: _t(
-            ru: 'Подготовьте обращение за пару нажатий.',
-            en: 'Prepare a support request in a few taps.',
-            kk: 'Қолдау сұрауын бірнеше батырмамен дайындаңыз.',
-          ),
-          description: _t(
-            ru: 'Если задача встала, нужные данные можно сразу скопировать.',
-            en: 'If a task is blocked, the right details can be copied immediately.',
-            kk: 'Тапсырма тоқтаса, керекті деректі бірден көшіруге болады.',
-          ),
-          actions: [
-            DeskHelpSupportAction(
-              title: _t(
-                ru: 'Скопировать email аккаунта',
-                en: 'Copy account email',
-                kk: 'Аккаунт email-ын көшіру',
-              ),
-              description: _t(
-                ru: 'Нужно для быстрого поиска рабочего аккаунта.',
-                en: 'Useful for finding the working account quickly.',
-                kk: 'Жұмыс аккаунтын тез табу үшін керек.',
-              ),
-              actionLabel: _t(ru: 'КОПИЯ', en: 'COPY', kk: 'КОПИЯ'),
-              onTap: () => _copyToClipboard(
-                user?.email ?? '',
-                _t(
-                  ru: 'Email аккаунта скопирован.',
-                  en: 'Account email copied.',
-                  kk: 'Аккаунт email-ы көшірілді.',
-                ),
-              ),
-            ),
-            DeskHelpSupportAction(
-              title: _t(
-                ru: 'Скопировать активную задачу',
-                en: 'Copy active task',
-                kk: 'Белсенді тапсырманы көшіру',
-              ),
-              description: _t(
-                ru: 'Поддержка сразу увидит нужный заказ.',
-                en: 'Support will see the exact order right away.',
-                kk: 'Қолдау бірден керек тапсырысты көреді.',
-              ),
-              actionLabel: _t(ru: 'КОПИЯ', en: 'COPY', kk: 'КОПИЯ'),
-              onTap: () => _copyToClipboard(
-                current == null ? '' : '#${current.shortId}',
-                _t(
-                  ru: 'Номер задачи скопирован.',
-                  en: 'Task number copied.',
-                  kk: 'Тапсырма нөмірі көшірілді.',
-                ),
-              ),
-            ),
-            DeskHelpSupportAction(
-              title: _t(
-                ru: 'Скопировать brief для поддержки',
-                en: 'Copy support brief',
-                kk: 'Қолдау brief-ін көшіру',
-              ),
-              description: _t(
-                ru: 'Шаблон уже содержит роль, email и очередь.',
-                en: 'The template already includes role, email, and queue status.',
-                kk: 'Шаблонда рөл, email және кезек күйі бар.',
-              ),
-              actionLabel: _t(ru: 'КОПИЯ', en: 'COPY', kk: 'КОПИЯ'),
-              onTap: () => _copyToClipboard(
-                _productionSupportBrief(
-                  userEmail: user?.email ?? '',
-                  acceptedCount: accepted.length,
-                  inProductionCount: inProduction.length,
-                  readyCount: ready.length,
-                  currentOrder: current,
-                ),
-                _t(
-                  ru: 'Brief для поддержки скопирован.',
-                  en: 'Support brief copied.',
-                  kk: 'Қолдау brief-і көшірілді.',
-                ),
-              ),
-            ),
-          ],
-          footerText: _t(
-            ru: 'Для быстрого ответа укажите этап и приложите скрин станции.',
-            en: 'For a faster reply, mention the stage and attach a station screenshot.',
-            kk: 'Жылдам жауап үшін кезеңді жазып, бекет скринын тіркеңіз.',
-          ),
+          user: user,
+          accepted: accepted,
+          inProduction: inProduction,
+          ready: ready,
+          current: current,
         ),
         primaryActionLabel: _t(
           ru: 'ПОЧЕМУ AVISHU',
@@ -534,6 +351,348 @@ class _ProductionDashboardState extends ConsumerState<ProductionDashboard> {
         },
       ),
     };
+  }
+
+  Widget _buildStationHelpLauncher({
+    required bool compact,
+    required AppUser? user,
+    required List<OrderModel> accepted,
+    required List<OrderModel> inProduction,
+    required List<OrderModel> ready,
+    required OrderModel? current,
+  }) {
+    return DeskHelpLauncherSection(
+      compact: compact,
+      eyebrow: _t(
+        ru: 'ИНСТРУКЦИЯ И ПОДДЕРЖКА',
+        en: 'GUIDE & SUPPORT',
+        kk: 'НҰСҚАУЛЫҚ ПЕН ҚОЛДАУ',
+      ),
+      title: _t(
+        ru: 'Откройте инструкцию станции или чат поддержки.',
+        en: 'Open the station guide or support chat.',
+        kk: 'Станция нұсқаулығын не қолдау чатын ашыңыз.',
+      ),
+      description: _t(
+        ru: 'На станции остаются только текущая задача и крупные действия, а помощь открывается отдельными окнами по кнопке.',
+        en: 'The station keeps only the current task and large actions on screen, while help opens in separate sheets.',
+        kk: 'Станцияда тек ағымдағы тапсырма мен ірі әрекеттер қалады, ал көмек батырма арқылы бөлек ашылады.',
+      ),
+      actions: [
+        DeskHelpLauncherAction(
+          icon: Icons.precision_manufacturing_outlined,
+          title: _t(
+            ru: 'Как работать на станции',
+            en: 'How to work at the station',
+            kk: 'Станцияда қалай жұмыс істеу керек',
+          ),
+          description: _t(
+            ru: 'Короткая инструкция по очереди, статусам и готовности.',
+            en: 'A short guide for queue handling, status updates, and readiness.',
+            kk: 'Кезек, мәртебелер және дайындық бойынша қысқа нұсқаулық.',
+          ),
+          actionLabel: _t(ru: 'OPEN', en: 'OPEN', kk: 'OPEN'),
+          onTap: () => showDeskHelpSheet(
+            context,
+            eyebrow: _t(
+              ru: 'КАК РАБОТАТЬ',
+              en: 'HOW TO WORK',
+              kk: 'ҚАЛАЙ ЖҰМЫС ІСТЕУ КЕРЕК',
+            ),
+            title: _t(
+              ru: 'Каждый следующий шаг должен быть виден сразу.',
+              en: 'Every next step should be visible at once.',
+              kk: 'Әр келесі қадам бірден көрініп тұруы керек.',
+            ),
+            description: _t(
+              ru: 'Используйте этот блок, чтобы быстро понять, какую задачу брать первой, когда обновлять статус и как отмечать готовность.',
+              en: 'Use this sheet to see which task to take first, when to update status, and how to mark readiness.',
+              kk: 'Осы жерден қай тапсырманы бірінші алу, мәртебені қашан жаңарту және дайындықты қалай белгілеу керек екенін тез көруге болады.',
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildStationGuideSection(compact: compact),
+                const SizedBox(height: 12),
+                _buildStationFlowSection(compact: compact),
+              ],
+            ),
+          ),
+        ),
+        DeskHelpLauncherAction(
+          icon: Icons.forum_outlined,
+          title: _t(
+            ru: 'Чат с поддержкой',
+            en: 'Support chat',
+            kk: 'Қолдау чаты',
+          ),
+          description: _t(
+            ru: 'Откройте быстрые действия и соберите сообщение по блокировке, очереди или активной задаче.',
+            en: 'Open quick actions and prepare a message about a block, queue issue, or active task.',
+            kk: 'Бұғат, кезек немесе белсенді тапсырма бойынша хабарламаны тез дайындау үшін жедел әрекеттерді ашыңыз.',
+          ),
+          actionLabel: _t(ru: 'CHAT', en: 'CHAT', kk: 'CHAT'),
+          emphasized: true,
+          onTap: () => showDeskHelpSheet(
+            context,
+            eyebrow: _t(
+              ru: 'ПОМОЩЬ И ПОДДЕРЖКА',
+              en: 'HELP & SUPPORT',
+              kk: 'КӨМЕК ЖӘНЕ ҚОЛДАУ',
+            ),
+            title: _t(
+              ru: 'Чат поддержки цеха',
+              en: 'Factory support chat',
+              kk: 'Цех қолдау чаты',
+            ),
+            description: _t(
+              ru: 'Скопируйте готовое сообщение, email или номер активной задачи и сразу передайте это в поддержку.',
+              en: 'Copy a ready message, your email, or the active task number and send it to support right away.',
+              kk: 'Дайын хабарламаны, email-ді немесе белсенді тапсырма нөмірін көшіріп, оны қолдауға бірден жіберіңіз.',
+            ),
+            child: _buildStationSupportSection(
+              compact: compact,
+              user: user,
+              accepted: accepted,
+              inProduction: inProduction,
+              ready: ready,
+              current: current,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStationGuideSection({required bool compact}) {
+    return DeskHelpGuideSection(
+      compact: compact,
+      eyebrow: _t(
+        ru: 'КАК РАБОТАТЬ',
+        en: 'HOW TO WORK',
+        kk: 'ҚАЛАЙ ЖҰМЫС ІСТЕУ КЕРЕК',
+      ),
+      title: _t(
+        ru: 'Каждый шаг должен быть виден сразу.',
+        en: 'Every step should be visible immediately.',
+        kk: 'Әр қадам бірден көрінуі керек.',
+      ),
+      description: _t(
+        ru: 'Очередь не перегружает экран и оставляет только то, что нужно мастеру сейчас.',
+        en: 'The queue keeps only the information the operator needs right now.',
+        kk: 'Кезек шеберге дәл қазір керекті ақпаратты ғана экранда қалдырады.',
+      ),
+      points: [
+        DeskHelpGuidePoint(
+          title: _t(
+            ru: 'Берите верхнюю задачу',
+            en: 'Take the top task',
+            kk: 'Жоғарғы тапсырманы алыңыз',
+          ),
+          description: _t(
+            ru: 'Так очередь движется без ручной сортировки.',
+            en: 'This keeps the queue moving without manual sorting.',
+            kk: 'Осылай кезек қолмен сұрыптаусыз жүреді.',
+          ),
+        ),
+        DeskHelpGuidePoint(
+          title: _t(
+            ru: 'Обновляйте статус сразу',
+            en: 'Update status immediately',
+            kk: 'Мәртебені бірден жаңартыңыз',
+          ),
+          description: _t(
+            ru: 'Франчайзи и клиент увидят реальный этап без задержки.',
+            en: 'Franchisee and client see the real stage without delay.',
+            kk: 'Франчайзи мен клиент нақты кезеңді кідіріссіз көреді.',
+          ),
+        ),
+        DeskHelpGuidePoint(
+          title: _t(
+            ru: 'Готово отмечайте без паузы',
+            en: 'Mark ready without delay',
+            kk: 'Дайынды кідіріссіз белгілеңіз',
+          ),
+          description: _t(
+            ru: 'Это ускоряет выдачу и освобождает очередь.',
+            en: 'This speeds up handoff and frees the queue.',
+            kk: 'Бұл беруді жылдамдатады және кезекті босатады.',
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStationFlowSection({required bool compact}) {
+    return DeskHelpSystemFlowSection(
+      compact: compact,
+      eyebrow: _t(ru: 'СИСТЕМНЫЙ ПОТОК', en: 'SYSTEM FLOW', kk: 'ЖҮЙЕЛІК АҒЫН'),
+      steps: [
+        DeskHelpFlowStep(
+          title: localizedRoleLabel(UserRole.client, _language),
+          details: _t(
+            ru: 'Клиент оформляет заказ.',
+            en: 'The client places the order.',
+            kk: 'Клиент тапсырыс береді.',
+          ),
+        ),
+        DeskHelpFlowStep(
+          title: localizedRoleLabel(UserRole.franchisee, _language),
+          details: _t(
+            ru: 'Франчайзи подтверждает и передаёт его в цех.',
+            en: 'The franchisee confirms it and sends it to production.',
+            kk: 'Франчайзи растап, оны цехқа жібереді.',
+          ),
+        ),
+        DeskHelpFlowStep(
+          title: localizedRoleLabel(UserRole.production, _language),
+          details: _t(
+            ru: 'Цех берёт задачу и переводит её в готово.',
+            en: 'Production takes the task and moves it to ready.',
+            kk: 'Цех тапсырманы алып, оны дайынға өткізеді.',
+          ),
+        ),
+        DeskHelpFlowStep(
+          title: localizedRoleLabel(UserRole.client, _language),
+          details: _t(
+            ru: 'Клиент получает обновление в трекинге.',
+            en: 'The client sees the update in tracking.',
+            kk: 'Клиент жаңартуды трекингтен көреді.',
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStationSupportSection({
+    required bool compact,
+    required AppUser? user,
+    required List<OrderModel> accepted,
+    required List<OrderModel> inProduction,
+    required List<OrderModel> ready,
+    required OrderModel? current,
+  }) {
+    return DeskHelpSupportSection(
+      compact: compact,
+      eyebrow: _t(
+        ru: 'ПОМОЩЬ И ПОДДЕРЖКА',
+        en: 'HELP & SUPPORT',
+        kk: 'КӨМЕК ЖӘНЕ ҚОЛДАУ',
+      ),
+      title: _t(
+        ru: 'Подготовьте обращение за пару нажатий.',
+        en: 'Prepare a support request in a few taps.',
+        kk: 'Қолдау сұрауын бірнеше батырмамен дайындаңыз.',
+      ),
+      description: _t(
+        ru: 'Если задача встала, нужные данные можно сразу скопировать.',
+        en: 'If a task is blocked, the right details can be copied immediately.',
+        kk: 'Егер тапсырма тоқтаса, керекті деректерді бірден көшіруге болады.',
+      ),
+      actions: [
+        DeskHelpSupportAction(
+          title: _t(
+            ru: 'Скопировать сообщение для чата',
+            en: 'Copy chat message',
+            kk: 'Чатқа арналған хабарламаны көшіру',
+          ),
+          description: _t(
+            ru: 'Вставьте готовый текст в чат поддержки, чтобы сразу передать роль, email и состояние очереди.',
+            en: 'Paste the ready text into support chat to instantly share your role, email, and queue state.',
+            kk: 'Рөлді, email-ді және кезек күйін бірден жіберу үшін дайын мәтінді қолдау чатына қойыңыз.',
+          ),
+          actionLabel: _t(ru: 'COPY', en: 'COPY', kk: 'COPY'),
+          onTap: () => _copyToClipboard(
+            _productionSupportBrief(
+              userEmail: user?.email ?? '',
+              acceptedCount: accepted.length,
+              inProductionCount: inProduction.length,
+              readyCount: ready.length,
+              currentOrder: current,
+            ),
+            _t(
+              ru: 'Сообщение для чата скопировано.',
+              en: 'Chat message copied.',
+              kk: 'Чатқа арналған хабарлама көшірілді.',
+            ),
+          ),
+        ),
+        DeskHelpSupportAction(
+          title: _t(
+            ru: 'Скопировать email аккаунта',
+            en: 'Copy account email',
+            kk: 'Аккаунт email-ін көшіру',
+          ),
+          description: _t(
+            ru: 'Нужно для быстрого поиска рабочего аккаунта.',
+            en: 'Useful for finding the working account quickly.',
+            kk: 'Жұмыс аккаунтын тез табу үшін керек.',
+          ),
+          actionLabel: _t(ru: 'COPY', en: 'COPY', kk: 'COPY'),
+          onTap: () => _copyToClipboard(
+            user?.email ?? '',
+            _t(
+              ru: 'Email аккаунта скопирован.',
+              en: 'Account email copied.',
+              kk: 'Аккаунт email-і көшірілді.',
+            ),
+          ),
+        ),
+        DeskHelpSupportAction(
+          title: _t(
+            ru: 'Скопировать активную задачу',
+            en: 'Copy active task',
+            kk: 'Белсенді тапсырманы көшіру',
+          ),
+          description: _t(
+            ru: 'Поддержка сразу увидит нужный заказ.',
+            en: 'Support will see the exact order right away.',
+            kk: 'Қолдау бірден керекті тапсырысты көреді.',
+          ),
+          actionLabel: _t(ru: 'COPY', en: 'COPY', kk: 'COPY'),
+          onTap: () => _copyToClipboard(
+            current == null ? '' : '#${current.shortId}',
+            _t(
+              ru: 'Номер задачи скопирован.',
+              en: 'Task number copied.',
+              kk: 'Тапсырма нөмірі көшірілді.',
+            ),
+          ),
+        ),
+        DeskHelpSupportAction(
+          title: _t(
+            ru: 'Скопировать brief для поддержки',
+            en: 'Copy support brief',
+            kk: 'Қолдау brief-ін көшіру',
+          ),
+          description: _t(
+            ru: 'Шаблон уже содержит роль, email и очередь.',
+            en: 'The template already includes role, email, and queue status.',
+            kk: 'Шаблонда рөл, email және кезек күйі бар.',
+          ),
+          actionLabel: _t(ru: 'COPY', en: 'COPY', kk: 'COPY'),
+          onTap: () => _copyToClipboard(
+            _productionSupportBrief(
+              userEmail: user?.email ?? '',
+              acceptedCount: accepted.length,
+              inProductionCount: inProduction.length,
+              readyCount: ready.length,
+              currentOrder: current,
+            ),
+            _t(
+              ru: 'Brief для поддержки скопирован.',
+              en: 'Support brief copied.',
+              kk: 'Қолдау brief-і көшірілді.',
+            ),
+          ),
+        ),
+      ],
+      footerText: _t(
+        ru: 'Для быстрого ответа укажите этап и приложите скрин станции.',
+        en: 'For a faster reply, mention the stage and attach a station screenshot.',
+        kk: 'Жылдам жауап үшін кезеңді жазып, бекет скринін тіркеңіз.',
+      ),
+    );
   }
 
   Widget _detailView(

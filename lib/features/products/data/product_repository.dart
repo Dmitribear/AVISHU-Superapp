@@ -9,6 +9,12 @@ final productRepositoryProvider = Provider<ProductRepository>(
 );
 
 class ProductRepository {
+  static const _retiredProductIds = <String>{
+    'avishu-dress-zeta',
+    'avishu-suit-kappa',
+    'avishu-coat-omega',
+  };
+
   final FirebaseFirestore _firestore;
 
   ProductRepository({FirebaseFirestore? firestore})
@@ -20,7 +26,7 @@ class ProductRepository {
   Stream<List<ProductModel>> watchAllProducts() {
     return _products.snapshots().map(
       (snapshot) =>
-          snapshot.docs.map(ProductModel.fromFirestore).toList()
+          _visibleProducts(snapshot.docs)
             ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt)),
     );
   }
@@ -31,7 +37,7 @@ class ProductRepository {
         .snapshots()
         .map(
           (snapshot) =>
-              snapshot.docs.map(ProductModel.fromFirestore).toList()
+              _visibleProducts(snapshot.docs)
                 ..sort((a, b) => a.name.compareTo(b.name)),
         );
   }
@@ -40,7 +46,7 @@ class ProductRepository {
     final snapshot = await _products
         .where('status', isEqualTo: ProductStatus.active.value)
         .get();
-    final products = snapshot.docs.map(ProductModel.fromFirestore).toList();
+    final products = _visibleProducts(snapshot.docs);
     products.sort((a, b) => a.name.compareTo(b.name));
     return products;
   }
@@ -50,12 +56,29 @@ class ProductRepository {
     if (!doc.exists) {
       return null;
     }
-    return ProductModel.fromFirestore(doc);
+    final product = ProductModel.fromFirestore(doc);
+    if (_retiredProductIds.contains(product.id)) {
+      return null;
+    }
+    return product;
   }
 
   Future<void> upsertProduct(ProductModel product) {
     return _products
         .doc(product.id)
         .set(product.toMap(), SetOptions(merge: true));
+  }
+
+  Future<void> deleteProduct(String productId) {
+    return _products.doc(productId).delete();
+  }
+
+  List<ProductModel> _visibleProducts(
+    Iterable<QueryDocumentSnapshot<Map<String, dynamic>>> docs,
+  ) {
+    return docs
+        .map(ProductModel.fromFirestore)
+        .where((product) => !_retiredProductIds.contains(product.id))
+        .toList();
   }
 }

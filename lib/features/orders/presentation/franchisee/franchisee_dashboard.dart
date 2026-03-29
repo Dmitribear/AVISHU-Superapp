@@ -11,6 +11,7 @@ import '../../../../shared/providers/global_state.dart';
 import '../../../../shared/widgets/app_settings_sheet.dart';
 import '../../../../shared/widgets/avishu_button.dart';
 import '../../../../shared/widgets/avishu_mobile_frame.dart';
+import '../../../auth/domain/app_user.dart';
 import '../../../auth/data/auth_repository.dart';
 import '../../../auth/domain/user_role.dart';
 import '../../../orders/data/order_repository.dart';
@@ -478,198 +479,12 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
           ),
         ),
         const SizedBox(height: 12),
-        DeskHelpGuideSection(
+        _buildProfileHelpLauncher(
           compact: compact,
-          eyebrow: _t(
-            ru: 'КАК РАБОТАТЬ В ДЕСКЕ',
-            en: 'HOW TO WORK IN THE DESK',
-            kk: 'ЖҰМЫС ҮСТЕЛІН ҚАЛАЙ ҚОЛДАНУ КЕРЕК',
-          ),
-          title: _t(
-            ru: 'Вся операционная логика собрана в одном экране.',
-            en: 'All operating logic is gathered in one desk.',
-            kk: 'Барлық операциялық логика бір экранға жиналған.',
-          ),
-          description: _t(
-            ru: 'Новые заказы, поток производства, готовые позиции и каталог товара работают как единая система без переключения между разными инструментами.',
-            en: 'New orders, factory flow, ready handoff items, and the product catalog work as one system without switching between separate tools.',
-            kk: 'Жаңа тапсырыстар, өндіріс ағыны, дайын позициялар және тауар каталогы бөлек құралдарға өтпей-ақ бір жүйе ретінде жұмыс істейді.',
-          ),
-          points: [
-            DeskHelpGuidePoint(
-              title: _t(
-                ru: 'Берите новый заказ сразу после оплаты',
-                en: 'Take the order right after payment',
-                kk: 'Тапсырысты төлемнен кейін бірден алыңыз',
-              ),
-              description: _t(
-                ru: 'Новый заказ появляется без перезагрузки, поэтому можно быстро проверить адрес, комментарий и изделие.',
-                en: 'A new order appears without reload, so you can immediately check the address, note, and garment.',
-                kk: 'Жаңа тапсырыс қайта жүктеусіз көрінеді, сондықтан мекенжайды, ескертпені және бұйымды бірден тексеруге болады.',
-              ),
-            ),
-            DeskHelpGuidePoint(
-              title: _t(
-                ru: 'Передавайте в производство без потери деталей',
-                en: 'Send to production without losing details',
-                kk: 'Өндіріске деректерді жоғалтпай жіберіңіз',
-              ),
-              description: _t(
-                ru: 'После подтверждения заказ сразу уходит в поток, а клиентские и внутренние заметки остаются в карточке.',
-                en: 'After confirmation, the order moves straight into the flow while client and internal notes stay attached to the card.',
-                kk: 'Растаудан кейін тапсырыс ағынға бірден өтеді, ал клиент пен ішкі ескертпелер карточкада сақталады.',
-              ),
-            ),
-            DeskHelpGuidePoint(
-              title: _t(
-                ru: 'Обновляйте каталог без отдельной админки',
-                en: 'Update the catalog without a separate admin panel',
-                kk: 'Каталогты бөлек админкасыз жаңартыңыз',
-              ),
-              description: _t(
-                ru: 'В разделе товаров можно менять наличие, размеры, цену и галерею, не выходя из AVISHU.',
-                en: 'In the product section you can update stock, sizes, price, and gallery without leaving AVISHU.',
-                kk: 'Тауар бөлімінде AVISHU-ден шықпай-ақ қолжетімділікті, өлшемдерді, бағаны және галереяны жаңартуға болады.',
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        DeskHelpSystemFlowSection(
-          compact: compact,
-          eyebrow: _t(
-            ru: 'СИСТЕМНЫЙ ПОТОК',
-            en: 'SYSTEM FLOW',
-            kk: 'ЖҮЙЕЛІК АҒЫН',
-          ),
-          steps: [
-            DeskHelpFlowStep(
-              title: localizedRoleLabel(UserRole.client, _language),
-              details: _t(
-                ru: 'Клиент выбирает изделие, подтверждает размер, адрес и завершает оплату.',
-                en: 'The client chooses a garment, confirms the size and address, and completes payment.',
-                kk: 'Клиент бұйымды таңдап, өлшем мен мекенжайды растап, төлемді аяқтайды.',
-              ),
-            ),
-            DeskHelpFlowStep(
-              title: localizedRoleLabel(UserRole.franchisee, _language),
-              details: _t(
-                ru: 'Франчайзи видит новый заказ сразу после оплаты, уточняет детали и передает задачу дальше.',
-                en: 'The franchisee sees the new order right after payment, checks the details, and moves the task forward.',
-                kk: 'Франчайзи жаңа тапсырысты төлемнен кейін бірден көріп, деректерді тексеріп, тапсырманы келесі кезеңге жібереді.',
-              ),
-            ),
-            DeskHelpFlowStep(
-              title: localizedRoleLabel(UserRole.production, _language),
-              details: _t(
-                ru: 'Производство берет заказ в работу, обновляет этапы и отмечает готовность вещи.',
-                en: 'Production takes the order into work, updates the stages, and marks the garment as ready.',
-                kk: 'Өндіріс тапсырысты жұмысқа алып, кезеңдерді жаңартады және бұйымның дайындығын белгілейді.',
-              ),
-            ),
-            DeskHelpFlowStep(
-              title: localizedRoleLabel(UserRole.client, _language),
-              details: _t(
-                ru: 'Клиент получает обновление в трекинге, видит готовность и завершает путь получением заказа.',
-                en: 'The client receives the update in tracking, sees the ready status, and finishes the journey by receiving the order.',
-                kk: 'Клиент бақылауда жаңартуды көріп, дайын мәртебесін алады және тапсырысты алу арқылы циклды аяқтайды.',
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        DeskHelpSupportSection(
-          compact: compact,
-          eyebrow: _t(
-            ru: 'ПОМОЩЬ И ПОДДЕРЖКА',
-            en: 'HELP & SUPPORT',
-            kk: 'КӨМЕК ЖӘНЕ ҚОЛДАУ',
-          ),
-          title: _t(
-            ru: 'Соберите понятное обращение без ручной подготовки.',
-            en: 'Build a clear support request without manual prep.',
-            kk: 'Қолдау сұрауын қолмен дайындамай-ақ жинаңыз.',
-          ),
-          description: _t(
-            ru: 'Если нужно быстро подключить поддержку, скопируйте готовый бриф, email или номер приоритетного заказа.',
-            en: 'If you need to involve support quickly, copy the ready brief, email, or the priority order number.',
-            kk: 'Қолдауды тез қосу керек болса, дайын мәтінді, email-ды немесе басым тапсырыс нөмірін көшіріп алыңыз.',
-          ),
-          actions: [
-            DeskHelpSupportAction(
-              title: _t(
-                ru: 'Скопировать email аккаунта',
-                en: 'Copy account email',
-                kk: 'Аккаунт email-ын көшіру',
-              ),
-              description: _t(
-                ru: 'Поможет поддержке быстро найти ваш рабочий профиль.',
-                en: 'Helps support find your working profile quickly.',
-                kk: 'Қолдау қызметіне жұмыс профиліңізді тез табуға көмектеседі.',
-              ),
-              actionLabel: _t(ru: 'КОПИЯ', en: 'COPY', kk: 'КОПИЯ'),
-              onTap: () => _copyToClipboard(
-                user?.email ?? '',
-                _t(
-                  ru: 'Email аккаунта скопирован.',
-                  en: 'Account email copied.',
-                  kk: 'Аккаунт email-ы көшірілді.',
-                ),
-              ),
-            ),
-            DeskHelpSupportAction(
-              title: _t(
-                ru: 'Скопировать приоритетный заказ',
-                en: 'Copy priority order',
-                kk: 'Басым тапсырысты көшіру',
-              ),
-              description: _t(
-                ru: 'Подходит, когда нужно быстро показать, по какому заказу требуется помощь.',
-                en: 'Use this when you need to show which order needs help right away.',
-                kk: 'Қай тапсырыс бойынша көмек керек екенін бірден көрсету қажет болса қолданыңыз.',
-              ),
-              actionLabel: _t(ru: 'КОПИЯ', en: 'COPY', kk: 'КОПИЯ'),
-              onTap: () => _copyToClipboard(
-                priorityOrder == null ? '' : '#${priorityOrder.shortId}',
-                _t(
-                  ru: 'Номер заказа скопирован.',
-                  en: 'Order number copied.',
-                  kk: 'Тапсырыс нөмірі көшірілді.',
-                ),
-              ),
-            ),
-            DeskHelpSupportAction(
-              title: _t(
-                ru: 'Скопировать бриф для поддержки',
-                en: 'Copy support brief',
-                kk: 'Қолдау мәтінін көшіру',
-              ),
-              description: _t(
-                ru: 'Шаблон уже включает роль, email, количество заказов и товаров.',
-                en: 'The template already includes your role, email, and current order and product totals.',
-                kk: 'Шаблонда рөліңіз, email және ағымдағы тапсырыс пен тауар саны бар.',
-              ),
-              actionLabel: _t(ru: 'КОПИЯ', en: 'COPY', kk: 'КОПИЯ'),
-              onTap: () => _copyToClipboard(
-                _franchiseeSupportBrief(
-                  userEmail: user?.email ?? '',
-                  orders: orders,
-                  products: products,
-                  priorityOrder: priorityOrder,
-                ),
-                _t(
-                  ru: 'Бриф для поддержки скопирован.',
-                  en: 'Support brief copied.',
-                  kk: 'Қолдау мәтіні көшірілді.',
-                ),
-              ),
-            ),
-          ],
-          footerText: _t(
-            ru: 'Для быстрого ответа добавьте скрин карточки заказа или товара и кратко опишите, на каком шаге возникла проблема.',
-            en: 'To get help faster, attach a screenshot of the order or product card and mention at which step the problem appeared.',
-            kk: 'Жауапты тезірек алу үшін тапсырыс не тауар карточкасының скринін жіберіп, мәселе қай қадамда шыққанын қысқаша жазыңыз.',
-          ),
+          user: user,
+          orders: orders,
+          products: products,
+          priorityOrder: priorityOrder,
         ),
         const SizedBox(height: 16),
         AvishuButton(
@@ -694,6 +509,343 @@ class _FranchiseeDashboardState extends ConsumerState<FranchiseeDashboard> {
           },
         ),
       ],
+    );
+  }
+
+  Widget _buildProfileHelpLauncher({
+    required bool compact,
+    required AppUser? user,
+    required List<OrderModel> orders,
+    required List<ProductModel> products,
+    required OrderModel? priorityOrder,
+  }) {
+    return DeskHelpLauncherSection(
+      compact: compact,
+      eyebrow: _t(
+        ru: 'ИНСТРУКЦИЯ И ПОДДЕРЖКА',
+        en: 'GUIDE & SUPPORT',
+        kk: 'НҰСҚАУЛЫҚ ПЕН ҚОЛДАУ',
+      ),
+      title: _t(
+        ru: 'Откройте рабочую инструкцию или чат поддержки.',
+        en: 'Open the work guide or support chat.',
+        kk: 'Жұмыс нұсқаулығын не қолдау чатын ашыңыз.',
+      ),
+      description: _t(
+        ru: 'Теперь помощь не растягивает экран. Инструкция и поддержка открываются отдельными окнами, когда они действительно нужны.',
+        en: 'Help no longer stretches the screen. The guide and support open separately when you actually need them.',
+        kk: 'Көмек енді экранды созбайды. Нұсқаулық пен қолдау керек кезде бөлек ашылады.',
+      ),
+      actions: [
+        DeskHelpLauncherAction(
+          icon: Icons.fact_check_outlined,
+          title: _t(
+            ru: 'Как работать в desk',
+            en: 'How to work in the desk',
+            kk: 'Desk ішінде қалай жұмыс істеу керек',
+          ),
+          description: _t(
+            ru: 'Быстрый сценарий по новым заказам, потоку и каталогу.',
+            en: 'A quick guide for new orders, workflow, and the catalog.',
+            kk: 'Жаңа тапсырыстар, ағым және каталог бойынша қысқа нұсқаулық.',
+          ),
+          actionLabel: _t(ru: 'OPEN', en: 'OPEN', kk: 'OPEN'),
+          onTap: () => showDeskHelpSheet(
+            context,
+            eyebrow: _t(
+              ru: 'КАК РАБОТАТЬ В DESK',
+              en: 'HOW TO WORK IN THE DESK',
+              kk: 'DESK ІШІНДЕ ҚАЛАЙ ЖҰМЫС ІСТЕУ КЕРЕК',
+            ),
+            title: _t(
+              ru: 'Вся операционная логика собрана в одном месте.',
+              en: 'All operating logic is gathered in one place.',
+              kk: 'Барлық операциялық логика бір жерде жиналған.',
+            ),
+            description: _t(
+              ru: 'Здесь можно быстро понять, как принять заказ, передать его в цех и обновить товар без отдельной админки.',
+              en: 'Use this sheet to see how to accept an order, hand it to production, and update products without a separate admin panel.',
+              kk: 'Осы жерден тапсырысты қабылдау, цехқа беру және тауарды бөлек админкасыз жаңарту жолын тез көруге болады.',
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildProfileGuideSection(compact: compact),
+                const SizedBox(height: 12),
+                _buildProfileFlowSection(compact: compact),
+              ],
+            ),
+          ),
+        ),
+        DeskHelpLauncherAction(
+          icon: Icons.forum_outlined,
+          title: _t(
+            ru: 'Чат с поддержкой',
+            en: 'Support chat',
+            kk: 'Қолдау чаты',
+          ),
+          description: _t(
+            ru: 'Откройте быстрые действия и соберите сообщение для поддержки за пару секунд.',
+            en: 'Open quick actions and prepare a support message in a few seconds.',
+            kk: 'Жедел әрекеттерді ашып, қолдауға хабарламаны бірнеше секундта дайындаңыз.',
+          ),
+          actionLabel: _t(ru: 'CHAT', en: 'CHAT', kk: 'CHAT'),
+          emphasized: true,
+          onTap: () => showDeskHelpSheet(
+            context,
+            eyebrow: _t(
+              ru: 'ПОМОЩЬ И ПОДДЕРЖКА',
+              en: 'HELP & SUPPORT',
+              kk: 'КӨМЕК ЖӘНЕ ҚОЛДАУ',
+            ),
+            title: _t(
+              ru: 'Чат поддержки AVISHU',
+              en: 'AVISHU support chat',
+              kk: 'AVISHU қолдау чаты',
+            ),
+            description: _t(
+              ru: 'Скопируйте готовое сообщение, email или номер приоритетного заказа и сразу отправьте это в поддержку.',
+              en: 'Copy a ready message, your email, or the priority order number and send it to support right away.',
+              kk: 'Дайын хабарламаны, email-ді немесе басым тапсырыс нөмірін көшіріп, қолдауға бірден жібере аласыз.',
+            ),
+            child: _buildProfileSupportSection(
+              compact: compact,
+              user: user,
+              orders: orders,
+              products: products,
+              priorityOrder: priorityOrder,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProfileGuideSection({required bool compact}) {
+    return DeskHelpGuideSection(
+      compact: compact,
+      eyebrow: _t(
+        ru: 'КАК РАБОТАТЬ В DESK',
+        en: 'HOW TO WORK IN THE DESK',
+        kk: 'DESK ІШІНДЕ ҚАЛАЙ ЖҰМЫС ІСТЕУ КЕРЕК',
+      ),
+      title: _t(
+        ru: 'Вся операционная логика собрана в одном экране.',
+        en: 'All operating logic is gathered in one desk.',
+        kk: 'Барлық операциялық логика бір экранға жиналған.',
+      ),
+      description: _t(
+        ru: 'Новые заказы, текущий поток, готовые позиции и каталог работают как одна система без лишних переходов.',
+        en: 'New orders, the active workflow, ready items, and the catalog work as one system without extra jumps.',
+        kk: 'Жаңа тапсырыстар, ағымдағы ағын, дайын позициялар және каталог артық ауысусыз бір жүйе ретінде жұмыс істейді.',
+      ),
+      points: [
+        DeskHelpGuidePoint(
+          title: _t(
+            ru: 'Берите новый заказ сразу',
+            en: 'Take the new order right away',
+            kk: 'Жаңа тапсырысты бірден алыңыз',
+          ),
+          description: _t(
+            ru: 'После оплаты заказ появляется без перезагрузки, поэтому можно сразу проверить адрес, комментарий и изделие.',
+            en: 'A paid order appears without reload, so you can immediately check the address, note, and garment.',
+            kk: 'Төленген тапсырыс қайта жүктеусіз көрінеді, сондықтан мекенжайды, ескертпені және бұйымды бірден тексеруге болады.',
+          ),
+        ),
+        DeskHelpGuidePoint(
+          title: _t(
+            ru: 'Передавайте в цех без потери деталей',
+            en: 'Send to production without losing details',
+            kk: 'Цехқа деректерді жоғалтпай жіберіңіз',
+          ),
+          description: _t(
+            ru: 'После подтверждения заказ сразу уходит в поток, а клиентские и внутренние заметки остаются в карточке.',
+            en: 'After confirmation the order moves into the workflow, while client and internal notes stay on the card.',
+            kk: 'Растаудан кейін тапсырыс ағынға бірден өтеді, ал клиент пен ішкі жазбалар карточкада қалады.',
+          ),
+        ),
+        DeskHelpGuidePoint(
+          title: _t(
+            ru: 'Обновляйте каталог без отдельной админки',
+            en: 'Update the catalog without a separate admin panel',
+            kk: 'Каталогты бөлек админкасыз жаңартыңыз',
+          ),
+          description: _t(
+            ru: 'В товарах можно менять наличие, размеры, цену и галерею, не выходя из AVISHU.',
+            en: 'You can update stock, sizes, price, and gallery directly inside AVISHU.',
+            kk: 'Қолжетімділікті, өлшемдерді, бағаны және галереяны AVISHU ішінен жаңартуға болады.',
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProfileFlowSection({required bool compact}) {
+    return DeskHelpSystemFlowSection(
+      compact: compact,
+      eyebrow: _t(ru: 'СИСТЕМНЫЙ ПОТОК', en: 'SYSTEM FLOW', kk: 'ЖҮЙЕЛІК АҒЫН'),
+      steps: [
+        DeskHelpFlowStep(
+          title: localizedRoleLabel(UserRole.client, _language),
+          details: _t(
+            ru: 'Клиент выбирает изделие, подтверждает размер, адрес и завершает оплату.',
+            en: 'The client chooses the garment, confirms the size and address, and completes payment.',
+            kk: 'Клиент бұйымды таңдап, өлшем мен мекенжайды растап, төлемді аяқтайды.',
+          ),
+        ),
+        DeskHelpFlowStep(
+          title: localizedRoleLabel(UserRole.franchisee, _language),
+          details: _t(
+            ru: 'Франчайзи видит новый заказ сразу после оплаты, проверяет детали и передаёт задачу дальше.',
+            en: 'The franchisee sees the new order right after payment, checks the details, and moves the task forward.',
+            kk: 'Франчайзи жаңа тапсырысты төлемнен кейін бірден көріп, деректерді тексеріп, тапсырманы келесі кезеңге жібереді.',
+          ),
+        ),
+        DeskHelpFlowStep(
+          title: localizedRoleLabel(UserRole.production, _language),
+          details: _t(
+            ru: 'Производство берёт заказ в работу, обновляет этапы и отмечает готовность вещи.',
+            en: 'Production takes the order into work, updates stages, and marks the garment as ready.',
+            kk: 'Өндіріс тапсырысты жұмысқа алып, кезеңдерді жаңартып, бұйымның дайын екенін белгілейді.',
+          ),
+        ),
+        DeskHelpFlowStep(
+          title: localizedRoleLabel(UserRole.client, _language),
+          details: _t(
+            ru: 'Клиент получает обновление в трекинге, видит готовность и завершает путь получением заказа.',
+            en: 'The client receives the update in tracking, sees the ready status, and completes the journey by receiving the order.',
+            kk: 'Клиент бақылауда жаңартуды көріп, дайын мәртебесін алады және тапсырысты алумен циклді аяқтайды.',
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProfileSupportSection({
+    required bool compact,
+    required AppUser? user,
+    required List<OrderModel> orders,
+    required List<ProductModel> products,
+    required OrderModel? priorityOrder,
+  }) {
+    return DeskHelpSupportSection(
+      compact: compact,
+      eyebrow: _t(
+        ru: 'ПОМОЩЬ И ПОДДЕРЖКА',
+        en: 'HELP & SUPPORT',
+        kk: 'КӨМЕК ЖӘНЕ ҚОЛДАУ',
+      ),
+      title: _t(
+        ru: 'Соберите понятное обращение без ручной подготовки.',
+        en: 'Build a clear support request without manual prep.',
+        kk: 'Қолдау сұрауын қолмен дайындамай-ақ жинаңыз.',
+      ),
+      description: _t(
+        ru: 'Если нужно быстро подключить поддержку, скопируйте готовое сообщение, email или номер приоритетного заказа.',
+        en: 'If you need to involve support quickly, copy a ready message, your email, or the priority order number.',
+        kk: 'Қолдауды тез қосу керек болса, дайын хабарламаны, email-ді немесе басым тапсырыс нөмірін көшіріңіз.',
+      ),
+      actions: [
+        DeskHelpSupportAction(
+          title: _t(
+            ru: 'Скопировать сообщение для чата',
+            en: 'Copy chat message',
+            kk: 'Чатқа арналған хабарламаны көшіру',
+          ),
+          description: _t(
+            ru: 'Вставьте готовый текст в чат поддержки, чтобы сразу передать роль, email и приоритетный заказ.',
+            en: 'Paste the ready text into support chat to instantly share your role, email, and priority order.',
+            kk: 'Рөлді, email-ді және басым тапсырысты бірден жіберу үшін дайын мәтінді қолдау чатына қойыңыз.',
+          ),
+          actionLabel: _t(ru: 'COPY', en: 'COPY', kk: 'COPY'),
+          onTap: () => _copyToClipboard(
+            _franchiseeSupportBrief(
+              userEmail: user?.email ?? '',
+              orders: orders,
+              products: products,
+              priorityOrder: priorityOrder,
+            ),
+            _t(
+              ru: 'Сообщение для чата скопировано.',
+              en: 'Chat message copied.',
+              kk: 'Чатқа арналған хабарлама көшірілді.',
+            ),
+          ),
+        ),
+        DeskHelpSupportAction(
+          title: _t(
+            ru: 'Скопировать email аккаунта',
+            en: 'Copy account email',
+            kk: 'Аккаунт email-ін көшіру',
+          ),
+          description: _t(
+            ru: 'Поможет поддержке быстро найти ваш рабочий профиль.',
+            en: 'Helps support find your working profile quickly.',
+            kk: 'Қолдау қызметіне жұмыс профиліңізді тез табуға көмектеседі.',
+          ),
+          actionLabel: _t(ru: 'COPY', en: 'COPY', kk: 'COPY'),
+          onTap: () => _copyToClipboard(
+            user?.email ?? '',
+            _t(
+              ru: 'Email аккаунта скопирован.',
+              en: 'Account email copied.',
+              kk: 'Аккаунт email-і көшірілді.',
+            ),
+          ),
+        ),
+        DeskHelpSupportAction(
+          title: _t(
+            ru: 'Скопировать приоритетный заказ',
+            en: 'Copy priority order',
+            kk: 'Басым тапсырысты көшіру',
+          ),
+          description: _t(
+            ru: 'Подходит, когда нужно быстро показать, по какому заказу требуется помощь.',
+            en: 'Use this when you need to show which order needs help right away.',
+            kk: 'Қай тапсырыс бойынша көмек керек екенін бірден көрсету қажет болса, осыны қолданыңыз.',
+          ),
+          actionLabel: _t(ru: 'COPY', en: 'COPY', kk: 'COPY'),
+          onTap: () => _copyToClipboard(
+            priorityOrder == null ? '' : '#${priorityOrder.shortId}',
+            _t(
+              ru: 'Номер заказа скопирован.',
+              en: 'Order number copied.',
+              kk: 'Тапсырыс нөмірі көшірілді.',
+            ),
+          ),
+        ),
+        DeskHelpSupportAction(
+          title: _t(
+            ru: 'Скопировать бриф для поддержки',
+            en: 'Copy support brief',
+            kk: 'Қолдау brief-ін көшіру',
+          ),
+          description: _t(
+            ru: 'Шаблон уже включает роль, email, количество заказов и товаров.',
+            en: 'The template already includes your role, email, and current order and product totals.',
+            kk: 'Шаблонда рөліңіз, email және ағымдағы тапсырыс пен тауар саны бар.',
+          ),
+          actionLabel: _t(ru: 'COPY', en: 'COPY', kk: 'COPY'),
+          onTap: () => _copyToClipboard(
+            _franchiseeSupportBrief(
+              userEmail: user?.email ?? '',
+              orders: orders,
+              products: products,
+              priorityOrder: priorityOrder,
+            ),
+            _t(
+              ru: 'Бриф для поддержки скопирован.',
+              en: 'Support brief copied.',
+              kk: 'Қолдау brief-і көшірілді.',
+            ),
+          ),
+        ),
+      ],
+      footerText: _t(
+        ru: 'Для быстрого ответа добавьте скрин карточки заказа или товара и коротко опишите, на каком шаге возникла проблема.',
+        en: 'To get help faster, attach a screenshot of the order or product card and mention at which step the problem appeared.',
+        kk: 'Жауапты тез алу үшін тапсырыс не тауар карточкасының скринін қосып, мәселе қай қадамда шыққанын қысқаша жазыңыз.',
+      ),
     );
   }
 

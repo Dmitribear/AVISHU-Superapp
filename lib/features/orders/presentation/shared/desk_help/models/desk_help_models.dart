@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
 class DeskHelpGuidePoint {
   final String title;
@@ -25,5 +25,23 @@ class DeskHelpSupportAction {
     required this.description,
     required this.actionLabel,
     required this.onTap,
+  });
+}
+
+class DeskHelpLauncherAction {
+  final IconData icon;
+  final String title;
+  final String description;
+  final String actionLabel;
+  final bool emphasized;
+  final VoidCallback onTap;
+
+  const DeskHelpLauncherAction({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.actionLabel,
+    required this.onTap,
+    this.emphasized = false,
   });
 }
