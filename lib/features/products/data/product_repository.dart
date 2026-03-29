@@ -17,6 +17,14 @@ class ProductRepository {
   CollectionReference<Map<String, dynamic>> get _products =>
       _firestore.collection('products');
 
+  Stream<List<ProductModel>> watchAllProducts() {
+    return _products.snapshots().map(
+      (snapshot) =>
+          snapshot.docs.map(ProductModel.fromFirestore).toList()
+            ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt)),
+    );
+  }
+
   Stream<List<ProductModel>> watchActiveProducts() {
     return _products
         .where('status', isEqualTo: ProductStatus.active.value)

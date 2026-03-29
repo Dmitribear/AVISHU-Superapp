@@ -32,6 +32,7 @@ import '../shared/order_digital_twin_card.dart';
 import '../shared/order_delivery_map_card.dart';
 import '../shared/order_formatters.dart';
 import '../shared/order_panels.dart';
+import 'catalog_sections/molecules/client_catalog_media_carousel.dart';
 import 'client_data.dart';
 import 'dashboard_sections/client_dashboard_sections.dart';
 
@@ -1236,7 +1237,8 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
   Widget _buildProductScreen() {
     final product = _selectedProduct!;
     final selectedColor = _selectedColor ?? product.defaultColor;
-    final selectedSize = _selectedSize ?? product.defaultSize;
+    final selectedSize = _resolvedSelectedSize(product);
+    final canOrderProduct = _canOrderProduct(product);
     final isFavorite = _favoriteProductIds.contains(product.id);
     final categoryLabel = localizeCatalogSection(_language, product.category);
     final seasonLabel = localizeCatalogSection(_language, product.season);
@@ -1310,7 +1312,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             ),
             OrderInfoRowData(
               label: _t(ru: 'Размер', en: 'Size', kk: 'Өлшем'),
-              value: selectedSize,
+              value: _selectedSizeLabel(product),
             ),
           ],
         ),
@@ -1351,11 +1353,22 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                       (size) => _selectionPill(
                         label: size,
                         selected: selectedSize == size,
+                        enabled: product.isSizeAvailable(size),
                         onTap: () => setState(() => _selectedSize = size),
                       ),
                     )
                     .toList(),
               ),
+              if (!product.hasAvailableSizes ||
+                  product.unavailableSizeCount > 0) ...[
+                const SizedBox(height: 10),
+                Text(
+                  _unavailableSizeMessage(product),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: AppColors.secondary),
+                ),
+              ],
               const SizedBox(height: 12),
               InkWell(
                 onTap: _showSizeGuideSheet,
@@ -1476,12 +1489,14 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                       ),
                 expanded: true,
                 variant: AvishuButtonVariant.filled,
-                onPressed: () {
-                  setState(() {
-                    _view = ClientView.checkout;
-                    _deliveryMethod = DeliveryMethod.courier;
-                  });
-                },
+                onPressed: canOrderProduct
+                    ? () {
+                        setState(() {
+                          _view = ClientView.checkout;
+                          _deliveryMethod = DeliveryMethod.courier;
+                        });
+                      }
+                    : null,
               ),
             ],
           ),
@@ -1599,7 +1614,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             ),
             OrderInfoRowData(
               label: _t(ru: 'Размер', en: 'Size', kk: 'Өлшем'),
-              value: _selectedSize ?? product.defaultSize,
+              value: _selectedSizeLabel(product),
             ),
             OrderInfoRowData(
               label: _t(ru: 'Количество', en: 'Quantity', kk: 'Саны'),
@@ -1806,11 +1821,16 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
   Future<void> _submitOrder(String clientId) async {
     if (_isSubmitting) return;
     final product = _selectedProduct!;
+    final selectedSize = _resolvedSelectedSize(product);
     final profile = ref.read(currentUserProfileProvider).value;
     final orders =
         ref.read(clientOrdersProvider(clientId)).value ?? const <OrderModel>[];
     final pricing = _checkoutPricing(product, profile: profile, orders: orders);
     if (!_validateCheckoutFields() || !_validatePaymentFields()) {
+      return;
+    }
+    if (selectedSize.isEmpty) {
+      _showMessage(_unavailableSizeMessage(product));
       return;
     }
 
@@ -1823,7 +1843,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             productId: product.id,
             productName:
                 '${product.title} / ${_selectedColor ?? product.defaultColor}',
-            sizeLabel: _selectedSize ?? product.defaultSize,
+            sizeLabel: selectedSize,
             quantity: _quantity,
             unitPrice: product.price,
             imageUrl: product.imageUrls.first,
@@ -2035,6 +2055,10 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       for (final product in _catalogProducts) {
         if (product.id == _selectedProduct!.id) {
           _selectedProduct = product;
+          if (_selectedSize == null ||
+              !product.isSizeAvailable(_selectedSize!)) {
+            _selectedSize = _preferredSizeFor(product);
+          }
           break;
         }
       }
@@ -2052,7 +2076,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       _selectedProduct = product;
       _selectedDate = product.preorder ? dateOptions[1] : null;
       _selectedColor = product.defaultColor;
-      _selectedSize = product.defaultSize;
+      _selectedSize = _preferredSizeFor(product);
       _view = ClientView.product;
       _selectedImageIndex = 0;
       if (_pageController.hasClients) {
@@ -2110,6 +2134,63 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     return RangeValues(
       start <= end ? start : end,
       end >= start ? end : start,
+    );
+  }
+
+  String? _preferredSizeFor(CatalogProduct product) {
+    if (product.isSizeAvailable(product.defaultSize)) {
+      return product.defaultSize;
+    }
+    if (product.firstAvailableSize.isNotEmpty) {
+      return product.firstAvailableSize;
+    }
+    return null;
+  }
+
+  String _resolvedSelectedSize(CatalogProduct product) {
+    final selectedSize = _selectedSize;
+    if (selectedSize != null && product.isSizeAvailable(selectedSize)) {
+      return selectedSize;
+    }
+    return _preferredSizeFor(product) ?? '';
+  }
+
+  bool _canOrderProduct(CatalogProduct product) {
+    return _resolvedSelectedSize(product).isNotEmpty;
+  }
+
+  String _catalogSizeChipLabel(CatalogProduct product) {
+    final firstAvailableSize = product.firstAvailableSize;
+    if (firstAvailableSize.isNotEmpty) {
+      return firstAvailableSize;
+    }
+    return _t(ru: 'Размер закрыт', en: 'Size Closed', kk: 'Өлшем жабық');
+  }
+
+  String _selectedSizeLabel(CatalogProduct product) {
+    final selectedSize = _resolvedSelectedSize(product);
+    if (selectedSize.isNotEmpty) {
+      return selectedSize;
+    }
+    return _t(ru: 'Недоступно', en: 'Unavailable', kk: 'Қолжетімсіз');
+  }
+
+  String _unavailableSizeMessage(CatalogProduct product) {
+    if (!product.hasAvailableSizes) {
+      return _t(
+        ru: 'Сейчас нет доступных размеров. Проверьте позже или выберите другую модель.',
+        en: 'There are no available sizes right now. Check back later or choose another model.',
+        kk: 'Қазір қолжетімді өлшем жоқ. Кейінірек қайта тексеріңіз немесе басқа модельді таңдаңыз.',
+      );
+    }
+    final unavailableSizes = product.sizes
+        .where((size) => !product.isSizeAvailable(size))
+        .toList();
+    final sizeList = unavailableSizes.join(', ');
+    return _t(
+      ru: 'Сейчас недоступны размеры: $sizeList',
+      en: 'Currently unavailable sizes: $sizeList',
+      kk: 'Қазір қолжетімсіз өлшемдер: $sizeList',
     );
   }
 
@@ -2228,7 +2309,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       ),
       OrderInfoRowData(
         label: _t(ru: 'Размер', en: 'Size'),
-        value: _selectedSize ?? product.defaultSize,
+        value: _selectedSizeLabel(product),
       ),
       OrderInfoRowData(
         label: _t(ru: 'Количество', en: 'Quantity'),
@@ -3072,19 +3153,30 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
     required String label,
     required bool selected,
     required VoidCallback onTap,
+    bool enabled = true,
   }) {
     return InkWell(
-      onTap: onTap,
+      onTap: enabled ? onTap : null,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: selected ? AppColors.black : AppColors.surfaceLowest,
-          border: Border.all(color: AppColors.black),
+          color: selected
+              ? AppColors.black
+              : enabled
+              ? AppColors.surfaceLowest
+              : AppColors.surfaceHigh,
+          border: Border.all(
+            color: enabled ? AppColors.black : AppColors.outlineVariant,
+          ),
         ),
         child: Text(
           label.toUpperCase(),
           style: AppTypography.button.copyWith(
-            color: selected ? AppColors.white : AppColors.black,
+            color: selected
+                ? AppColors.white
+                : enabled
+                ? AppColors.black
+                : AppColors.secondary,
             letterSpacing: 1.8,
           ),
         ),
@@ -3352,47 +3444,17 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          AspectRatio(
+          ClientCatalogMediaCarousel(
+            imageUrls: product.imageUrls,
             aspectRatio: _catalogCardAspectRatio,
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: _networkProductImage(
-                    product.imageUrls.first,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                Positioned(top: 12, left: 12, child: _metaChip(categoryLabel)),
-                if (product.isNew)
-                  Positioned(
-                    top: 12,
-                    right: 12,
-                    child: _metaChip(_t(ru: 'Новинка', en: 'New', kk: 'Жаңа')),
-                  ),
-                Positioned(
-                  bottom: 12,
-                  right: 12,
-                  child: InkWell(
-                    onTap: () {
-                      setState(() => _toggleFavorite(product.id));
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: const BoxDecoration(
-                        color: AppColors.surfaceLowest,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        isFavorite
-                            ? Icons.favorite
-                            : Icons.favorite_border_outlined,
-                        size: 18,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            leadingChip: _metaChip(categoryLabel),
+            trailingChip: product.isNew
+                ? _metaChip(_t(ru: 'Новинка', en: 'New', kk: 'Жаңа'))
+                : null,
+            isFavorite: isFavorite,
+            onFavoriteTap: () {
+              setState(() => _toggleFavorite(product.id));
+            },
           ),
           SizedBox(height: _catalogCardContentSpacing),
           Row(
@@ -3438,7 +3500,7 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
             runSpacing: 8,
             children: [
               _metaChip(product.availabilityLabelFor(_language)),
-              _metaChip(product.defaultSize),
+              _metaChip(_catalogSizeChipLabel(product)),
               _metaChip(
                 _t(
                   ru: '${product.colors.length} цвета',
@@ -3446,6 +3508,14 @@ class _ClientDashboardState extends ConsumerState<ClientDashboard> {
                   kk: '${product.colors.length} түс',
                 ),
               ),
+              if (product.unavailableSizeCount > 0)
+                _metaChip(
+                  _t(
+                    ru: '-${product.unavailableSizeCount} разм.',
+                    en: '-${product.unavailableSizeCount} sizes',
+                    kk: '-${product.unavailableSizeCount} өлшем',
+                  ),
+                ),
             ],
           ),
         ],
